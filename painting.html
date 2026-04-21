@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <!-- Google tag (gtag.js) -->
@@ -12,9 +12,31 @@
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Free Painting Estimate | GetEstimateFast</title>
-  <meta name="description" content="Get a free painting estimate in Riverview, FL and surrounding areas. Tell us about your interior or exterior painting project and receive a fast, organized response." />
+  <title>Free Painting Estimate in Riverview, FL | GetEstimateFast</title>
+  <meta name="description" content="Get a free interior or exterior painting estimate in Riverview, FL and nearby areas. Share surfaces, prep needs, measurements, timeline, and photos." />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://www.getestimatefast.com/painting.html" />
+  <meta property="og:title" content="Free Painting Estimate in Riverview, FL | GetEstimateFast" />
+  <meta property="og:description" content="Get a free interior or exterior painting estimate in Riverview, FL and nearby areas. Share surfaces, prep needs, measurements, timeline, and photos." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://www.getestimatefast.com/painting.html" />
 
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "name": "Painting Estimate",
+    "url": "https://www.getestimatefast.com/painting.html",
+    "description": "Free interior and exterior painting estimate requests in Riverview, FL and nearby communities.",
+    "provider": {
+      "@type": "LocalBusiness",
+      "name": "GetEstimateFast",
+      "telephone": "+18135917560",
+      "email": "getestimatefast@gmail.com"
+    },
+    "areaServed": ["Riverview FL", "Brandon FL", "Tampa FL", "Apollo Beach FL", "Gibsonton FL", "Valrico FL"]
+  }
+  </script>
   <style>
     * { box-sizing: border-box; }
 
@@ -375,10 +397,13 @@
 <body>
   <div class="container">
     <div class="hero">
-      <div class="badge">Painting • Riverview Area</div>
+      <div class="badge">Painting - Riverview Area</div>
       <h1>Get Your Free Painting Estimate</h1>
       <p class="sub">
-        Answer a few quick questions to request a painting estimate in Riverview and surrounding areas within 60 miles.
+        Answer a few quick questions to request a painting estimate in Riverview, FL and surrounding areas within 60 miles.
+      </p>
+      <p class="sub">
+        Prefer to talk first? <a href="tel:+18135917560">Call or text (813) 591-7560</a>.
       </p>
 
       <div class="mobile-hide">
@@ -393,7 +418,7 @@
           </div>
           <div class="info-card">
             <strong>Local service area</strong>
-            <span>Serving Riverview and surrounding communities within 60 miles.</span>
+            <span>Serving Riverview, Brandon, Tampa, Apollo Beach, Gibsonton, Valrico, and nearby communities.</span>
           </div>
         </div>
       </div>
@@ -414,6 +439,8 @@
         <input type="hidden" name="_next" value="https://www.getestimatefast.com/thank-you.html">
         <input type="hidden" name="_subject" id="email-subject">
         <input type="hidden" name="_captcha" value="false" />
+        <input type="text" name="_honey" tabindex="-1" autocomplete="off" style="display:none" />
+        <input type="hidden" name="Landing Page" value="Painting page" />
         <input type="hidden" name="_template" value="table" />
         <input type="hidden" name="Service" value="Painting" />
         <input type="hidden" name="Project Type" id="projectTypeInput" />
@@ -545,10 +572,10 @@
               <div id="standardSizeBox" class="hidden" style="margin-top:16px;">
                 <select id="standardProjectSize">
                   <option value="">Select a standard project size</option>
-                  <option>Small project — one room or minor area</option>
-                  <option>Medium project — multiple rooms</option>
-                  <option>Large project — whole house interior</option>
-                  <option>Exterior project — standard single-family home</option>
+                  <option>Small project - one room or minor area</option>
+                  <option>Medium project - multiple rooms</option>
+                  <option>Large project - whole house interior</option>
+                  <option>Exterior project - standard single-family home</option>
                   <option>Different size / not listed</option>
                 </select>
               </div>
@@ -741,7 +768,7 @@ Example:
           </div>
 
           <div class="footer-note">
-            GetEstimateFast is a lead generation platform that connects customers with construction professionals. Depending on the project, services may be performed by our team or by independent contractors.
+            Your information is used to respond to this estimate request. GetEstimateFast is a lead generation platform that connects customers with construction professionals. Depending on the project, services may be performed by our team or by independent contractors.
           </div>
 
           <div class="nav-row">
@@ -1019,39 +1046,41 @@ Example:
 
       if (singleChoiceState.knowsMeasurements === 'Yes, I know the project size') {
         if (singleChoiceState.measurementMethod === 'Select a standard project size') {
-          return `Knows project size • Standard size: ${document.getElementById('standardProjectSize').value || 'N/A'}`;
+          return `Knows project size - Standard size: ${document.getElementById('standardProjectSize').value || 'N/A'}`;
         }
 
         if (singleChoiceState.measurementMethod === 'Enter custom measurements') {
-          return `Knows project size • Custom details: ${document.getElementById('roomsCount').value || 'N/A'} rooms • ${document.getElementById('wallHeight').value || 'N/A'} ft wall height • ${document.getElementById('sqftApprox').value || 'N/A'} sqft`;
+          return `Knows project size - Custom details: ${document.getElementById('roomsCount').value || 'N/A'} rooms - ${document.getElementById('wallHeight').value || 'N/A'} ft wall height - ${document.getElementById('sqftApprox').value || 'N/A'} sqft`;
         }
 
         return 'Knows project size';
       }
 
-      return '—';
+      return '-';
     }
 
     function buildSummary() {
       const summaryBox = document.getElementById('summaryBox');
       const scope = getScopeValues();
 
+      document.getElementById('paintScopeInput').value = scope.join(', ');
+
       const items = [
-        ['Project Type', singleChoiceState.projectType || '—'],
-        ['Scope of Work', scope.length ? scope.join(', ') : '—'],
-        ['Surface Condition', singleChoiceState.surfaceCondition || '—'],
-        ['Paint & Materials', singleChoiceState.paintStatus || '—'],
+        ['Project Type', singleChoiceState.projectType || '-'],
+        ['Scope of Work', scope.length ? scope.join(', ') : '-'],
+        ['Surface Condition', singleChoiceState.surfaceCondition || '-'],
+        ['Paint & Materials', singleChoiceState.paintStatus || '-'],
         ['Measurements', getMeasurementSummary()],
-        ['Project Details', singleChoiceState.projectDetails || '—'],
-        ['Project Description', document.getElementById('projectDescription').value.trim() || '—'],
-        ['Timeline', singleChoiceState.timeline || '—'],
-        ['City', document.getElementById('city').value.trim() || '—'],
-        ['ZIP Code', document.getElementById('zip').value.trim() || '—'],
-        ['On-Site Evaluation', singleChoiceState.visit || '—'],
-        ['Full Name', document.getElementById('fullName').value.trim() || '—'],
-        ['Phone Number', document.getElementById('phone').value.trim() || '—'],
-        ['Email Address', document.getElementById('email').value.trim() || '—'],
-        ['Preferred Contact Method', document.getElementById('contactMethod').value.trim() || '—']
+        ['Project Details', singleChoiceState.projectDetails || '-'],
+        ['Project Description', document.getElementById('projectDescription').value.trim() || '-'],
+        ['Timeline', singleChoiceState.timeline || '-'],
+        ['City', document.getElementById('city').value.trim() || '-'],
+        ['ZIP Code', document.getElementById('zip').value.trim() || '-'],
+        ['On-Site Evaluation', singleChoiceState.visit || '-'],
+        ['Full Name', document.getElementById('fullName').value.trim() || '-'],
+        ['Phone Number', document.getElementById('phone').value.trim() || '-'],
+        ['Email Address', document.getElementById('email').value.trim() || '-'],
+        ['Preferred Contact Method', document.getElementById('contactMethod').value.trim() || '-']
       ];
 
       summaryBox.innerHTML = items.map(([label, value]) => `
@@ -1099,6 +1128,18 @@ Preferred Contact Method: ${document.getElementById('contactMethod').value.trim(
         '&body=' + encodeURIComponent(msg);
     }
 
+    function validatePhotoUploads() {
+      const maxBytes = 10 * 1024 * 1024;
+      const files = Array.from(document.querySelectorAll('input[type="file"]')).flatMap(input => Array.from(input.files || []));
+      const totalBytes = files.reduce((sum, file) => sum + file.size, 0);
+
+      if (totalBytes > maxBytes) {
+        alert('Please keep total photo uploads under 10MB, or submit the form without photos and send photos by WhatsApp after submitting.');
+        return false;
+      }
+
+      return true;
+    }
     showStep(0);
   </script>
 
@@ -1106,7 +1147,15 @@ Preferred Contact Method: ${document.getElementById('contactMethod').value.trim(
     const leadForm = document.getElementById('lead-form');
 
     if (leadForm) {
-      leadForm.addEventListener('submit', function () {
+      leadForm.addEventListener('submit', function (event) {
+        if (!validatePhotoUploads()) {
+          event.preventDefault();
+          return;
+        }
+
+        buildSummary();
+        buildBackupLinks();
+
         const fullName = document.getElementById('fullName')?.value.trim() || 'New Lead';
         const service = 'Painting';
         const zip = document.getElementById('zip')?.value.trim() || 'No ZIP';
@@ -1117,7 +1166,12 @@ Preferred Contact Method: ${document.getElementById('contactMethod').value.trim(
           subjectField.value = `${fullName} - ${service} - ${zip} - ${timeline}`;
         }
 
-            });
+        const submitButton = this.querySelector('.submit-btn');
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Sending...';
+        }
+      });
     }
   </script>
 </body>
