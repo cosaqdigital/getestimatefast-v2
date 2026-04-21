@@ -12,103 +12,136 @@
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Free Bathroom Remodeling Estimate | GetEstimateFast</title>
-  <meta name="description" content="Get a free bathroom remodeling estimate in Riverview, FL and surrounding areas. Tell us about your project and receive a fast, organized response." />
+  <title>Bathroom Remodeling Estimate | GetEstimateFast</title>
+  <meta
+    name="description"
+    content="Request a free bathroom remodeling estimate in Riverview, FL and nearby areas. Answer a few quick questions and send your project details through a fast, professional process."
+  />
 
   <style>
+    :root {
+      --bg: #f3f4f6;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --dark: #0f172a;
+      --dark-2: #111827;
+      --accent: #ea580c;
+      --accent-hover: #c2410c;
+      --green: #18794e;
+      --green-bg: #e8f7ec;
+      --soft: #f9fafb;
+      --warn-bg: #fff8e7;
+      --warn-line: #f3d27a;
+      --warn-text: #5c4500;
+      --radius-xl: 22px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+      --radius-sm: 12px;
+      --shadow: 0 10px 30px rgba(0,0,0,0.05);
+    }
+
     * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+    }
 
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #f3f4f6;
-      color: #111827;
+      background: var(--bg);
+      color: var(--text);
     }
 
     .container {
-      max-width: 900px;
+      max-width: 860px;
       margin: 0 auto;
-      padding: 22px 18px 60px;
+      padding: 16px 16px 52px;
     }
 
-    .hero {
-      background: #ffffff;
-      border-radius: 20px;
-      padding: 24px;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.05);
-      margin-bottom: 18px;
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
     }
 
-    .badge {
-      display: inline-block;
-      background: #e8f7ec;
-      color: #18794e;
-      font-size: 13px;
+    .back-link {
+      text-decoration: none;
+      color: var(--dark-2);
+      font-size: 14px;
       font-weight: 700;
+    }
+
+    .service-pill {
+      display: inline-block;
+      background: var(--green-bg);
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 800;
       padding: 8px 12px;
       border-radius: 999px;
-      margin-bottom: 12px;
     }
 
-    h1 {
-      font-size: 38px;
-      line-height: 1.08;
-      margin: 0 0 10px;
+    .page-head {
+      background: var(--card);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      padding: 20px 22px;
+      margin-bottom: 14px;
     }
 
-    .sub {
-      font-size: 17px;
-      color: #4b5563;
-      line-height: 1.6;
+    .page-head h1 {
+      font-size: 30px;
+      line-height: 1.1;
+      margin: 0 0 8px;
+      letter-spacing: -0.02em;
+    }
+
+    .page-sub {
       margin: 0;
+      color: #4b5563;
+      font-size: 16px;
+      line-height: 1.6;
     }
 
-    .mobile-hide {
-      display: block;
+    .micro-trust {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
     }
 
-    .info-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-      margin-top: 20px;
-    }
-
-    .info-card {
+    .micro-trust span {
+      font-size: 13px;
+      color: #374151;
       background: #f9fafb;
-      border: 1px solid #e5e7eb;
-      border-radius: 16px;
-      padding: 16px;
-    }
-
-    .info-card strong {
-      display: block;
-      margin-bottom: 6px;
-      font-size: 15px;
-    }
-
-    .info-card span {
-      font-size: 14px;
-      color: #6b7280;
-      line-height: 1.5;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 8px 10px;
+      font-weight: 700;
     }
 
     .form-shell {
-      background: #ffffff;
-      border-radius: 20px;
-      padding: 24px;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.05);
+      background: var(--card);
+      border-radius: var(--radius-xl);
+      padding: 22px;
+      box-shadow: var(--shadow);
     }
 
     .progress-wrap {
-      margin-bottom: 22px;
+      margin-bottom: 24px;
     }
 
     .progress-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       margin-bottom: 8px;
       font-size: 14px;
       color: #4b5563;
@@ -117,7 +150,7 @@
 
     .progress-bar {
       height: 10px;
-      background: #e5e7eb;
+      background: var(--line);
       border-radius: 999px;
       overflow: hidden;
     }
@@ -125,7 +158,7 @@
     .progress-fill {
       height: 100%;
       width: 8%;
-      background: #111827;
+      background: var(--dark-2);
       transition: width 0.25s ease;
     }
 
@@ -141,10 +174,11 @@
       font-size: 30px;
       margin: 0 0 10px;
       line-height: 1.15;
+      letter-spacing: -0.02em;
     }
 
     .step-desc {
-      color: #6b7280;
+      color: var(--muted);
       font-size: 16px;
       line-height: 1.6;
       margin: 0 0 20px;
@@ -160,7 +194,7 @@
     .submit-btn,
     .contact-link {
       border: none;
-      border-radius: 14px;
+      border-radius: var(--radius-md);
       cursor: pointer;
       transition: 0.2s ease;
       font-size: 17px;
@@ -171,20 +205,21 @@
       width: 100%;
       padding: 18px 16px;
       text-align: left;
-      background: #111827;
+      background: var(--dark);
       color: #fff;
-      font-weight: 600;
+      font-weight: 700;
     }
 
     .option-btn:hover,
     .nav-btn:hover,
     .submit-btn:hover,
     .contact-link:hover {
-      opacity: 0.95;
+      opacity: 0.96;
+      transform: translateY(-1px);
     }
 
     .option-btn.selected {
-      background: #18794e;
+      background: var(--green);
     }
 
     .checkbox-list {
@@ -196,9 +231,9 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
-      border-radius: 14px;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
       padding: 16px;
       font-size: 16px;
       cursor: pointer;
@@ -227,9 +262,10 @@
       width: 100%;
       padding: 15px 16px;
       border: 1px solid #d1d5db;
-      border-radius: 12px;
+      border-radius: var(--radius-sm);
       font-size: 16px;
       background: white;
+      color: var(--text);
     }
 
     textarea {
@@ -239,27 +275,27 @@
 
     .hint {
       font-size: 14px;
-      color: #6b7280;
+      color: var(--muted);
       line-height: 1.6;
       margin-top: 10px;
     }
 
     .notice-box {
-      background: #fff8e7;
-      border: 1px solid #f3d27a;
+      background: var(--warn-bg);
+      border: 1px solid var(--warn-line);
       padding: 16px;
-      border-radius: 14px;
-      color: #5c4500;
+      border-radius: var(--radius-md);
+      color: var(--warn-text);
       font-size: 15px;
       line-height: 1.6;
       margin-bottom: 18px;
     }
 
     .soft-box {
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
+      background: var(--soft);
+      border: 1px solid var(--line);
       padding: 16px;
-      border-radius: 14px;
+      border-radius: var(--radius-md);
       margin-top: 14px;
     }
 
@@ -274,27 +310,27 @@
     .submit-btn {
       padding: 16px 18px;
       width: 100%;
-      background: #111827;
+      background: var(--dark-2);
       color: #fff;
       font-weight: 700;
     }
 
     .nav-btn.secondary {
       background: #e5e7eb;
-      color: #111827;
+      color: var(--dark-2);
     }
 
     .summary {
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
-      border-radius: 16px;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
       padding: 18px;
       display: grid;
       gap: 12px;
     }
 
     .summary-item {
-      border-bottom: 1px solid #e5e7eb;
+      border-bottom: 1px solid var(--line);
       padding-bottom: 10px;
     }
 
@@ -312,7 +348,7 @@
 
     .summary-item span {
       font-size: 15px;
-      color: #111827;
+      color: var(--text);
       line-height: 1.5;
     }
 
@@ -325,7 +361,7 @@
 
     .contact-link {
       display: inline-block;
-      background: #111827;
+      background: var(--dark-2);
       color: white;
       padding: 13px 16px;
       font-weight: 700;
@@ -338,7 +374,15 @@
     .footer-note {
       margin-top: 20px;
       font-size: 13px;
-      color: #6b7280;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .page-footer {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 13px;
+      color: var(--muted);
       line-height: 1.7;
     }
 
@@ -347,6 +391,7 @@
       font-size: 14px;
       margin-top: 12px;
       display: none;
+      font-weight: 700;
     }
 
     .hidden {
@@ -354,47 +399,59 @@
     }
 
     @media (max-width: 768px) {
-      .mobile-hide {
-        display: none;
+      .container {
+        padding-top: 10px;
       }
 
-      h1 { font-size: 30px; }
-      h2 { font-size: 24px; }
+      .page-head,
+      .form-shell {
+        padding: 18px;
+      }
 
-      .form-shell, .hero { padding: 20px; }
-      .two-col, .three-col, .info-grid { grid-template-columns: 1fr; }
-      .nav-row { flex-direction: column; }
+      .page-head h1 {
+        font-size: 26px;
+      }
 
-      .container {
-        padding-top: 12px;
+      h2 {
+        font-size: 24px;
+      }
+
+      .two-col,
+      .three-col {
+        grid-template-columns: 1fr;
+      }
+
+      .nav-row {
+        flex-direction: column;
+      }
+
+      .progress-top {
+        align-items: flex-start;
+      }
+
+      .micro-trust {
+        margin-top: 12px;
       }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="hero">
-      <div class="badge">Bathroom Remodeling • Riverview Area</div>
-      <h1>Get Your Free Bathroom Remodeling Estimate</h1>
-      <p class="sub">
-        Answer a few quick questions to request a bathroom remodeling estimate in Riverview and surrounding areas within 60 miles.
+    <div class="topbar">
+      <a href="index.html" class="back-link">← Back to Home</a>
+      <span class="service-pill">Bathroom Remodeling • Riverview Area</span>
+    </div>
+
+    <div class="page-head">
+      <h1>Bathroom Remodeling Estimate</h1>
+      <p class="page-sub">
+        Answer a few quick questions to request your free estimate.
       </p>
 
-      <div class="mobile-hide">
-        <div class="info-grid">
-          <div class="info-card">
-            <strong>Fast response</strong>
-            <span>Organized project requests with enough detail may receive a response within 24 hours.</span>
-          </div>
-          <div class="info-card">
-            <strong>Simple process</strong>
-            <span>Submit your bathroom project details through a guided step-by-step form.</span>
-          </div>
-          <div class="info-card">
-            <strong>Local service area</strong>
-            <span>Serving Riverview and surrounding communities within 60 miles.</span>
-          </div>
-        </div>
+      <div class="micro-trust">
+        <span>Fast online request</span>
+        <span>Local service area</span>
+        <span>Organized project review</span>
       </div>
     </div>
 
@@ -426,7 +483,7 @@
 
         <section class="step active" data-title="Project Type">
           <h2>What type of bathroom project do you need?</h2>
-          <p class="step-desc">Select the option that best matches your bathroom remodel.</p>
+          <p class="step-desc">Select the option that best matches your project.</p>
 
           <div class="option-grid" data-group="projectType">
             <button type="button" class="option-btn" data-value="Full bathroom remodel">Full bathroom remodel</button>
@@ -447,7 +504,7 @@
 
         <section class="step" data-title="Scope of Work">
           <h2>What work is needed?</h2>
-          <p class="step-desc">Select all that apply to your project.</p>
+          <p class="step-desc">Select all items that apply to your project.</p>
 
           <div class="checkbox-list">
             <label class="checkbox-item"><input type="checkbox" name="Scope of Work[]" value="Demolition">Demolition</label>
@@ -498,7 +555,7 @@
 
         <section class="step" data-title="Measurements">
           <h2>Do you know your bathroom measurements?</h2>
-          <p class="step-desc">This helps us review whether your estimate may be evaluated more accurately within 24 hours.</p>
+          <p class="step-desc">Measurements can help us review your request more accurately.</p>
 
           <div class="option-grid" data-group="knowsMeasurements">
             <button type="button" class="option-btn" data-value="Yes, I know the measurements">Yes, I know the measurements</button>
@@ -506,7 +563,7 @@
           </div>
 
           <div id="measurementNoBox" class="notice-box hidden">
-            Accurate estimates may require bathroom measurements. If measurements are not available, an on-site evaluation may be recommended and the 24-hour estimate may not apply.
+            If measurements are not available yet, an on-site evaluation may be recommended before final pricing.
           </div>
 
           <div id="measurementYesBox" class="hidden">
@@ -568,7 +625,7 @@
 
         <section class="step" data-title="Project Description">
           <h2>Tell us more about your project</h2>
-          <p class="step-desc">The more details you provide, the more accurate your estimate review can be.</p>
+          <p class="step-desc">A few details can help us better understand what you need.</p>
 
           <textarea id="projectDescription" name="Project Description" placeholder="Describe what you want to change or improve in your bathroom.
 
@@ -579,7 +636,7 @@ Example:
 - Upgrade vanity and lighting
 - Fix previous water damage"></textarea>
 
-          <div class="hint">You can include any specific ideas, materials, or existing problems you are experiencing.</div>
+          <div class="hint">You can include your goals, preferred materials, or any existing problems.</div>
 
           <div class="error">Please add a short project description to continue.</div>
 
@@ -611,7 +668,7 @@ Example:
 
         <section class="step" data-title="Location">
           <h2>Where is the project located?</h2>
-          <p class="step-desc">Please provide the city and ZIP code of the property.</p>
+          <p class="step-desc">Please enter the city and ZIP code of the property.</p>
 
           <div class="field-grid two-col">
             <input type="text" id="city" name="City" placeholder="City" />
@@ -627,10 +684,10 @@ Example:
         </section>
 
         <section class="step" data-title="On-Site Evaluation">
-          <h2>Do you think an on-site evaluation may be needed?</h2>
+          <h2>Could this project need an on-site evaluation?</h2>
 
           <div class="notice-box">
-            Some projects may require an in-person evaluation before final pricing. If a site visit is necessary, an evaluation fee may apply depending on the location and project complexity. Any approved evaluation fee may be credited toward the project if you move forward.
+            Some projects may need an in-person evaluation before final pricing. If a site visit is necessary, any fee can be explained in advance and may be credited toward the project if approved.
           </div>
 
           <div class="option-grid" data-group="visit">
@@ -647,21 +704,21 @@ Example:
         </section>
 
         <section class="step" data-title="Photos">
-          <h2>Would you like to add photos of the project area?</h2>
-          <p class="step-desc">Photos are optional, but they help us review your bathroom project more accurately.</p>
+          <h2>Would you like to add photos?</h2>
+          <p class="step-desc">Photos are optional, but they can help us review your project more accurately.</p>
 
-        <label>Upload Project Photos (optional)</label>
+          <label>Upload Project Photos (optional)</label>
 
-<input type="file" name="Photo 1" accept="image/*" />
-<input type="file" name="Photo 2" accept="image/*" />
-<input type="file" name="Photo 3" accept="image/*" />
-<input type="file" name="Photo 4" accept="image/*" />
-<input type="file" name="Photo 5" accept="image/*" />
+          <input type="file" name="Photo 1" accept="image/*" />
+          <input type="file" name="Photo 2" accept="image/*" />
+          <input type="file" name="Photo 3" accept="image/*" />
+          <input type="file" name="Photo 4" accept="image/*" />
+          <input type="file" name="Photo 5" accept="image/*" />
 
-<div class="hint">
-  You may upload up to 5 photos. Max total size: 10MB.
-</div>
-        
+          <div class="hint">
+            You may upload up to 5 photos. Max total size: 10MB.
+          </div>
+
           <div class="nav-row">
             <button type="button" class="nav-btn secondary" onclick="prevStep()">Back</button>
             <button type="button" class="nav-btn" onclick="nextStep()">Next</button>
@@ -670,7 +727,7 @@ Example:
 
         <section class="step" data-title="Contact Information">
           <h2>How can we reach you?</h2>
-          <p class="step-desc">Please enter your contact information so we can follow up on your request.</p>
+          <p class="step-desc">Enter your contact details so we can follow up on your request.</p>
 
           <div class="field-grid">
             <input type="text" id="fullName" name="Full Name" placeholder="Full Name" />
@@ -695,7 +752,7 @@ Example:
 
         <section class="step" data-title="Review & Submit">
           <h2>Review your request</h2>
-          <p class="step-desc">Please review your project details before submitting.</p>
+          <p class="step-desc">Please review your details before submitting.</p>
 
           <div class="summary" id="summaryBox"></div>
 
@@ -715,6 +772,10 @@ Example:
           </div>
         </section>
       </form>
+    </div>
+
+    <div class="page-footer">
+      Serving Riverview, FL and nearby areas.
     </div>
   </div>
 
@@ -1072,8 +1133,6 @@ Preferred Contact Method: ${document.getElementById('contactMethod').value.trim(
         if (subjectField) {
           subjectField.value = `${fullName} - ${service} - ${zip} - ${timeline}`;
         }
-
-       
       });
     }
   </script>
