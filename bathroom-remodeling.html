@@ -489,6 +489,7 @@
       <form id="lead-form" action="https://formsubmit.co/getestimatefast@gmail.com" method="POST" enctype="multipart/form-data">
         <input type="hidden" name="_next" value="https://www.getestimatefast.com/thank-you.html">
         <input type="hidden" name="_subject" id="email-subject">
+        <input type="hidden" name="_replyto" id="reply-to-email">
         <input type="hidden" name="_captcha" value="false" />
         <input type="text" name="_honey" tabindex="-1" autocomplete="off" style="display:none" />
         <input type="hidden" name="Landing Page" value="Bathroom Remodeling page" />
@@ -754,7 +755,7 @@ Example:
           <div class="field-grid">
             <input type="text" id="fullName" name="Full Name" placeholder="Full Name" autocomplete="name" />
             <input type="tel" id="phone" name="Phone Number" placeholder="Phone Number (example: 813-555-1234)" autocomplete="tel" inputmode="tel" />
-            <input type="email" id="email" name="Email Address" placeholder="Email Address" autocomplete="email" />
+            <input type="email" id="email" name="email" placeholder="Email Address" autocomplete="email" />
             <select id="contactMethod" name="Preferred Contact Method">
               <option value="">Preferred contact method</option>
               <option>Phone call</option>
@@ -1167,13 +1168,19 @@ Preferred Contact Method: ${document.getElementById('contactMethod').value.trim(
         buildBackupLinks();
 
         const fullName = document.getElementById('fullName')?.value.trim() || 'New Lead';
+        const email = document.getElementById('email')?.value.trim() || '';
         const service = 'Bathroom Remodeling';
         const zip = document.getElementById('zip')?.value.trim() || 'No ZIP';
         const timeline = singleChoiceState.timeline || 'No Timeline';
 
         const subjectField = document.getElementById('email-subject');
+        const replyToField = document.getElementById('reply-to-email');
         if (subjectField) {
           subjectField.value = `${fullName} - ${service} - ${zip} - ${timeline}`;
+        }
+
+        if (replyToField && email) {
+          replyToField.value = email;
         }
 
         const submitButton = this.querySelector('.submit-btn');
