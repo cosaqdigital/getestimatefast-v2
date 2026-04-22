@@ -207,7 +207,7 @@
     }
 
     .hero {
-      padding: 34px 0 26px;
+      padding: 24px 0 10px;
     }
 
     .hero-card {
@@ -221,6 +221,14 @@
       border-radius: var(--radius-xl);
       box-shadow: var(--shadow);
       padding: 44px;
+    }
+
+    .hero-card-compact {
+      padding: 38px;
+    }
+
+    .hero-content {
+      max-width: 760px;
     }
 
     .hero-grid {
@@ -283,7 +291,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 12px;
-      margin-bottom: 18px;
+      margin-bottom: 10px;
     }
 
     .hero-note {
@@ -367,7 +375,7 @@
     }
 
     .section {
-      padding: 18px 0;
+      padding: 14px 0;
     }
 
     .section-card {
@@ -380,6 +388,10 @@
 
     .section-header {
       margin-bottom: 22px;
+    }
+
+    .compact-section-header {
+      margin-bottom: 16px;
     }
 
     .section-tag {
@@ -442,6 +454,11 @@
       margin-top: 22px;
     }
 
+    .compact-services-grid {
+      gap: 12px;
+      margin-top: 0;
+    }
+
     .service-card {
       position: relative;
       background: linear-gradient(180deg, #ffffff 0%, #fbfcfd 100%);
@@ -451,6 +468,21 @@
       display: flex;
       flex-direction: column;
       min-height: 100%;
+      color: var(--dark);
+      text-decoration: none;
+    }
+
+    .compact-service-card {
+      border-radius: 18px;
+      padding: 18px;
+      min-height: auto;
+      transition: 0.2s ease;
+    }
+
+    .compact-service-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 12px 28px rgba(16, 24, 40, 0.08);
+      transform: translateY(-1px);
     }
 
     .service-top {
@@ -458,6 +490,10 @@
       align-items: center;
       gap: 12px;
       margin-bottom: 14px;
+    }
+
+    .compact-service-card .service-top {
+      margin-bottom: 0;
     }
 
     .service-icon {
@@ -506,6 +542,10 @@
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 16px;
       margin-top: 22px;
+    }
+
+    .compact-steps-grid {
+      margin-top: 0;
     }
 
     .step-card {
@@ -720,9 +760,14 @@
     }
 
     @media (max-width: 760px) {
+      .topbar-inner {
+        gap: 8px;
+      }
+
       .header-inner {
         flex-direction: column;
         align-items: stretch;
+        padding: 12px 0;
       }
 
       .nav-actions {
@@ -736,15 +781,15 @@
       .hero-card,
       .section-card,
       .cta-box {
-        padding: 24px;
+        padding: 20px;
       }
 
       h1 {
-        font-size: 36px;
+        font-size: 34px;
       }
 
       h2 {
-        font-size: 30px;
+        font-size: 28px;
       }
 
       .hero-text,
@@ -757,6 +802,27 @@
 
       .hero-points {
         grid-template-columns: 1fr;
+      }
+
+      .hero {
+        padding: 14px 0 8px;
+      }
+
+      .hero-card-compact {
+        padding: 22px;
+      }
+
+      .eyebrow {
+        margin-bottom: 12px;
+      }
+
+      h1 {
+        margin-bottom: 10px;
+      }
+
+      .hero-text {
+        margin-bottom: 16px;
+        line-height: 1.55;
       }
 
       .hero-actions,
@@ -772,6 +838,34 @@
 
       .topbar-inner {
         font-size: 13px;
+      }
+
+      .section {
+        padding: 10px 0;
+      }
+
+      .compact-section-card {
+        padding: 18px;
+      }
+
+      .compact-service-card {
+        padding: 14px;
+      }
+
+      .service-icon {
+        width: 42px;
+        height: 42px;
+        flex-basis: 42px;
+        font-size: 18px;
+        border-radius: 14px;
+      }
+
+      .service-card h3 {
+        font-size: 19px;
+      }
+
+      .step-card {
+        padding: 18px;
       }
     }
 
@@ -855,74 +949,87 @@
   <main>
     <section class="hero">
       <div class="container">
-        <div class="hero-card">
-          <div class="hero-grid">
-            <div>
-              <div class="eyebrow">Free construction estimates - Local service area</div>
+        <div class="hero-card hero-card-compact">
+          <div class="hero-content">
+            <div class="eyebrow">Free construction estimates - Riverview, FL</div>
+            <h1>Get a Free Construction Estimate in Riverview, FL</h1>
+            <p class="hero-text">Choose your service and request an estimate in just a few minutes.</p>
+            <div class="hero-actions">
+              <a href="#services" class="btn btn-primary">Get My Free Estimate</a>
+              <a href="#services" class="btn btn-light">View Services</a>
+            </div>
+            <p class="hero-note">Takes less than 2 minutes to complete</p>
+          </div>
+        </div>
+      </div>
+    </section>
 
-              <h1>Get a free construction estimate in minutes</h1>
+    <section class="section services-section" id="services">
+      <div class="container">
+        <div class="section-card compact-section-card">
+          <div class="section-header compact-section-header">
+            <span class="section-tag">Choose your service</span>
+            <h2>What do you need an estimate for?</h2>
+          </div>
 
-              <p class="hero-text">
-                Request an estimate for bathroom remodeling, flooring, painting, or drywall in Riverview, FL and nearby areas. Choose your service, answer a few guided questions, and send organized project details for a faster review.
-              </p>
-
-              <ul class="hero-points">
-                <li>Fast online request process</li>
-                <li>Clear service-specific forms</li>
-                <li>Local project coverage</li>
-                <li>Email, text, and WhatsApp follow-up</li>
-              </ul>
-
-              <div class="hero-actions">
-                <a href="#services" class="btn btn-primary">Start My Free Estimate</a>
-                <a href="#how-it-works" class="btn btn-light">How It Works</a>
+          <div class="services-grid compact-services-grid">
+            <a class="service-card compact-service-card" href="bathroom-remodeling.html">
+              <div class="service-top">
+                <div class="service-icon">B</div>
+                <h3>Bathroom Remodeling</h3>
               </div>
+            </a>
 
-              <p class="hero-note">
-                The more complete your request is, the easier it is to review scope, timing, and next steps.
-              </p>
+            <a class="service-card compact-service-card" href="flooring-installation.html">
+              <div class="service-top">
+                <div class="service-icon">F</div>
+                <h3>Flooring</h3>
+              </div>
+            </a>
+
+            <a class="service-card compact-service-card" href="painting.html">
+              <div class="service-top">
+                <div class="service-icon">P</div>
+                <h3>Painting</h3>
+              </div>
+            </a>
+
+            <a class="service-card compact-service-card" href="drywall.html">
+              <div class="service-top">
+                <div class="service-icon">D</div>
+                <h3>Drywall</h3>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="how-it-works">
+      <div class="container">
+        <div class="section-card compact-section-card">
+          <div class="section-header compact-section-header">
+            <span class="section-tag">How it works</span>
+            <h2>Request an estimate in 3 steps</h2>
+          </div>
+
+          <div class="steps-grid compact-steps-grid">
+            <div class="step-card">
+              <div class="step-number">1</div>
+              <strong>Choose your service</strong>
+              <span>Select the project type that matches your needs.</span>
             </div>
 
-            <div class="hero-panel">
-              <div class="panel-card">
-                <h3>Why homeowners request estimates here</h3>
-                <p>
-                  Instead of sending a vague message, you can choose the exact service you need and submit organized project information from the start.
-                </p>
+            <div class="step-card">
+              <div class="step-number">2</div>
+              <strong>Answer quick questions</strong>
+              <span>Share scope, location, timing, and helpful details.</span>
+            </div>
 
-                <div class="mini-list">
-                  <div class="mini-item">
-                    <div class="mini-icon">1</div>
-                    <div>
-                      <strong>Select your service</strong>
-                      <span>Bathroom, flooring, painting, or drywall.</span>
-                    </div>
-                  </div>
-
-                  <div class="mini-item">
-                    <div class="mini-icon">2</div>
-                    <div>
-                      <strong>Share project details</strong>
-                      <span>Scope, measurements, timeline, location, and more.</span>
-                    </div>
-                  </div>
-
-                  <div class="mini-item">
-                    <div class="mini-icon">3</div>
-                    <div>
-                      <strong>Receive estimate review</strong>
-                      <span>Clearer requests help move the process forward faster.</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="panel-card">
-                <h4>Service area</h4>
-                <p>
-                  Serving Riverview, Brandon, Tampa, Apollo Beach, Gibsonton, Valrico, and nearby communities within approximately 60 miles, depending on the project and availability.
-                </p>
-              </div>
+            <div class="step-card">
+              <div class="step-number">3</div>
+              <strong>Submit your request</strong>
+              <span>Your details are sent for review and follow-up.</span>
             </div>
           </div>
         </div>
@@ -934,181 +1041,55 @@
         <div class="section-card">
           <div class="section-header">
             <span class="section-tag">Why choose GetEstimateFast</span>
-            <h2>Built to make estimate requests clearer, faster, and more professional</h2>
+            <h2>Built for fast, organized local estimate requests</h2>
             <p class="section-text">
-              This platform is designed for real construction projects that need a better intake process before the first estimate review. A more complete request helps reduce confusion and improves the quality of the first response.
+              Choose the service you need, send clear project details, and make the first review easier for everyone involved.
             </p>
           </div>
 
           <div class="trust-grid">
             <div class="trust-card">
               <strong>Service-specific forms</strong>
-              <p>Each service has its own guided form so the request matches the actual project type.</p>
+              <p>Each request goes through the form that matches the project type.</p>
             </div>
 
             <div class="trust-card">
               <strong>Local project focus</strong>
-              <p>Built for homeowners and property owners around Riverview, FL instead of a generic nationwide lead form.</p>
+              <p>Built for homeowners and property owners around Riverview, FL.</p>
             </div>
 
             <div class="trust-card">
-              <strong>Simple request experience</strong>
-              <p>Easy for customers to follow on desktop or mobile without unnecessary steps.</p>
+              <strong>Simple mobile flow</strong>
+              <p>Start from your phone and submit the key details quickly.</p>
             </div>
 
             <div class="trust-card">
               <strong>Clear contact options</strong>
-              <p>Requests can be followed up by phone, text, WhatsApp, or email based on your preference.</p>
+              <p>Follow-up can happen by phone, text, WhatsApp, or email.</p>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="section" id="services">
+    <section class="section" id="service-area">
       <div class="container">
         <div class="section-card">
-          <div class="section-header">
-            <span class="section-tag">Choose your service</span>
-            <h2>Select the service that best matches your project</h2>
-            <p class="section-text">
-              Start with the service you need and complete the corresponding estimate form. This helps organize the request before the first review.
-            </p>
-          </div>
-
-          <div class="services-grid">
-            <div class="service-card">
-              <div class="service-top">
-                <div class="service-icon">B</div>
-                <h3>Bathroom Remodeling</h3>
-              </div>
-
+          <div class="split-grid">
+            <div class="feature-box">
+              <span class="section-tag">Service area</span>
+              <h2>Serving Riverview, FL and nearby communities</h2>
               <p>
-                Request an estimate for bathroom remodels, shower updates, tub-to-shower conversions, vanity replacement, tile work, waterproofing, plumbing adjustments, and related bathroom improvements.
+                Estimate requests are focused on Riverview, Brandon, Tampa, Apollo Beach, Gibsonton, Valrico, and nearby areas within approximately 60 miles, depending on project type and availability.
               </p>
-
-              <ul class="service-list">
-                <li>Remodels and upgrades</li>
-                <li>Tile, shower, vanity, and layout changes</li>
-                <li>Better project intake before review</li>
-              </ul>
-
-              <a class="btn btn-dark" href="bathroom-remodeling.html">Start Bathroom Estimate</a>
             </div>
 
-            <div class="service-card">
-              <div class="service-top">
-                <div class="service-icon">F</div>
-                <h3>Flooring Installation</h3>
-              </div>
-
+            <div class="important-box">
+              <h3>Some projects may require an in-person evaluation</h3>
               <p>
-                Request an estimate for flooring installation, floor replacement, subfloor repair, baseboards, stairs, trim pieces, transitions, and related flooring work.
+                Depending on the scope, location, and complexity of the project, an in-person evaluation may be necessary before final pricing. If an evaluation fee applies, it can be explained in advance.
               </p>
-
-              <ul class="service-list">
-                <li>Installation and replacement</li>
-                <li>Subfloor and finishing details</li>
-                <li>Service form focused on flooring scope</li>
-              </ul>
-
-              <a class="btn btn-dark" href="flooring-installation.html">Start Flooring Estimate</a>
             </div>
-
-            <div class="service-card">
-              <div class="service-top">
-                <div class="service-icon">P</div>
-                <h3>Painting</h3>
-              </div>
-
-              <p>
-                Request an estimate for interior painting, exterior painting, walls, ceilings, trim, doors, patching, preparation work, repainting, and related painting services.
-              </p>
-
-              <ul class="service-list">
-                <li>Interior and exterior painting</li>
-                <li>Prep work and repainting</li>
-                <li>Clear request flow for painting projects</li>
-              </ul>
-
-              <a class="btn btn-dark" href="painting.html">Start Painting Estimate</a>
-            </div>
-
-            <div class="service-card">
-              <div class="service-top">
-                <div class="service-icon">D</div>
-                <h3>Drywall</h3>
-              </div>
-
-              <p>
-                Request an estimate for drywall installation, repair, patching, ceiling repair, finishing, texture matching, and related drywall services.
-              </p>
-
-              <ul class="service-list">
-                <li>Repairs, installation, and finishing</li>
-                <li>Texture and ceiling-related requests</li>
-                <li>Guided form for clearer project details</li>
-              </ul>
-
-              <a class="btn btn-dark" href="drywall.html">Start Drywall Estimate</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="how-it-works">
-      <div class="container">
-        <div class="section-card">
-          <div class="section-header">
-            <span class="section-tag">How it works</span>
-            <h2>A simple process designed to reduce confusion</h2>
-            <p class="section-text">
-              The goal is to make the first step easier for the customer and more useful for the project review.
-            </p>
-          </div>
-
-          <div class="steps-grid">
-            <div class="step-card">
-              <div class="step-number">1</div>
-              <strong>Choose your service</strong>
-              <span>Select the service that matches your project so you are sent to the right estimate form from the start.</span>
-            </div>
-
-            <div class="step-card">
-              <div class="step-number">2</div>
-              <strong>Answer guided questions</strong>
-              <span>Share the project scope, measurements, materials, location, timeline, and other important details.</span>
-            </div>
-
-            <div class="step-card">
-              <div class="step-number">3</div>
-              <strong>Submit your request</strong>
-              <span>Your estimate request can then be reviewed with a clearer understanding of the project needs.</span>
-            </div>
-          </div>
-          <p class="section-text" style="margin-top:20px;">
-            Your contact information is used only to respond to your estimate request. Photos are optional, but they can help clarify scope and reduce back-and-forth.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="container">
-        <div class="split-grid">
-          <div class="feature-box">
-            <h3>Designed for real local construction inquiries</h3>
-            <p>
-              GetEstimateFast is built for customers who want a more organized way to request estimates for construction-related projects in the Riverview, FL area. Instead of relying on a generic contact page, the service forms help collect better information before the first response.
-            </p>
-          </div>
-
-          <div class="important-box">
-            <h3>Some projects may require an in-person evaluation</h3>
-            <p>
-              Depending on the scope, location, and complexity of the project, an in-person evaluation may be necessary before final pricing. If an evaluation fee applies, it can be explained in advance and may be credited toward the project when approved.
-            </p>
           </div>
         </div>
       </div>
@@ -1119,43 +1100,28 @@
         <div class="section-card">
           <div class="section-header">
             <span class="section-tag">Frequently asked questions</span>
-            <h2>Common questions before submitting an estimate request</h2>
+            <h2>Common questions before submitting</h2>
           </div>
 
           <div class="faq-grid">
             <div class="faq-item">
               <strong>Is the estimate request free?</strong>
-              <p>
-                Yes. You can submit your estimate request online at no cost. For some projects, a separate in-person evaluation may be needed before final pricing.
-              </p>
+              <p>Yes. You can submit your estimate request online at no cost. Some projects may need a separate in-person evaluation before final pricing.</p>
             </div>
 
             <div class="faq-item">
               <strong>How long does it take to submit a request?</strong>
-              <p>
-                Most customers can complete the first step in just a few minutes, depending on how much project information they already have available.
-              </p>
+              <p>Most customers can complete the first step in just a few minutes, depending on how much project information they already have.</p>
             </div>
 
             <div class="faq-item">
               <strong>Do I need exact measurements before I start?</strong>
-              <p>
-                Not always. Any helpful details can improve the request, but you can still begin even if you do not have every measurement ready.
-              </p>
+              <p>Not always. Helpful details improve the request, but you can still begin even if every measurement is not ready.</p>
             </div>
 
             <div class="faq-item">
               <strong>Who performs the services?</strong>
-              <p>
-                GetEstimateFast is a lead generation platform that connects customers with construction professionals. Depending on the project, services may be performed by our team or by independent contractors.
-              </p>
-            </div>
-
-            <div class="faq-item">
-              <strong>What areas do you serve?</strong>
-              <p>
-                The main service area is Riverview, FL, with nearby coverage that may include Brandon, Tampa, Apollo Beach, Gibsonton, Valrico, and other surrounding communities depending on project type and availability.
-              </p>
+              <p>GetEstimateFast is a lead generation platform that connects customers with construction professionals. Depending on the project, services may be performed by our team or by independent contractors.</p>
             </div>
           </div>
         </div>
@@ -1166,20 +1132,11 @@
       <div class="container">
         <div class="cta-box">
           <h2>Ready to request your free estimate?</h2>
-          <p>
-            Choose the service that fits your project and send a clear, organized request through a professional step-by-step process.
-          </p>
+          <p>Choose your service and send your project details through a quick guided form.</p>
 
           <div class="cta-actions">
             <a href="#services" class="btn btn-primary">Get My Free Estimate</a>
-            <a
-              href="https://wa.me/18135917560?text=Hello,%20I%20would%20like%20to%20request%20a%20free%20construction%20estimate."
-              target="_blank"
-              rel="noopener"
-              class="btn btn-light"
-            >
-              Contact on WhatsApp
-            </a>
+            <a href="#services" class="btn btn-light">View Services</a>
           </div>
 
           <div class="disclaimer">
