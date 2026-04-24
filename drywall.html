@@ -63,12 +63,14 @@
     .hero { background: var(--card); border: 1px solid var(--line); border-radius: 24px; box-shadow: var(--shadow); padding: 24px; margin-bottom: 12px; }
     .hero h1 { margin: 12px 0 10px; font-size: 34px; line-height: 1.08; letter-spacing: -0.03em; }
     .hero p { margin: 0; color: var(--muted); font-size: 17px; }
+    .hero-intro { margin-top: 14px !important; font-size: 15px !important; line-height: 1.6; }
     .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
     .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; border-radius: 14px; padding: 13px 18px; font-weight: 800; text-decoration: none; border: 1px solid transparent; cursor: pointer; font: inherit; }
     .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 10px 24px rgba(234, 88, 12, 0.22); }
     .btn-primary:hover { background: var(--accent-hover); }
     .btn-secondary { background: #fff; color: var(--dark); border-color: var(--line); }
     .microcopy { margin-top: 9px !important; font-size: 13px !important; color: var(--muted) !important; }
+    .hero-status { margin-top: 14px; display: inline-flex; align-items: center; gap: 8px; background: #f8fafc; border: 1px solid var(--line); border-radius: 999px; padding: 10px 14px; font-size: 13px; font-weight: 800; color: var(--dark); }
     .form-shell { background: var(--card); border: 1px solid var(--line); border-radius: 24px; box-shadow: var(--shadow); overflow: hidden; }
     .progress-wrap { padding: 16px 18px 14px; border-bottom: 1px solid var(--line); background: #fff; position: sticky; top: 0; z-index: 10; }
     .progress-top { display: flex; justify-content: space-between; gap: 10px; align-items: center; margin-bottom: 10px; font-size: 13px; font-weight: 800; color: var(--muted); }
@@ -134,16 +136,18 @@
       <span class="service-pill">Free local estimate request</span>
       <h1>Get Your Drywall Estimate in Riverview, FL</h1>
       <p>Answer a few quick questions and get connected with local professionals.</p>
+      <p class="hero-intro">We help homeowners in Riverview, FL request drywall estimates quickly and easily. Our process connects you with local professionals.</p>
       <div class="hero-actions">
         <a class="btn btn-primary" href="#estimate-form">Get My Free Estimate</a>
       </div>
       <p class="microcopy">Takes less than 2 minutes to complete</p>
+      <div class="hero-status">Step 1 of 7 - Takes about 2 minutes</div>
     </section>
 
     <section class="form-shell" id="estimate-form" aria-label="Drywall estimate form">
       <div class="progress-wrap">
         <div class="progress-top">
-          <span id="stepLabel">Step 1 of 8 - Takes about 2 minutes</span>
+          <span id="stepLabel">Step 1 of 7 - Takes about 2 minutes</span>
           <span class="progress-title" id="stepTitleMini">Project Type</span>
         </div>
         <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
@@ -169,10 +173,9 @@
           <p class="step-desc">Choose the closest match.</p>
           <div class="option-grid">
               <button type="button" class="option-btn" data-group="Project Type" data-value="Repair">Repair</button>
-              <button type="button" class="option-btn" data-group="Project Type" data-value="Installation">Installation</button>
-              <button type="button" class="option-btn" data-group="Project Type" data-value="Patching">Patching</button>
-              <button type="button" class="option-btn" data-group="Project Type" data-value="Ceiling">Ceiling</button>
-              <button type="button" class="option-btn" data-group="Project Type" data-value="Texture">Texture</button>
+              <button type="button" class="option-btn" data-group="Project Type" data-value="Install">Install</button>
+              <button type="button" class="option-btn" data-group="Project Type" data-value="Patch">Patch</button>
+              <button type="button" class="option-btn" data-group="Project Type" data-value="Replace">Replace</button>
               <button type="button" class="option-btn" data-group="Project Type" data-value="Not sure">Not sure</button>
           </div>
           <div class="error">Please select one option.</div>
@@ -184,17 +187,12 @@
           <p class="step-desc">Select all that apply.</p>
           <div class="checkbox-grid">
               <label class="check-card"><input type="checkbox" name="Scope of Work[]" value="Hang drywall"> <span>Hang drywall</span></label>
-              <label class="check-card"><input type="checkbox" name="Scope of Work[]" value="Tape joints"> <span>Tape joints</span></label>
-              <label class="check-card"><input type="checkbox" name="Scope of Work[]" value="Mud finish"> <span>Mud finish</span></label>
               <label class="check-card"><input type="checkbox" name="Scope of Work[]" value="Patch holes"> <span>Patch holes</span></label>
               <label class="check-card"><input type="checkbox" name="Scope of Work[]" value="Water damage"> <span>Water damage</span></label>
               <label class="check-card"><input type="checkbox" name="Scope of Work[]" value="Texture match"> <span>Texture match</span></label>
-              <label class="check-card"><input type="checkbox" name="Scope of Work[]" value="Sanding"> <span>Sanding</span></label>
-              <label class="check-card"><input type="checkbox" name="Scope of Work[]" value="Prime ready"> <span>Prime ready</span></label>
               <label class="check-card"><input type="checkbox" name="Scope of Work[]" value="Ceiling repair"> <span>Ceiling repair</span></label>
-              <label class="check-card"><input type="checkbox" name="Scope of Work[]" value="Popcorn removal"> <span>Popcorn removal</span></label>
+              <label class="check-card"><input type="checkbox" name="Scope of Work[]" value="Finish work"> <span>Finish work</span></label>
           </div>
-          <p class="flow-note">Great, this helps us understand your project better.</p>
           <div class="error">Please select at least one item.</div>
           <div class="nav-row"><button type="button" class="btn btn-secondary back-btn">Back</button><button type="button" class="btn btn-primary next-btn">Continue</button></div>
         </section>
@@ -231,35 +229,29 @@
           <p class="step-desc">Choose the closest timeline.</p>
           <div class="option-grid">
             <button type="button" class="option-btn" data-group="Timeline" data-value="ASAP">ASAP</button>
-            <button type="button" class="option-btn" data-group="Timeline" data-value="Within 30 days">30 days</button>
-            <button type="button" class="option-btn" data-group="Timeline" data-value="Within 60 days">60 days</button>
-            <button type="button" class="option-btn" data-group="Timeline" data-value="Planning only">Planning</button>
+            <button type="button" class="option-btn" data-group="Timeline" data-value="30 days">30 days</button>
+            <button type="button" class="option-btn" data-group="Timeline" data-value="60 days">60 days</button>
+            <button type="button" class="option-btn" data-group="Timeline" data-value="Planning">Planning</button>
           </div>
           <p class="flow-note">You're almost done - just a few more questions.</p>
           <div class="error">Please select one option.</div>
           <div class="nav-row"><button type="button" class="btn btn-secondary back-btn">Back</button><button type="button" class="btn btn-primary next-btn">Continue</button></div>
         </section>
 
-        <section class="step" data-title="Location">
+        <section class="step" data-title="Location & Photos">
           <h2>Where is the project located?</h2>
           <p class="step-desc">City and ZIP code are enough for now.</p>
           <div class="field-grid two-col">
             <input type="text" id="city" name="City" placeholder="City" autocomplete="address-level2" />
             <input type="text" id="zip" name="ZIP Code" placeholder="ZIP Code" autocomplete="postal-code" inputmode="numeric" />
           </div>
-          <div class="error">Please enter city and ZIP code.</div>
-          <div class="nav-row"><button type="button" class="btn btn-secondary back-btn">Back</button><button type="button" class="btn btn-primary next-btn">Continue</button></div>
-        </section>
-
-        <section class="step" data-title="Photos">
-          <h2>Add photos</h2>
           <p class="optional-note">Optional - you can skip this step</p>
           <div class="field-grid">
             <input type="file" name="Photo 1" accept="image/*" />
             <input type="file" name="Photo 2" accept="image/*" />
             <input type="file" name="Photo 3" accept="image/*" />
           </div>
-          <div class="error">Please keep total photo uploads under 10MB.</div>
+          <div class="error">Please enter city and ZIP code, and keep total photo uploads under 10MB.</div>
           <div class="nav-row"><button type="button" class="btn btn-secondary back-btn">Back</button><button type="button" class="btn btn-primary next-btn">Continue</button></div>
         </section>
 
@@ -270,16 +262,9 @@
             <input type="text" id="fullName" name="Full Name" placeholder="Full Name" autocomplete="name" />
             <input type="tel" id="phone" name="Phone Number" placeholder="Phone Number" autocomplete="tel" inputmode="tel" />
             <input type="email" id="email" name="email" placeholder="Email Address" autocomplete="email" />
-            <select id="contactMethod" name="Preferred Contact Method">
-              <option value="">Preferred contact method</option>
-              <option>Phone call</option>
-              <option>Text message</option>
-              <option>WhatsApp</option>
-              <option>Email</option>
-            </select>
             <textarea id="projectDescription" name="Project Description" placeholder="Anything else we should know?"></textarea>
           </div>
-          <div class="error">Please complete name, phone, email, and preferred contact method.</div>
+          <div class="error">Please complete name, phone, and email.</div>
           <div class="nav-row"><button type="button" class="btn btn-secondary back-btn">Back</button><button type="submit" class="btn btn-primary submit-btn">Get My Free Estimate</button></div>
         </section>
       </form>
@@ -294,7 +279,7 @@
         <h2>Service area</h2>
         <p>Serving Riverview, Brandon, Tampa, Apollo Beach, Gibsonton, Valrico, and nearby areas. Project availability, response times, and final pricing may vary by scope, location, and site conditions.</p>
       </div>
-      <p class="footer-note">Questions? <a href="tel:+18135917560">Call or text (813) 591-7560</a> or <a href="https://wa.me/18135917560?text=Hello,%20I%20would%20like%20to%20request%20a%20free%20estimate." target="_blank" rel="noopener">send details by WhatsApp</a>.</p>
+      <p class="footer-note">Questions? <a href="tel:+18135917560">Call or text (813) 591-7560</a>.</p>
     </div>
   </div>
 
@@ -355,15 +340,13 @@
       if (index === 3 && !state[sizeLabel]) return showError(error);
       if (index === 4 && !state.Timeline) return showError(error);
       if (index === 5) {
-        if (!document.getElementById('city').value.trim() || !document.getElementById('zip').value.trim()) return showError(error);
+        if (!document.getElementById('city').value.trim() || !document.getElementById('zip').value.trim() || !validatePhotoUploads()) return showError(error);
       }
-      if (index === 6 && !validatePhotoUploads()) return showError(error);
-      if (index === 7) {
+      if (index === 6) {
         const name = document.getElementById('fullName').value.trim();
         const phone = document.getElementById('phone').value.trim();
         const email = document.getElementById('email').value.trim();
-        const method = document.getElementById('contactMethod').value.trim();
-        if (!name || !phone || !email || !method) return showError(error);
+        if (!name || !phone || !email) return showError(error);
       }
 
       setHiddenValues();
