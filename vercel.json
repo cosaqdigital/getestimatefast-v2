@@ -1,1 +1,15 @@
-{}
+{
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "getestimatefast.com"
+        }
+      ],
+      "destination": "https://www.getestimatefast.com/$1",
+      "permanent": true
+    }
+  ]
+}
