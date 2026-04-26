@@ -57,13 +57,12 @@
     body { margin: 0; font-family: Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
     a { color: inherit; }
     .container { width: min(920px, calc(100% - 28px)); margin: 0 auto; }
-    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 0; font-size: 14px; color: var(--muted); }
-    .topbar a { font-weight: 800; text-decoration: none; color: var(--dark); }
+    .topbar { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 14px 0; font-size: 14px; color: var(--muted); }
     .service-pill { background: var(--green-bg); color: var(--green); border-radius: 999px; padding: 7px 10px; font-weight: 800; font-size: 12px; }
     .hero { background: var(--card); border: 1px solid var(--line); border-radius: 24px; box-shadow: var(--shadow); padding: 24px; margin-bottom: 12px; }
     .hero h1 { margin: 12px 0 10px; font-size: 34px; line-height: 1.08; letter-spacing: -0.03em; }
     .hero p { margin: 0; color: var(--muted); font-size: 17px; }
-    .hero-intro { margin-top: 14px !important; font-size: 15px !important; line-height: 1.6; }
+    .hero-intro { margin-top: 12px !important; font-size: 15px !important; line-height: 1.55; max-width: 56ch; }
     .hero-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 18px 0 0; padding: 0; list-style: none; }
     .hero-list li { background: #f8fafc; border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; font-size: 14px; font-weight: 800; color: var(--dark); }
     .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
@@ -100,6 +99,7 @@
     textarea { min-height: 104px; resize: vertical; }
     input[type="file"] { width: 100%; border: 1px dashed #cbd5e1; border-radius: 14px; padding: 12px; background: #f8fafc; }
     .optional-note { color: var(--muted); font-size: 14px; margin: 0 0 12px; }
+    .contact-note { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
     .error { display: none; margin-top: 12px; color: #b42318; font-weight: 800; font-size: 14px; }
     .error.show { display: block; }
     .nav-row { display: flex; gap: 10px; justify-content: space-between; margin-top: 20px; }
@@ -135,34 +135,32 @@
 <body>
   <div class="container">
     <div class="topbar">
-      <a href="index.html"><- Back to Home</a>
       <span class="service-pill">Bathroom Remodeling - Riverview & Nearby Areas</span>
-      <a href="tel:+18135917560">Call/Text (813) 591-7560</a>
     </div>
 
     <section class="hero">
       <span class="service-pill">Free local estimate request</span>
-      <h1>Get Free Bathroom Remodeling Estimates Near Riverview, FL</h1>
-      <p>Answer a few quick questions and get connected with bathroom remodeling professionals serving Riverview and nearby areas.</p>
-      <p class="hero-intro">Request your quote in minutes for upgrades, repairs, shower remodels, and full bathroom renovation projects.</p>
+      <h1>Get Free Bathroom Remodeling Quotes in Riverview and Nearby Areas</h1>
+      <p>Compare quotes from trusted local bathroom remodeling professionals near you. Fast online request, no obligation.</p>
+      <p class="hero-intro">Request your quote in minutes for remodels, shower upgrades, tub replacements, repairs, and full bathroom renovation projects in Riverview, Brandon, Tampa, and surrounding areas.</p>
       <ul class="hero-list">
         <li>Fast response</li>
         <li>No obligation</li>
-        <li>Local service area</li>
-        <li>Simple quote request</li>
+        <li>Local professionals</li>
+        <li>Serving nearby areas</li>
       </ul>
       <div class="hero-actions">
         <a class="btn btn-primary" href="#estimate-form">Get Free Quote</a>
       </div>
       <p class="microcopy">Takes less than 2 minutes to complete</p>
-      <p class="trust-line">Trusted estimate request process for homeowners in Riverview and nearby communities.</p>
+      <p class="trust-line">Get matched with trusted local professionals for bathroom remodeling projects in Riverview and surrounding communities.</p>
       <div class="hero-status">Step 1 of 7 - Takes about 2 minutes</div>
     </section>
 
     <section class="form-shell" id="estimate-form" aria-label="Bathroom Remodeling estimate form">
       <div class="form-intro">
         <h2>Request Your Free Quote</h2>
-        <p>Fill out the form below and get matched with bathroom remodeling professionals serving Riverview and nearby areas.</p>
+        <p>Fill out the form below and get matched with trusted bathroom remodeling professionals serving Riverview and nearby areas.</p>
         <p class="urgency-note">Fast response for qualified bathroom remodeling requests.</p>
       </div>
       <div class="progress-wrap">
@@ -263,7 +261,7 @@
             <input type="text" id="city" name="City" placeholder="City" autocomplete="address-level2" />
             <input type="text" id="zip" name="ZIP Code" placeholder="ZIP Code" autocomplete="postal-code" inputmode="numeric" />
           </div>
-          <p class="optional-note">Optional - you can skip this step</p>
+          <p class="optional-note">Photos are optional - you can skip the uploads if needed.</p>
           <div class="field-grid">
             <input type="file" name="Photo 1" accept="image/*" />
             <input type="file" name="Photo 2" accept="image/*" />
@@ -276,6 +274,7 @@
         <section class="step" data-title="Contact">
           <h2>Where should we send the follow-up?</h2>
           <p class="step-desc">Your information is used to respond to this estimate request.</p>
+          <p class="contact-note">We use your contact details only to follow up on your bathroom remodeling quote request.</p>
           <div class="field-grid">
             <input type="text" id="fullName" name="Full Name" placeholder="Full Name" autocomplete="name" />
             <input type="tel" id="phone" name="Phone Number" placeholder="Phone Number" autocomplete="tel" inputmode="tel" />
@@ -291,11 +290,11 @@
     <div class="bottom-content">
       <div class="content-card">
         <h2>How It Works</h2>
-        <p>1. Fill out the form. 2. Share your project details. 3. Get connected for the next step on your bathroom remodeling estimate.</p>
+        <p>1. Answer a few quick questions. 2. Share your project details. 3. Get matched with trusted local professionals.</p>
       </div>
       <div class="content-card">
         <h2>Bathroom Remodeling estimates in Riverview, FL</h2>
-        <p>We help homeowners in Riverview, FL request bathroom remodeling estimates quickly and easily. Our process connects you with local professionals for renovation, upgrades, repairs, and full bathroom remodels in Riverview and surrounding areas.</p>
+        <p>We help homeowners in Riverview, FL request bathroom remodeling estimates quickly and easily. Our process connects you with trusted local professionals for renovation, upgrades, repairs, and full bathroom remodels in Riverview and surrounding areas.</p>
       </div>
       <div class="content-card">
         <h2>Service area</h2>
