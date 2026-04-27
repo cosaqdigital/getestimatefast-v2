@@ -127,6 +127,12 @@
       opacity: 0.95;
     }
 
+    .topbar-inner a {
+      color: #fff;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
     .header {
       position: sticky;
       top: 0;
@@ -144,12 +150,33 @@
       padding: 18px 0;
     }
 
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
     .brand {
       text-decoration: none;
       color: var(--dark);
       font-size: 26px;
       font-weight: 800;
       letter-spacing: -0.03em;
+      white-space: nowrap;
+    }
+
+    .brand-rating {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--dark-2);
+      font-size: 13px;
+      font-weight: 800;
       white-space: nowrap;
     }
 
@@ -268,6 +295,13 @@
       line-height: 1.75;
     }
 
+    .hero-compare {
+      margin: 0 0 18px;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--dark-2);
+    }
+
     .hero-points {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -298,6 +332,37 @@
       font-size: 14px;
       color: var(--muted);
       margin: 0;
+    }
+
+    .hero-support {
+      margin-top: 12px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .hero-support a {
+      color: var(--dark-2);
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .hero-support a:hover {
+      color: var(--accent-hover);
+    }
+
+    .hero-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 12px;
+      color: var(--dark-2);
+      font-size: 14px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .hero-link:hover {
+      color: var(--accent-hover);
     }
 
     .hero-panel {
@@ -517,6 +582,13 @@
       letter-spacing: -0.02em;
     }
 
+    .service-note {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
     .service-card p {
       margin: 0 0 18px;
       color: var(--text);
@@ -725,26 +797,6 @@
       text-decoration: none;
     }
 
-    .wa-float {
-      position: fixed;
-      right: 18px;
-      bottom: 18px;
-      z-index: 999;
-      background: #25d366;
-      color: #fff;
-      text-decoration: none;
-      font-weight: 800;
-      padding: 14px 18px;
-      border-radius: 999px;
-      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
-      transition: 0.2s ease;
-    }
-
-    .wa-float:hover {
-      transform: translateY(-1px);
-      opacity: 0.96;
-    }
-
     @media (max-width: 1040px) {
       h1 {
         font-size: 46px;
@@ -768,6 +820,10 @@
         flex-direction: column;
         align-items: stretch;
         padding: 12px 0;
+      }
+
+      .brand-wrap {
+        justify-content: center;
       }
 
       .nav-actions {
@@ -902,33 +958,18 @@
         padding: 20px;
       }
 
-      .wa-float {
-        right: 14px;
-        bottom: 14px;
-        padding: 13px 16px;
-      }
     }
   </style>
 </head>
 <body>
-  <a
-    class="wa-float"
-    href="https://wa.me/18135917560?text=Hello,%20I%20would%20like%20to%20request%20a%20free%20construction%20estimate."
-    target="_blank"
-    rel="noopener"
-    aria-label="Chat on WhatsApp"
-  >
-    WhatsApp
-  </a>
-
   <div class="topbar">
     <div class="container">
       <div class="topbar-inner">
         <span>Free estimate requests</span>
         <span>-</span>
-        <span>Choose a service and start in minutes</span>
+        <span>Fast online request</span>
         <span>-</span>
-        <a href="tel:+18135917560">Call or text (813) 591-7560</a>
+        <span>Serving Riverview and nearby areas</span>
       </div>
     </div>
   </div>
@@ -936,10 +977,12 @@
   <header class="header">
     <div class="container">
       <div class="header-inner">
-        <a href="index.html" class="brand">GetEstimateFast</a>
+        <div class="brand-wrap">
+          <a href="index.html" class="brand">GetEstimateFast</a>
+          <span class="brand-rating">Local service estimates</span>
+        </div>
 
         <div class="nav-actions">
-          <a href="#services" class="btn btn-light">Choose a Service</a>
           <a href="#services" class="btn btn-primary">Get My Free Estimate</a>
         </div>
       </div>
@@ -952,13 +995,21 @@
         <div class="hero-card hero-card-compact">
           <div class="hero-content">
             <div class="eyebrow">Free construction estimates - Riverview, FL</div>
-            <h1>Get a Free Construction Estimate in Riverview, FL</h1>
-            <p class="hero-text">Choose your service and request an estimate in just a few minutes.</p>
+            <h1>Get a Free Construction Estimate</h1>
+            <p class="hero-text">Choose your service, share a few project details, and get matched with the right local professional in Riverview and nearby areas.</p>
+            <p class="hero-compare">Compare quotes from local professionals in Riverview and nearby areas.</p>
+            <ul class="hero-points">
+              <li>Free estimate</li>
+              <li>No obligation</li>
+              <li>Fast online request</li>
+              <li>Local professionals</li>
+            </ul>
             <div class="hero-actions">
               <a href="#services" class="btn btn-primary">Get My Free Estimate</a>
-              <a href="#services" class="btn btn-light">Choose a Service</a>
             </div>
             <p class="hero-note">Get your estimate in under 2 minutes.</p>
+            <p class="hero-support">Questions before you start? <a href="mailto:getestimatefast@gmail.com">Email support is available.</a></p>
+            <a href="#services" class="hero-link">Choose a service below</a>
           </div>
         </div>
       </div>
@@ -1001,6 +1052,8 @@
               </div>
             </a>
           </div>
+
+          <p class="service-note">Choose the service that best matches your project and continue to a short guided estimate form.</p>
         </div>
       </div>
     </section>
@@ -1040,22 +1093,22 @@
       <div class="container">
         <div class="section-card">
           <div class="section-header">
-            <span class="section-tag">Why homeowners use it</span>
-            <h2>Built for quick local estimate requests in Riverview, FL</h2>
+            <span class="section-tag">Why choose GetEstimateFast</span>
+            <h2>Built for fast multi-service estimate requests</h2>
             <p class="section-text">
-              The experience is designed to keep the next step clear: choose a service, answer a few questions, and submit your estimate request.
+              The process is designed to help homeowners request estimates quickly, stay focused on the right service, and connect with local professionals without unnecessary steps.
             </p>
           </div>
 
           <div class="trust-grid">
             <div class="trust-card">
               <strong>Service-specific forms</strong>
-              <p>Each request goes through a short form matched to the service you need.</p>
+              <p>Each request uses a short form tailored to the service you choose.</p>
             </div>
 
             <div class="trust-card">
               <strong>Local project focus</strong>
-              <p>Built for homeowners and property owners in Riverview, FL and nearby areas.</p>
+              <p>Focused on Riverview, Brandon, Tampa, and nearby areas.</p>
             </div>
 
             <div class="trust-card">
@@ -1065,7 +1118,7 @@
 
             <div class="trust-card">
               <strong>Clear next step</strong>
-              <p>Choose your service, complete the form, and send one clear estimate request.</p>
+              <p>Choose your service, submit your details, and move directly to the right estimate flow.</p>
             </div>
           </div>
         </div>
@@ -1085,9 +1138,9 @@
             </div>
 
             <div class="important-box">
-              <h3>Some projects may require an in-person evaluation</h3>
+              <h3>Some projects may need an in-person evaluation</h3>
               <p>
-                Depending on the scope, location, and complexity of the project, an in-person evaluation may be necessary before final pricing. If an evaluation fee applies, it can be explained in advance.
+                Depending on the scope, location, and complexity, some projects may need an in-person evaluation before final pricing or quote comparison.
               </p>
             </div>
           </div>
@@ -1132,11 +1185,10 @@
       <div class="container">
         <div class="cta-box">
           <h2>Ready to request your free estimate?</h2>
-          <p>Choose your service and send your project details through a quick guided form.</p>
+          <p>Choose your service, share a few project details, and get matched with the right local professional.</p>
 
           <div class="cta-actions">
             <a href="#services" class="btn btn-primary">Get My Free Estimate</a>
-            <a href="#services" class="btn btn-light">Choose a Service</a>
           </div>
 
           <div class="disclaimer">
@@ -1151,7 +1203,6 @@
     <div class="container">
       <div class="footer-card">
         GetEstimateFast - Riverview, FL service area -
-        <a href="tel:+18135917560">(813) 591-7560</a> -
         <a href="mailto:getestimatefast@gmail.com">getestimatefast@gmail.com</a>
       </div>
     </div>
