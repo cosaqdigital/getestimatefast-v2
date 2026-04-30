@@ -601,6 +601,10 @@
       padding: 22px;
     }
 
+    #leadForm {
+      scroll-margin-top: 148px;
+    }
+
     .form-progress {
       display: grid;
       gap: 12px;
@@ -1879,6 +1883,7 @@
     const emailSubject = document.getElementById("email-subject");
     const replyToEmail = document.getElementById("reply-to-email");
     const serviceJumpLinks = document.querySelectorAll(".service-jump");
+    const anchorLinks = document.querySelectorAll('a[href^="#"]');
     const formSteps = Array.from(document.querySelectorAll(".form-step"));
     const progressIndicators = Array.from(document.querySelectorAll("[data-step-indicator]"));
     const progressFill = document.getElementById("progressFill");
@@ -1886,6 +1891,7 @@
     const nextButton = document.getElementById("nextButton");
     const backButton = document.getElementById("backButton");
     const submitButton = document.getElementById("submitButton");
+    const header = document.querySelector(".header");
     const reviewCarousel = document.getElementById("reviewCarousel");
     const reviewTrack = document.getElementById("reviewTrack");
     const reviewPrev = document.getElementById("reviewPrev");
@@ -1904,6 +1910,22 @@
 
     function clearStepError() {
       stepError.classList.remove("show");
+    }
+
+    function getHeaderOffset() {
+      return header ? Math.ceil(header.getBoundingClientRect().height) + 16 : 24;
+    }
+
+    function scrollToElement(target, behavior = "smooth") {
+      if (!target) {
+        return;
+      }
+
+      const top = window.scrollY + target.getBoundingClientRect().top - getHeaderOffset();
+      window.scrollTo({
+        top: Math.max(0, top),
+        behavior
+      });
     }
 
     function createServiceButtons() {
@@ -1981,7 +2003,7 @@
       renderServiceQuestions();
 
       if (scrollIntoView) {
-        document.getElementById("get-quotes").scrollIntoView({ behavior: "smooth", block: "start" });
+        scrollToElement(leadForm);
       }
     }
 
@@ -2131,14 +2153,46 @@
     }
 
     serviceJumpLinks.forEach((link) => {
-      link.addEventListener("click", () => {
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
         const selected = link.dataset.service;
         if (selected && serviceConfigs[selected]) {
-          setSelectedService(selected, true);
+          setSelectedService(selected);
+          currentStep = 2;
+          updateProgress();
+          clearStepError();
+          scrollToElement(leadForm);
+        }
+      });
+    });
+
+    anchorLinks.forEach((link) => {
+      if (link.classList.contains("service-jump")) {
+        return;
+      }
+
+      const targetId = link.getAttribute("href");
+      if (!targetId || targetId === "#") {
+        return;
+      }
+
+      const target = document.querySelector(targetId);
+      if (!target) {
+        return;
+      }
+
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
+
+        if (targetId === "#get-quotes") {
           currentStep = 1;
           updateProgress();
           clearStepError();
+          scrollToElement(leadForm);
+          return;
         }
+
+        scrollToElement(target);
       });
     });
 
