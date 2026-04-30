@@ -1176,8 +1176,8 @@
           <a href="#services">Services</a>
           <a href="#how-it-works">How It Works</a>
           <a href="#reviews">Reviews</a>
-          <a href="#get-quotes">Get Quotes</a>
-          <a href="#get-quotes" class="btn btn-primary">Get Free Quotes</a>
+          <a href="get-quotes.html">Get Quotes</a>
+          <a href="get-quotes.html" class="btn btn-primary">Get Free Quotes</a>
         </nav>
       </div>
     </div>
@@ -1200,7 +1200,7 @@
             </ul>
 
             <div class="hero-actions">
-              <a class="btn btn-primary" href="#get-quotes">Get My Free Quotes</a>
+              <a class="btn btn-primary" href="get-quotes.html">Get My Free Quotes</a>
               <a class="btn btn-secondary" href="#services">View Services</a>
             </div>
 
@@ -1239,7 +1239,7 @@
               <div class="service-card-body">
                 <h3>Bathroom Remodeling</h3>
                 <p>Shower updates, vanity replacements, tub conversions, tile work, and full remodel quote requests.</p>
-                <a class="btn btn-primary service-jump" href="#get-quotes" data-service="Bathroom Remodeling">Get Quotes</a>
+                <a class="btn btn-primary" href="get-quotes.html?service=bathroom">Get Quotes</a>
               </div>
             </article>
 
@@ -1249,7 +1249,7 @@
               <div class="service-card-body">
                 <h3>Flooring Installation</h3>
                 <p>LVP, laminate, hardwood, tile, carpet, repairs, and flooring replacement projects for residential spaces.</p>
-                <a class="btn btn-primary service-jump" href="#get-quotes" data-service="Flooring Installation">Get Quotes</a>
+                <a class="btn btn-primary" href="get-quotes.html?service=flooring">Get Quotes</a>
               </div>
             </article>
 
@@ -1259,7 +1259,7 @@
               <div class="service-card-body">
                 <h3>Painting Services</h3>
                 <p>Interior rooms, exterior work, cabinet painting, trim updates, touch-ups, and residential repainting.</p>
-                <a class="btn btn-primary service-jump" href="#get-quotes" data-service="Painting Services">Get Quotes</a>
+                <a class="btn btn-primary" href="get-quotes.html?service=painting">Get Quotes</a>
               </div>
             </article>
 
@@ -1269,7 +1269,7 @@
               <div class="service-card-body">
                 <h3>Drywall Services</h3>
                 <p>Repairs, installation, ceiling fixes, texture matching, water damage patches, and room-by-room drywall work.</p>
-                <a class="btn btn-primary service-jump" href="#get-quotes" data-service="Drywall Services">Get Quotes</a>
+                <a class="btn btn-primary" href="get-quotes.html?service=drywall">Get Quotes</a>
               </div>
             </article>
 
@@ -1279,7 +1279,7 @@
               <div class="service-card-body">
                 <h3>Electrical Services</h3>
                 <p>Fixtures, outlets, panels, fans, wiring, repairs, inspections, and electrical upgrades for homeowners.</p>
-                <a class="btn btn-primary service-jump" href="#get-quotes" data-service="Electrical Services">Get Quotes</a>
+                <a class="btn btn-primary" href="get-quotes.html?service=electrical">Get Quotes</a>
               </div>
             </article>
 
@@ -1289,7 +1289,7 @@
               <div class="service-card-body">
                 <h3>Plumbing Services</h3>
                 <p>Leaks, toilets, drains, faucets, water heaters, showers, disposals, and plumbing repairs or installation.</p>
-                <a class="btn btn-primary service-jump" href="#get-quotes" data-service="Plumbing Services">Get Quotes</a>
+                <a class="btn btn-primary" href="get-quotes.html?service=plumbing">Get Quotes</a>
               </div>
             </article>
 
@@ -1299,7 +1299,7 @@
               <div class="service-card-body">
                 <h3>Handyman Services</h3>
                 <p>General repairs, TV mounting, furniture assembly, caulking, hardware installation, and small home tasks.</p>
-                <a class="btn btn-primary service-jump" href="#get-quotes" data-service="Handyman Services">Get Quotes</a>
+                <a class="btn btn-primary" href="get-quotes.html?service=handyman">Get Quotes</a>
               </div>
             </article>
           </div>
@@ -1387,155 +1387,6 @@
       </div>
     </section>
 
-    <section class="section" id="get-quotes">
-      <div class="container">
-        <div class="section-card">
-          <div class="form-shell">
-            <div class="form-side">
-              <div class="form-badge">Quote request form</div>
-              <h2>Request up to 3 free quotes</h2>
-              <p>Choose your service first, then answer a few project questions. The form updates based on the service you select.</p>
-              <ul>
-                <li><div><strong>Free to submit</strong>There is no charge to request quotes through this form.</div></li>
-                <li><div><strong>Service-specific questions</strong>Each quote request is tailored to the type of work you need.</div></li>
-                <li><div><strong>Built for lead quality</strong>Clear project details help match you with the right local professionals.</div></li>
-              </ul>
-            </div>
-
-            <form id="leadForm" class="lead-form" action="https://formsubmit.co/getestimatefast@gmail.com" method="POST" enctype="multipart/form-data">
-              <input type="hidden" name="_next" value="https://www.getestimatefast.com/thank-you.html" />
-              <input type="hidden" name="_subject" id="email-subject" />
-              <input type="hidden" name="_replyto" id="reply-to-email" />
-              <input type="hidden" name="_captcha" value="false" />
-              <input type="text" name="_honey" tabindex="-1" autocomplete="off" style="display:none" />
-              <input type="hidden" name="_template" value="table" />
-              <input type="hidden" name="Lead Source" value="Homepage Dynamic Lead Form" />
-              <input type="hidden" name="Requested Service" id="requestedServiceInput" />
-
-              <textarea name="Customer Info Summary" id="customerSummary" style="display:none"></textarea>
-              <textarea name="Service Requested Summary" id="serviceSummary" style="display:none"></textarea>
-              <textarea name="Project Details Summary" id="projectSummary" style="display:none"></textarea>
-              <textarea name="Location Summary" id="locationSummary" style="display:none"></textarea>
-              <textarea name="Urgency Summary" id="urgencySummary" style="display:none"></textarea>
-
-              <div class="form-progress">
-                <div class="progress-meta">
-                  <strong id="currentStepLabel">Step 1 of 4</strong>
-                  <span>Quick request form for homeowners</span>
-                </div>
-                <div class="progress-track" aria-hidden="true">
-                  <div class="progress-fill" id="progressFill"></div>
-                </div>
-                <div class="progress-steps" aria-hidden="true">
-                  <div class="progress-step is-active" data-step-indicator="1">
-                    <strong>Step 1</strong>
-                    <span>Choose your service</span>
-                  </div>
-                  <div class="progress-step" data-step-indicator="2">
-                    <strong>Step 2</strong>
-                    <span>Service questions</span>
-                  </div>
-                  <div class="progress-step" data-step-indicator="3">
-                    <strong>Step 3</strong>
-                    <span>Project details</span>
-                  </div>
-                  <div class="progress-step" data-step-indicator="4">
-                    <strong>Step 4</strong>
-                    <span>Contact info</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="form-block form-step is-active" data-step="1">
-                <h3>Choose your service</h3>
-                <p>Start by selecting the service that best matches your project.</p>
-                <div class="service-selector" id="serviceSelector" aria-label="Service selector"></div>
-              </div>
-
-              <div class="form-block form-step" data-step="2">
-                <h3>Service-specific questions</h3>
-                <p id="serviceStepIntro">The questions below update after you choose a service.</p>
-                <div class="question-grid" id="serviceQuestions"></div>
-              </div>
-
-              <div class="form-block form-step" data-step="3">
-                <h3>Project details</h3>
-                <div class="general-grid">
-                  <fieldset class="question-card">
-                    <legend>When do you need this done?</legend>
-                    <div class="choice-grid">
-                      <label class="choice-card"><input type="radio" name="When do you need this done?" value="ASAP" /> ASAP</label>
-                      <label class="choice-card"><input type="radio" name="When do you need this done?" value="This week" /> This week</label>
-                      <label class="choice-card"><input type="radio" name="When do you need this done?" value="Within 2 weeks" /> Within 2 weeks</label>
-                      <label class="choice-card"><input type="radio" name="When do you need this done?" value="Within 30 days" /> Within 30 days</label>
-                      <label class="choice-card"><input type="radio" name="When do you need this done?" value="Just planning" /> Just planning</label>
-                    </div>
-                  </fieldset>
-
-                  <div class="field-grid">
-                    <div class="field full">
-                      <label for="projectDescription">Describe your project</label>
-                      <textarea id="projectDescription" name="Project Description" placeholder="Describe the work you need, the area involved, and any details that will help local pros understand your project." required></textarea>
-                    </div>
-
-                    <div class="field full">
-                      <label for="photo1">Upload photos</label>
-                      <input id="photo1" type="file" name="Photo 1" accept="image/*" />
-                      <input type="file" name="Photo 2" accept="image/*" />
-                      <input type="file" name="Photo 3" accept="image/*" />
-                      <p class="help-text">Optional, but recommended for better quote quality.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="form-block form-step" data-step="4">
-                <h3>Contact details</h3>
-                <p>Tell us where the project is located and how to reach you.</p>
-                <div class="field-grid">
-                  <div class="field">
-                    <label for="fullName">Name</label>
-                    <input id="fullName" type="text" name="Name" required />
-                  </div>
-
-                  <div class="field">
-                    <label for="phone">Phone</label>
-                    <input id="phone" type="tel" name="Phone" required />
-                  </div>
-
-                  <div class="field full">
-                    <label for="email">Email</label>
-                    <input id="email" type="email" name="Email" required />
-                  </div>
-
-                  <div class="field">
-                    <label for="city">City</label>
-                    <input id="city" type="text" name="City" required />
-                  </div>
-
-                  <div class="field">
-                    <label for="zipCode">ZIP Code</label>
-                    <input id="zipCode" type="text" name="ZIP Code" required />
-                  </div>
-                </div>
-              </div>
-
-              <div class="form-error" id="stepError">Please complete this step before continuing.</div>
-
-              <div class="form-nav">
-                <div class="submit-note">Free to use. No obligation. We use your information only for this quote request.</div>
-                <div class="form-nav-group">
-                  <button type="button" class="btn btn-secondary" id="backButton" style="display:none">Back</button>
-                  <button type="button" class="btn btn-primary" id="nextButton">Next</button>
-                  <button type="submit" class="btn btn-primary" id="submitButton" style="display:none">Get My Free Quotes</button>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <section class="section" id="reviews">
       <div class="container">
         <div class="section-card">
@@ -1568,7 +1419,7 @@
         <div class="cta-band">
           <h2>Ready to Get Free Quotes?</h2>
           <p>Start your request today and get connected with trusted local pros near you.</p>
-          <a class="btn btn-primary" href="#get-quotes">Get My Free Quotes</a>
+          <a class="btn btn-primary" href="get-quotes.html">Get My Free Quotes</a>
         </div>
       </div>
     </section>
@@ -2152,78 +2003,80 @@
       }
     }
 
-    serviceJumpLinks.forEach((link) => {
-      link.addEventListener("click", (event) => {
-        event.preventDefault();
-        const selected = link.dataset.service;
-        if (selected && serviceConfigs[selected]) {
-          setSelectedService(selected);
-          currentStep = 2;
-          updateProgress();
-          clearStepError();
-          scrollToElement(leadForm);
-        }
+    if (leadForm && nextButton && backButton && submitButton) {
+      serviceJumpLinks.forEach((link) => {
+        link.addEventListener("click", (event) => {
+          event.preventDefault();
+          const selected = link.dataset.service;
+          if (selected && serviceConfigs[selected]) {
+            setSelectedService(selected);
+            currentStep = 2;
+            updateProgress();
+            clearStepError();
+            scrollToElement(leadForm);
+          }
+        });
       });
-    });
 
-    anchorLinks.forEach((link) => {
-      if (link.classList.contains("service-jump")) {
-        return;
-      }
-
-      const targetId = link.getAttribute("href");
-      if (!targetId || targetId === "#") {
-        return;
-      }
-
-      const target = document.querySelector(targetId);
-      if (!target) {
-        return;
-      }
-
-      link.addEventListener("click", (event) => {
-        event.preventDefault();
-
-        if (targetId === "#get-quotes") {
-          currentStep = 1;
-          updateProgress();
-          clearStepError();
-          scrollToElement(leadForm);
+      anchorLinks.forEach((link) => {
+        if (link.classList.contains("service-jump")) {
           return;
         }
 
-        scrollToElement(target);
+        const targetId = link.getAttribute("href");
+        if (!targetId || targetId === "#") {
+          return;
+        }
+
+        const target = document.querySelector(targetId);
+        if (!target) {
+          return;
+        }
+
+        link.addEventListener("click", (event) => {
+          event.preventDefault();
+
+          if (targetId === "#get-quotes") {
+            currentStep = 1;
+            updateProgress();
+            clearStepError();
+            scrollToElement(leadForm);
+            return;
+          }
+
+          scrollToElement(target);
+        });
       });
-    });
 
-    nextButton.addEventListener("click", () => {
-      if (!validateStep(currentStep)) {
-        return;
-      }
+      nextButton.addEventListener("click", () => {
+        if (!validateStep(currentStep)) {
+          return;
+        }
 
-      clearStepError();
-      currentStep += 1;
-      updateProgress();
-    });
+        clearStepError();
+        currentStep += 1;
+        updateProgress();
+      });
 
-    backButton.addEventListener("click", () => {
-      clearStepError();
-      currentStep = Math.max(1, currentStep - 1);
-      updateProgress();
-    });
+      backButton.addEventListener("click", () => {
+        clearStepError();
+        currentStep = Math.max(1, currentStep - 1);
+        updateProgress();
+      });
 
-    leadForm.addEventListener("submit", (event) => {
-      if (!validateStep(1) || !validateStep(2) || !validateStep(3) || !validateStep(4)) {
-        event.preventDefault();
-        return;
-      }
+      leadForm.addEventListener("submit", (event) => {
+        if (!validateStep(1) || !validateStep(2) || !validateStep(3) || !validateStep(4)) {
+          event.preventDefault();
+          return;
+        }
 
-      clearStepError();
-      setSummaryFields();
+        clearStepError();
+        setSummaryFields();
 
-      submitButton.disabled = true;
-      submitButton.textContent = "Sending...";
-    });
+        submitButton.disabled = true;
+        submitButton.textContent = "Sending...";
+      });
+    }
 
     reviewPrev.addEventListener("click", () => {
       reviewIndex = (reviewIndex - 1 + reviewData.length) % reviewData.length;
@@ -2260,8 +2113,6 @@
 
     window.addEventListener("resize", renderReviewCarousel);
 
-    createServiceButtons();
-    updateProgress();
     renderReviewCarousel();
     startReviewAutoplay();
   </script>
