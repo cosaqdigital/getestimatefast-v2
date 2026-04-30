@@ -601,6 +601,101 @@
       padding: 22px;
     }
 
+    .form-progress {
+      display: grid;
+      gap: 12px;
+      padding: 18px;
+      border-radius: 20px;
+      background: #fff;
+      border: 1px solid var(--line);
+    }
+
+    .progress-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .progress-meta strong {
+      font-size: 16px;
+      letter-spacing: -0.01em;
+    }
+
+    .progress-meta span {
+      color: var(--text-soft);
+      font-size: 14px;
+    }
+
+    .progress-track {
+      position: relative;
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      background: #e6edf5;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 25%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent) 0%, #ff934d 100%);
+      transition: width 0.25s ease;
+    }
+
+    .progress-steps {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .progress-step {
+      display: grid;
+      gap: 4px;
+      padding: 12px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: var(--surface-alt);
+      transition: 0.2s ease;
+    }
+
+    .progress-step strong {
+      font-size: 13px;
+      line-height: 1.2;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .progress-step span {
+      color: var(--text-soft);
+      font-size: 14px;
+      line-height: 1.45;
+      font-weight: 700;
+    }
+
+    .progress-step.is-active {
+      border-color: rgba(244, 100, 22, 0.25);
+      background: #fff6f0;
+      box-shadow: inset 0 0 0 1px rgba(244, 100, 22, 0.12);
+    }
+
+    .progress-step.is-active strong,
+    .progress-step.is-active span {
+      color: var(--navy);
+    }
+
+    .form-step {
+      display: none;
+    }
+
+    .form-step.is-active {
+      display: grid;
+    }
+
     .form-block {
       display: grid;
       gap: 14px;
@@ -777,6 +872,21 @@
       display: block;
     }
 
+    .form-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .form-nav-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
     .submit-row {
       display: flex;
       align-items: center;
@@ -790,10 +900,57 @@
       font-size: 14px;
     }
 
-    .review-grid {
+    .review-carousel {
+      position: relative;
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .review-carousel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .review-nav {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .review-arrow {
+      width: 46px;
+      height: 46px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--navy);
+      font-size: 22px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .review-arrow:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .review-viewport {
+      overflow: hidden;
+    }
+
+    .review-track {
+      display: flex;
+      gap: 16px;
+    }
+
+    .review-slide {
+      flex: 0 0 calc((100% - 32px) / 3);
+      min-width: 0;
     }
 
     .review-card {
@@ -803,6 +960,7 @@
       background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
       border: 1px solid var(--line);
       border-radius: 22px;
+      height: 100%;
     }
 
     .review-card img {
@@ -817,6 +975,23 @@
       font-size: 16px;
       line-height: 1.3;
       letter-spacing: -0.01em;
+    }
+
+    .review-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .review-stars {
+      color: #f59e0b;
+      letter-spacing: 0.08em;
+      font-size: 14px;
     }
 
     .review-card p {
@@ -873,8 +1048,7 @@
         position: static;
       }
 
-      .service-grid,
-      .review-grid {
+      .service-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
       }
     }
@@ -885,11 +1059,14 @@
       }
 
       .service-grid,
-      .review-grid,
       .steps-grid,
       .trust-grid,
       .field-grid {
         grid-template-columns: 1fr 1fr;
+      }
+
+      .review-slide {
+        flex-basis: calc((100% - 16px) / 2);
       }
     }
 
@@ -932,13 +1109,16 @@
       }
 
       .service-grid,
-      .review-grid,
       .steps-grid,
       .trust-grid,
       .service-selector,
       .choice-grid,
       .field-grid {
         grid-template-columns: 1fr;
+      }
+
+      .progress-steps {
+        grid-template-columns: 1fr 1fr;
       }
 
       .brand-badge {
@@ -948,14 +1128,20 @@
         padding: 12px 18px;
       }
 
+      .review-slide {
+        flex-basis: 100%;
+      }
+
       .hero-actions,
-      .submit-row {
+      .submit-row,
+      .form-nav {
         flex-direction: column;
         align-items: stretch;
       }
 
       .hero-actions .btn,
-      .submit-row .btn {
+      .submit-row .btn,
+      .form-nav .btn {
         width: 100%;
       }
     }
@@ -1228,20 +1414,47 @@
               <textarea name="Location Summary" id="locationSummary" style="display:none"></textarea>
               <textarea name="Urgency Summary" id="urgencySummary" style="display:none"></textarea>
 
-              <div class="form-block">
-                <h3>Select your service</h3>
-                <p>Choose the service that best matches your project.</p>
+              <div class="form-progress">
+                <div class="progress-meta">
+                  <strong id="currentStepLabel">Step 1 of 4</strong>
+                  <span>Quick request form for homeowners</span>
+                </div>
+                <div class="progress-track" aria-hidden="true">
+                  <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-steps" aria-hidden="true">
+                  <div class="progress-step is-active" data-step-indicator="1">
+                    <strong>Step 1</strong>
+                    <span>Choose your service</span>
+                  </div>
+                  <div class="progress-step" data-step-indicator="2">
+                    <strong>Step 2</strong>
+                    <span>Service questions</span>
+                  </div>
+                  <div class="progress-step" data-step-indicator="3">
+                    <strong>Step 3</strong>
+                    <span>Project details</span>
+                  </div>
+                  <div class="progress-step" data-step-indicator="4">
+                    <strong>Step 4</strong>
+                    <span>Contact info</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-block form-step is-active" data-step="1">
+                <h3>Choose your service</h3>
+                <p>Start by selecting the service that best matches your project.</p>
                 <div class="service-selector" id="serviceSelector" aria-label="Service selector"></div>
               </div>
 
-              <div class="form-block">
+              <div class="form-block form-step" data-step="2">
                 <h3>Service-specific questions</h3>
-                <p>The questions below update when you choose a service.</p>
-                <div class="form-error" id="serviceError">Please choose a service and complete the required service details.</div>
+                <p id="serviceStepIntro">The questions below update after you choose a service.</p>
                 <div class="question-grid" id="serviceQuestions"></div>
               </div>
 
-              <div class="form-block">
+              <div class="form-block form-step" data-step="3">
                 <h3>Project details</h3>
                 <div class="general-grid">
                   <fieldset class="question-card">
@@ -1268,40 +1481,50 @@
                       <input type="file" name="Photo 3" accept="image/*" />
                       <p class="help-text">Optional, but recommended for better quote quality.</p>
                     </div>
-
-                    <div class="field">
-                      <label for="zipCode">ZIP Code</label>
-                      <input id="zipCode" type="text" name="ZIP Code" required />
-                    </div>
-
-                    <div class="field">
-                      <label for="city">City</label>
-                      <input id="city" type="text" name="City" required />
-                    </div>
-
-                    <div class="field">
-                      <label for="fullName">Name</label>
-                      <input id="fullName" type="text" name="Name" required />
-                    </div>
-
-                    <div class="field">
-                      <label for="phone">Phone</label>
-                      <input id="phone" type="tel" name="Phone" required />
-                    </div>
-
-                    <div class="field full">
-                      <label for="email">Email</label>
-                      <input id="email" type="email" name="Email" required />
-                    </div>
                   </div>
                 </div>
               </div>
 
-              <div class="form-error" id="generalError">Please complete the required fields before submitting your request.</div>
+              <div class="form-block form-step" data-step="4">
+                <h3>Contact details</h3>
+                <p>Tell us where the project is located and how to reach you.</p>
+                <div class="field-grid">
+                  <div class="field">
+                    <label for="fullName">Name</label>
+                    <input id="fullName" type="text" name="Name" required />
+                  </div>
 
-              <div class="submit-row">
+                  <div class="field">
+                    <label for="phone">Phone</label>
+                    <input id="phone" type="tel" name="Phone" required />
+                  </div>
+
+                  <div class="field full">
+                    <label for="email">Email</label>
+                    <input id="email" type="email" name="Email" required />
+                  </div>
+
+                  <div class="field">
+                    <label for="city">City</label>
+                    <input id="city" type="text" name="City" required />
+                  </div>
+
+                  <div class="field">
+                    <label for="zipCode">ZIP Code</label>
+                    <input id="zipCode" type="text" name="ZIP Code" required />
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-error" id="stepError">Please complete this step before continuing.</div>
+
+              <div class="form-nav">
                 <div class="submit-note">Free to use. No obligation. We use your information only for this quote request.</div>
-                <button type="submit" class="btn btn-primary">Get My Free Quotes</button>
+                <div class="form-nav-group">
+                  <button type="button" class="btn btn-secondary" id="backButton" style="display:none">Back</button>
+                  <button type="button" class="btn btn-primary" id="nextButton">Next</button>
+                  <button type="submit" class="btn btn-primary" id="submitButton" style="display:none">Get My Free Quotes</button>
+                </div>
               </div>
             </form>
           </div>
@@ -1315,73 +1538,22 @@
           <div class="section-head">
             <div>
               <span class="section-tag">Reviews</span>
-              <h2>Customer feedback placeholders</h2>
-              <p>Replace these temporary review image placeholders with your real customer feedback screenshots after you gather them.</p>
+              <h2>Homeowner feedback from nearby areas</h2>
+              <p>Swipe or use the arrows to browse local review placeholders. Replace the images later with your final review screenshots.</p>
             </div>
           </div>
 
-          <div class="review-grid">
-            <article class="review-card">
-              <!-- Replace this image later -->
-              <img src="assets/images/review-01.jpg" alt="Customer review image placeholder 01" />
-              <strong>Review placeholder 01</strong>
-              <p>Customer review image</p>
-            </article>
-            <article class="review-card">
-              <img src="assets/images/review-02.jpg" alt="Customer review image placeholder 02" />
-              <strong>Review placeholder 02</strong>
-              <p>Customer review image</p>
-            </article>
-            <article class="review-card">
-              <img src="assets/images/review-03.jpg" alt="Customer review image placeholder 03" />
-              <strong>Review placeholder 03</strong>
-              <p>Customer review image</p>
-            </article>
-            <article class="review-card">
-              <img src="assets/images/review-04.jpg" alt="Customer review image placeholder 04" />
-              <strong>Review placeholder 04</strong>
-              <p>Customer review image</p>
-            </article>
-            <article class="review-card">
-              <img src="assets/images/review-05.jpg" alt="Customer review image placeholder 05" />
-              <strong>Review placeholder 05</strong>
-              <p>Customer review image</p>
-            </article>
-            <article class="review-card">
-              <img src="assets/images/review-06.jpg" alt="Customer review image placeholder 06" />
-              <strong>Review placeholder 06</strong>
-              <p>Customer review image</p>
-            </article>
-            <article class="review-card">
-              <img src="assets/images/review-07.jpg" alt="Customer review image placeholder 07" />
-              <strong>Review placeholder 07</strong>
-              <p>Customer review image</p>
-            </article>
-            <article class="review-card">
-              <img src="assets/images/review-08.jpg" alt="Customer review image placeholder 08" />
-              <strong>Review placeholder 08</strong>
-              <p>Customer review image</p>
-            </article>
-            <article class="review-card">
-              <img src="assets/images/review-09.jpg" alt="Customer review image placeholder 09" />
-              <strong>Review placeholder 09</strong>
-              <p>Customer review image</p>
-            </article>
-            <article class="review-card">
-              <img src="assets/images/review-10.jpg" alt="Customer review image placeholder 10" />
-              <strong>Review placeholder 10</strong>
-              <p>Customer review image</p>
-            </article>
-            <article class="review-card">
-              <img src="assets/images/review-11.jpg" alt="Customer review image placeholder 11" />
-              <strong>Review placeholder 11</strong>
-              <p>Customer review image</p>
-            </article>
-            <article class="review-card">
-              <img src="assets/images/review-12.jpg" alt="Customer review image placeholder 12" />
-              <strong>Review placeholder 12</strong>
-              <p>Customer review image</p>
-            </article>
+          <div class="review-carousel" id="reviewCarousel">
+            <div class="review-carousel-head">
+              <div class="submit-note">Autoplay every 5 seconds. Hover to pause.</div>
+              <div class="review-nav">
+                <button type="button" class="review-arrow" id="reviewPrev" aria-label="Previous reviews">‹</button>
+                <button type="button" class="review-arrow" id="reviewNext" aria-label="Next reviews">›</button>
+              </div>
+            </div>
+            <div class="review-viewport">
+              <div class="review-track" id="reviewTrack"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -1619,12 +1791,86 @@
       }
     };
 
+    const reviewData = [
+      {
+        image: "assets/images/review-01.jpg",
+        name: "Amanda R.",
+        location: "Brandon, FL",
+        text: "The request form was easy to use and I heard back quickly about our bathroom remodel project."
+      },
+      {
+        image: "assets/images/review-02.jpg",
+        name: "Kevin T.",
+        location: "Apollo Beach, FL",
+        text: "We needed help finding someone for a fence and outdoor project. The process felt simple and organized."
+      },
+      {
+        image: "assets/images/review-03.jpg",
+        name: "Melissa C.",
+        location: "Riverview, FL",
+        text: "The bathroom update details were easy to submit and the quote request took only a few minutes."
+      },
+      {
+        image: "assets/images/review-04.jpg",
+        name: "Jordan P.",
+        location: "Valrico, FL",
+        text: "Our flooring request was straightforward and the questions helped us explain the scope clearly."
+      },
+      {
+        image: "assets/images/review-05.jpg",
+        name: "Erica W.",
+        location: "Tampa, FL",
+        text: "The painting request form was clear and helped us outline exactly what rooms needed attention."
+      },
+      {
+        image: "assets/images/review-06.jpg",
+        name: "Brian S.",
+        location: "Gibsonton, FL",
+        text: "The drywall repair request was easy to submit, and the follow-up process felt professional."
+      },
+      {
+        image: "assets/images/review-07.jpg",
+        name: "Natalie D.",
+        location: "Sun City Center, FL",
+        text: "We used the form for a bathroom project and appreciated how simple it was to share the details."
+      },
+      {
+        image: "assets/images/review-08.jpg",
+        name: "Chris M.",
+        location: "Lithia, FL",
+        text: "The flooring questions were clear and helped us request quotes without wasting time."
+      },
+      {
+        image: "assets/images/review-09.jpg",
+        name: "Lauren H.",
+        location: "Seffner, FL",
+        text: "Submitting a painting request online was fast, and the service options made it easy to choose."
+      },
+      {
+        image: "assets/images/review-10.jpg",
+        name: "David L.",
+        location: "Plant City, FL",
+        text: "The drywall form made it easy to explain the problem area and what kind of repair we needed."
+      },
+      {
+        image: "assets/images/review-11.jpg",
+        name: "Monica F.",
+        location: "Ruskin, FL",
+        text: "Our electrical request was easy to complete and the timeline options were helpful."
+      },
+      {
+        image: "assets/images/review-12.jpg",
+        name: "Jason B.",
+        location: "Dover, FL",
+        text: "We submitted a plumbing request and liked how simple the process was from start to finish."
+      }
+    ];
+
     const serviceSelector = document.getElementById("serviceSelector");
     const serviceQuestions = document.getElementById("serviceQuestions");
     const requestedServiceInput = document.getElementById("requestedServiceInput");
     const leadForm = document.getElementById("leadForm");
-    const serviceError = document.getElementById("serviceError");
-    const generalError = document.getElementById("generalError");
+    const stepError = document.getElementById("stepError");
     const customerSummary = document.getElementById("customerSummary");
     const serviceSummary = document.getElementById("serviceSummary");
     const projectSummary = document.getElementById("projectSummary");
@@ -1633,8 +1879,32 @@
     const emailSubject = document.getElementById("email-subject");
     const replyToEmail = document.getElementById("reply-to-email");
     const serviceJumpLinks = document.querySelectorAll(".service-jump");
+    const formSteps = Array.from(document.querySelectorAll(".form-step"));
+    const progressIndicators = Array.from(document.querySelectorAll("[data-step-indicator]"));
+    const progressFill = document.getElementById("progressFill");
+    const currentStepLabel = document.getElementById("currentStepLabel");
+    const nextButton = document.getElementById("nextButton");
+    const backButton = document.getElementById("backButton");
+    const submitButton = document.getElementById("submitButton");
+    const reviewCarousel = document.getElementById("reviewCarousel");
+    const reviewTrack = document.getElementById("reviewTrack");
+    const reviewPrev = document.getElementById("reviewPrev");
+    const reviewNext = document.getElementById("reviewNext");
 
-    let selectedService = "Bathroom Remodeling";
+    let selectedService = "";
+    let currentStep = 1;
+    let reviewIndex = 0;
+    let reviewAutoplay = null;
+    let touchStartX = 0;
+
+    function showStepError(message) {
+      stepError.textContent = message;
+      stepError.classList.add("show");
+    }
+
+    function clearStepError() {
+      stepError.classList.remove("show");
+    }
 
     function createServiceButtons() {
       Object.keys(serviceConfigs).forEach((serviceName) => {
@@ -1643,7 +1913,10 @@
         button.className = "service-option";
         button.dataset.service = serviceName;
         button.innerHTML = `<span>${serviceName}</span><small>Get quotes</small>`;
-        button.addEventListener("click", () => setSelectedService(serviceName, true));
+        button.addEventListener("click", () => {
+          setSelectedService(serviceName, true);
+          clearStepError();
+        });
         serviceSelector.appendChild(button);
       });
     }
@@ -1681,10 +1954,20 @@
 
     function renderServiceQuestions() {
       serviceQuestions.innerHTML = "";
+
+      if (!selectedService || !serviceConfigs[selectedService]) {
+        return;
+      }
+
       const config = serviceConfigs[selectedService];
       config.questions.forEach((question) => {
         serviceQuestions.appendChild(createChoiceGroup(question));
       });
+
+      const intro = document.getElementById("serviceStepIntro");
+      if (intro) {
+        intro.textContent = `Answer a few quick questions about your ${selectedService.toLowerCase()} project.`;
+      }
     }
 
     function setSelectedService(serviceName, scrollIntoView = false) {
@@ -1696,14 +1979,34 @@
       });
 
       renderServiceQuestions();
-      serviceError.classList.remove("show");
 
       if (scrollIntoView) {
         document.getElementById("get-quotes").scrollIntoView({ behavior: "smooth", block: "start" });
       }
     }
 
+    function updateProgress() {
+      currentStepLabel.textContent = `Step ${currentStep} of 4`;
+      progressFill.style.width = `${(currentStep / 4) * 100}%`;
+
+      formSteps.forEach((step) => {
+        step.classList.toggle("is-active", Number(step.dataset.step) === currentStep);
+      });
+
+      progressIndicators.forEach((indicator) => {
+        indicator.classList.toggle("is-active", Number(indicator.dataset.stepIndicator) === currentStep);
+      });
+
+      backButton.style.display = currentStep === 1 ? "none" : "inline-flex";
+      nextButton.style.display = currentStep === 4 ? "none" : "inline-flex";
+      submitButton.style.display = currentStep === 4 ? "inline-flex" : "none";
+    }
+
     function readServiceAnswers() {
+      if (!selectedService || !serviceConfigs[selectedService]) {
+        return [];
+      }
+
       const config = serviceConfigs[selectedService];
       return config.questions.map((question) => {
         const selected = leadForm.querySelector(`input[name="${question.name}"]:checked`);
@@ -1714,28 +2017,52 @@
       });
     }
 
-    function validateServiceQuestions() {
-      const answers = readServiceAnswers();
-      const missing = answers.some((item) => !item.value);
-      serviceError.classList.toggle("show", missing);
-      return !missing;
-    }
+    function validateStep(stepNumber) {
+      if (stepNumber === 1) {
+        if (!selectedService) {
+          showStepError("Please choose a service to continue.");
+          return false;
+        }
+        return true;
+      }
 
-    function validateGeneralFields() {
-      const urgency = leadForm.querySelector('input[name="When do you need this done?"]:checked');
-      const requiredFields = [
-        document.getElementById("projectDescription"),
-        document.getElementById("zipCode"),
-        document.getElementById("city"),
-        document.getElementById("fullName"),
-        document.getElementById("phone"),
-        document.getElementById("email")
-      ];
+      if (stepNumber === 2) {
+        const answers = readServiceAnswers();
+        const missing = answers.some((item) => !item.value);
+        if (missing) {
+          showStepError("Please answer the service-specific questions to continue.");
+          return false;
+        }
+        return true;
+      }
 
-      const missingField = requiredFields.some((field) => !field.value.trim());
-      const valid = Boolean(urgency) && !missingField;
-      generalError.classList.toggle("show", !valid);
-      return valid;
+      if (stepNumber === 3) {
+        const urgency = leadForm.querySelector('input[name="When do you need this done?"]:checked');
+        const description = document.getElementById("projectDescription").value.trim();
+        if (!urgency || !description) {
+          showStepError("Please add your timing and project description to continue.");
+          return false;
+        }
+        return true;
+      }
+
+      if (stepNumber === 4) {
+        const requiredFields = [
+          document.getElementById("fullName"),
+          document.getElementById("phone"),
+          document.getElementById("email"),
+          document.getElementById("city"),
+          document.getElementById("zipCode")
+        ];
+        const missingField = requiredFields.some((field) => !field.value.trim());
+        if (missingField) {
+          showStepError("Please complete your contact details before submitting.");
+          return false;
+        }
+        return true;
+      }
+
+      return true;
     }
 
     function setSummaryFields() {
@@ -1750,40 +2077,139 @@
 
       customerSummary.value = `Customer Info\nName: ${name}\nPhone: ${phone}\nEmail: ${email}`;
       serviceSummary.value = `Service Requested\nService Type: ${selectedService}`;
-      projectSummary.value = `Project Details\n${serviceAnswers.map((item) => `${item.label}: ${item.value}`).join("\n")}\nDescribe your project: ${description}`;
+      projectSummary.value = `Project Details\n${serviceAnswers.map((item) => `${item.label}: ${item.value}`).join("\n")}\nWhen do you need this done?: ${urgency}\nDescribe your project: ${description}`;
       locationSummary.value = `Location\nCity: ${city}\nZIP Code: ${zipCode}`;
       urgencySummary.value = `Urgency\nWhen do you need this done?: ${urgency}`;
       emailSubject.value = `${name || "Customer"} - ${selectedService} - ${zipCode || "No ZIP"} - ${urgency || "No Urgency"}`;
       replyToEmail.value = email;
     }
 
+    function getCardsPerView() {
+      if (window.innerWidth <= 720) return 1;
+      if (window.innerWidth <= 1024) return 2;
+      return 3;
+    }
+
+    function createReviewCard(review) {
+      const card = document.createElement("article");
+      card.className = "review-slide review-card";
+      card.innerHTML = `
+        <img src="${review.image}" alt="Customer review image placeholder for ${review.location}" />
+        <div class="review-meta">
+          <span>${review.location}</span>
+          <span class="review-stars">★★★★★</span>
+        </div>
+        <strong>${review.name}</strong>
+        <p>${review.text}</p>
+      `;
+      return card;
+    }
+
+    function renderReviewCarousel() {
+      reviewTrack.innerHTML = "";
+      const cardsPerView = getCardsPerView();
+
+      for (let i = 0; i < cardsPerView; i += 1) {
+        const review = reviewData[(reviewIndex + i) % reviewData.length];
+        reviewTrack.appendChild(createReviewCard(review));
+      }
+    }
+
+    function startReviewAutoplay() {
+      stopReviewAutoplay();
+      reviewAutoplay = window.setInterval(() => {
+        reviewIndex = (reviewIndex + 1) % reviewData.length;
+        renderReviewCarousel();
+      }, 5000);
+    }
+
+    function stopReviewAutoplay() {
+      if (reviewAutoplay) {
+        window.clearInterval(reviewAutoplay);
+        reviewAutoplay = null;
+      }
+    }
+
     serviceJumpLinks.forEach((link) => {
       link.addEventListener("click", () => {
         const selected = link.dataset.service;
         if (selected && serviceConfigs[selected]) {
-          setSelectedService(selected);
+          setSelectedService(selected, true);
+          currentStep = 1;
+          updateProgress();
+          clearStepError();
         }
       });
     });
 
-    leadForm.addEventListener("submit", (event) => {
-      const serviceValid = validateServiceQuestions();
-      const generalValid = validateGeneralFields();
+    nextButton.addEventListener("click", () => {
+      if (!validateStep(currentStep)) {
+        return;
+      }
 
-      if (!serviceValid || !generalValid) {
+      clearStepError();
+      currentStep += 1;
+      updateProgress();
+    });
+
+    backButton.addEventListener("click", () => {
+      clearStepError();
+      currentStep = Math.max(1, currentStep - 1);
+      updateProgress();
+    });
+
+    leadForm.addEventListener("submit", (event) => {
+      if (!validateStep(1) || !validateStep(2) || !validateStep(3) || !validateStep(4)) {
         event.preventDefault();
         return;
       }
 
+      clearStepError();
       setSummaryFields();
 
-      const submitButton = leadForm.querySelector('button[type="submit"]');
       submitButton.disabled = true;
       submitButton.textContent = "Sending...";
     });
 
+    reviewPrev.addEventListener("click", () => {
+      reviewIndex = (reviewIndex - 1 + reviewData.length) % reviewData.length;
+      renderReviewCarousel();
+      startReviewAutoplay();
+    });
+
+    reviewNext.addEventListener("click", () => {
+      reviewIndex = (reviewIndex + 1) % reviewData.length;
+      renderReviewCarousel();
+      startReviewAutoplay();
+    });
+
+    reviewCarousel.addEventListener("mouseenter", stopReviewAutoplay);
+    reviewCarousel.addEventListener("mouseleave", startReviewAutoplay);
+
+    reviewCarousel.addEventListener("touchstart", (event) => {
+      touchStartX = event.changedTouches[0].clientX;
+    }, { passive: true });
+
+    reviewCarousel.addEventListener("touchend", (event) => {
+      const delta = event.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(delta) < 40) {
+        return;
+      }
+      if (delta < 0) {
+        reviewIndex = (reviewIndex + 1) % reviewData.length;
+      } else {
+        reviewIndex = (reviewIndex - 1 + reviewData.length) % reviewData.length;
+      }
+      renderReviewCarousel();
+      startReviewAutoplay();
+    }, { passive: true });
+
+    window.addEventListener("resize", renderReviewCarousel);
+
     createServiceButtons();
-    setSelectedService(selectedService);
+    updateProgress();
+    renderReviewCarousel();
+    startReviewAutoplay();
   </script>
 </body>
 </html>
