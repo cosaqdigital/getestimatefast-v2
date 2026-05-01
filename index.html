@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <!-- Google tag (gtag.js) -->
@@ -12,17 +12,17 @@
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>Get Up to 3 Free Quotes from Local Contractors | GetEstimateFast</title>
-  <meta
-    name="description"
-    content="GetEstimateFast connects homeowners with trusted local pros for remodeling, flooring, painting, drywall, electrical, plumbing, and handyman services. Request up to 3 free quotes today."
-  />
+  <meta name="description" content="GetEstimateFast connects you with trusted local pros near Riverview, FL. Request up to 3 free quotes fast, easy, and with no obligation." />
   <meta name="robots" content="index,follow" />
   <link rel="canonical" href="https://www.getestimatefast.com/" />
+
   <meta property="og:title" content="Get Up to 3 Free Quotes from Trusted Local Pros | GetEstimateFast" />
   <meta property="og:description" content="Tell us what you need and get connected with trusted local professionals near Riverview, FL. Request up to 3 free quotes today." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://www.getestimatefast.com/" />
+
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -30,15 +30,8 @@
     "name": "GetEstimateFast",
     "url": "https://www.getestimatefast.com/",
     "email": "getestimatefast@gmail.com",
-    "description": "GetEstimateFast connects homeowners in Riverview, Brandon, Tampa, and nearby areas with local professionals for remodeling and home improvement projects.",
-    "areaServed": [
-      "Riverview FL",
-      "Brandon FL",
-      "Tampa FL",
-      "Apollo Beach FL",
-      "Gibsonton FL",
-      "Valrico FL"
-    ]
+    "description": "GetEstimateFast connects homeowners near Riverview, Florida with local professionals for remodeling and home improvement quote requests.",
+    "areaServed": ["Riverview FL", "Brandon FL", "Tampa FL", "Apollo Beach FL", "Gibsonton FL", "Valrico FL", "Lithia FL", "Fish Hawk FL", "Wimauma FL", "Ruskin FL", "Seffner FL", "Plant City FL"]
   }
   </script>
 
@@ -51,88 +44,42 @@
       --text-soft: #475467;
       --muted: #667085;
       --line: #d9e2ec;
-      --line-strong: #c8d3df;
       --navy: #11243b;
       --navy-soft: #18314f;
       --accent: #f46416;
       --accent-dark: #cc4f0d;
       --green: #0f8a5f;
       --green-soft: #e7f7f0;
-      --gold: #ffb648;
-      --shadow: 0 22px 56px rgba(16, 24, 40, 0.12);
-      --radius-xl: 28px;
-      --radius-lg: 22px;
-      --radius-md: 16px;
-      --radius-sm: 12px;
+      --shadow: 0 18px 44px rgba(16, 24, 40, 0.10);
       --max: 1240px;
     }
 
-    * {
-      box-sizing: border-box;
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
 
     body {
       margin: 0;
       font-family: Arial, Helvetica, sans-serif;
       color: var(--text);
       background:
-        radial-gradient(circle at top left, rgba(244, 100, 22, 0.12), transparent 26%),
+        radial-gradient(circle at top left, rgba(244, 100, 22, 0.10), transparent 25%),
         linear-gradient(180deg, #f8fafc 0%, var(--bg) 100%);
       line-height: 1.6;
     }
 
-    img {
-      display: block;
-      max-width: 100%;
-      height: auto;
-    }
-
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
-
-    button,
-    input,
-    select,
-    textarea {
-      font: inherit;
-    }
+    img { display: block; max-width: 100%; height: auto; }
+    a { color: inherit; text-decoration: none; }
 
     .container {
       width: min(var(--max), calc(100% - 28px));
       margin: 0 auto;
     }
 
-    .topbar {
-      background: var(--navy);
-      color: #fff;
-      font-size: 14px;
-    }
-
-    .topbar-inner {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      padding: 11px 0;
-      text-align: center;
-    }
-
-    .topbar-divider {
-      opacity: 0.45;
-    }
-
     .header {
       position: sticky;
       top: 0;
       z-index: 1000;
-      background: rgba(255, 255, 255, 0.92);
+      background: rgba(255, 255, 255, 0.94);
       backdrop-filter: blur(12px);
       border-bottom: 1px solid rgba(201, 211, 223, 0.8);
     }
@@ -142,102 +89,66 @@
       align-items: center;
       justify-content: space-between;
       gap: 18px;
-      padding: 16px 0;
+      min-height: 74px;
+      padding: 10px 0;
     }
 
-    .brand-block {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      flex-wrap: wrap;
-    }
+    .brand-block { display: flex; align-items: center; gap: 14px; min-width: 0; }
 
     .brand {
-      font-size: 29px;
-      font-weight: 800;
-      letter-spacing: -0.04em;
+      font-size: clamp(24px, 3vw, 32px);
+      font-weight: 900;
+      letter-spacing: -0.05em;
       color: var(--navy);
+      white-space: nowrap;
     }
 
     .brand-pill {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px 12px;
+      gap: 7px;
+      padding: 7px 11px;
       border-radius: 999px;
       border: 1px solid var(--line);
       background: #fff;
       color: var(--text-soft);
       font-size: 13px;
       font-weight: 800;
+      white-space: nowrap;
     }
 
-    .brand-pill strong {
-      color: var(--green);
-    }
+    .brand-pill strong { color: var(--green); }
 
-    .nav {
-      display: flex;
-      align-items: center;
-      gap: 18px;
-      flex-wrap: wrap;
-    }
-
-    .nav a {
-      color: var(--text-soft);
-      font-weight: 700;
-      font-size: 15px;
-    }
-
-    .nav a:hover {
-      color: var(--navy);
-    }
+    .nav { display: flex; align-items: center; gap: 18px; flex-wrap: nowrap; }
+    .nav a:not(.btn) { color: var(--text-soft); font-weight: 800; font-size: 15px; white-space: nowrap; }
+    .nav a:hover { color: var(--navy); }
 
     .btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 52px;
-      padding: 14px 22px;
+      min-height: 46px;
+      padding: 12px 20px;
       border-radius: 14px;
       border: 1px solid transparent;
-      font-weight: 800;
+      font-weight: 900;
       transition: 0.2s ease;
       cursor: pointer;
+      text-align: center;
+      white-space: nowrap;
     }
 
-    .btn-primary {
-      background: var(--accent);
-      color: #fff;
-      box-shadow: 0 14px 28px rgba(244, 100, 22, 0.22);
-    }
+    .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 14px 28px rgba(244, 100, 22, 0.20); }
+    .btn-primary:hover { background: var(--accent-dark); transform: translateY(-1px); }
 
-    .btn-primary:hover {
-      background: var(--accent-dark);
-      transform: translateY(-1px);
-    }
-
-    .btn-secondary {
-      background: #fff;
-      color: var(--navy);
-      border-color: var(--line);
-    }
-
-    .btn-secondary:hover {
-      background: var(--surface-alt);
-      transform: translateY(-1px);
-    }
-
-    .hero {
-      padding: 28px 0 16px;
-    }
+    .hero { padding: 26px 0 14px; }
 
     .hero-shell {
       display: grid;
-      grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
-      gap: 24px;
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 0.92fr);
+      gap: 26px;
       align-items: stretch;
-      background: linear-gradient(145deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 250, 252, 0.96) 100%);
+      background: rgba(255, 255, 255, 0.96);
       border: 1px solid #e5edf5;
       border-radius: 32px;
       box-shadow: var(--shadow);
@@ -245,771 +156,128 @@
       overflow: hidden;
     }
 
-    .hero-copy {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
+    .hero-copy { display: flex; flex-direction: column; justify-content: center; }
 
     .eyebrow {
       display: inline-flex;
-      align-items: center;
-      gap: 8px;
       width: fit-content;
-      margin-bottom: 18px;
-      padding: 10px 14px;
+      margin-bottom: 16px;
+      padding: 9px 13px;
       border-radius: 999px;
       background: var(--green-soft);
       border: 1px solid #bfe9d4;
       color: var(--green);
       font-size: 13px;
-      font-weight: 800;
+      font-weight: 900;
       text-transform: uppercase;
-      letter-spacing: 0.03em;
+      letter-spacing: 0.04em;
     }
 
     h1 {
-      margin: 0 0 16px;
-      font-size: clamp(40px, 6vw, 64px);
+      margin: 0 0 14px;
+      font-size: clamp(38px, 5.3vw, 60px);
       line-height: 1.02;
-      letter-spacing: -0.05em;
-      max-width: 11ch;
+      letter-spacing: -0.055em;
+      max-width: 720px;
     }
 
-    .hero-copy p {
-      margin: 0;
-      color: var(--text-soft);
+    .hero-subheadline { max-width: 670px; color: var(--text-soft); font-size: 20px; line-height: 1.65; margin: 0 0 16px; }
+
+    .social-proof-strip {
+      position: relative;
+      min-height: 46px;
+      max-width: 660px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+      margin: 0 0 14px;
     }
 
-    .hero-subheadline {
-      max-width: 62ch;
-      font-size: 20px;
-      line-height: 1.7;
-      margin-bottom: 20px !important;
-    }
-
-    .hero-points {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-      margin: 0 0 24px;
-      padding: 0;
-      list-style: none;
-    }
-
-    .hero-points li {
+    .proof-item {
+      position: absolute;
+      inset: 0;
       display: flex;
       align-items: center;
       gap: 10px;
-      background: rgba(255, 255, 255, 0.85);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 13px 14px;
+      padding: 11px 14px;
+      opacity: 0;
+      transform: translateX(18px);
+      transition: opacity .35s ease, transform .35s ease;
+      color: var(--text-soft);
+      font-size: 14px;
       font-weight: 800;
-      color: var(--navy-soft);
     }
 
-    .hero-points li::before {
-      content: "";
-      width: 10px;
-      height: 10px;
-      border-radius: 999px;
-      background: var(--accent);
-      box-shadow: 0 0 0 4px rgba(244, 100, 22, 0.12);
-      flex: 0 0 10px;
-    }
+    .proof-item.active { opacity: 1; transform: translateX(0); }
+    .stars { color: #f59e0b; letter-spacing: .06em; flex: 0 0 auto; }
 
-    .hero-actions {
+    .hero-points {
       display: flex;
       flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 14px;
+      gap: 10px 18px;
+      margin: 0 0 20px;
+      padding: 0;
+      list-style: none;
+      color: var(--navy-soft);
+      font-weight: 900;
+      font-size: 15px;
     }
 
-    .hero-note {
-      font-size: 14px;
-      color: var(--muted);
-    }
+    .hero-points li { display: inline-flex; align-items: center; gap: 8px; }
+    .hero-points li::before { content: ""; width: 8px; height: 8px; border-radius: 999px; background: var(--accent); box-shadow: 0 0 0 4px rgba(244, 100, 22, 0.12); flex: 0 0 8px; }
 
-    .hero-media {
-      position: relative;
-      min-height: 100%;
-      border-radius: 28px;
-      overflow: hidden;
-      background: var(--navy);
-      min-height: 520px;
-    }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
 
-    .hero-media img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      opacity: 0.9;
-    }
+    .hero-media { position: relative; border-radius: 28px; overflow: hidden; background: var(--navy); min-height: 440px; }
+    .hero-media img { width: 100%; height: 100%; object-fit: cover; opacity: 0.92; }
+    .hero-overlay { position: absolute; left: 18px; right: 18px; bottom: 18px; display: flex; justify-content: center; }
+    .hero-overlay .btn { width: min(100%, 280px); min-height: 50px; }
 
-    .hero-overlay {
-      position: absolute;
-      left: 18px;
-      right: 18px;
-      bottom: 18px;
-      display: grid;
-      gap: 12px;
-    }
-
-    .hero-overlay-card {
-      display: grid;
-      gap: 6px;
-      background: rgba(17, 36, 59, 0.88);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 20px;
-      padding: 18px;
-      color: #fff;
-    }
-
-    .hero-overlay-card strong {
-      font-size: 18px;
-      letter-spacing: -0.02em;
-    }
-
-    .hero-overlay-card span {
-      color: rgba(255, 255, 255, 0.82);
-      font-size: 14px;
-    }
-
-    .section {
-      padding: 16px 0;
-    }
+    .section { padding: 14px 0; }
 
     .section-card {
       background: rgba(255, 255, 255, 0.96);
       border: 1px solid #e6ecf2;
-      border-radius: var(--radius-xl);
+      border-radius: 28px;
       box-shadow: 0 14px 34px rgba(16, 24, 40, 0.06);
-      padding: 30px;
+      padding: 28px;
     }
 
-    .section-head {
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      gap: 18px;
-      margin-bottom: 22px;
-      flex-wrap: wrap;
-    }
+    .section-head { margin-bottom: 20px; }
+    .section-tag { display: inline-flex; margin-bottom: 8px; color: var(--accent); font-size: 13px; font-weight: 900; letter-spacing: 0.05em; text-transform: uppercase; }
+    h2 { margin: 0 0 8px; font-size: clamp(30px, 4vw, 42px); line-height: 1.08; letter-spacing: -0.04em; }
+    .section-head p { margin: 0; max-width: 760px; color: var(--text-soft); font-size: 17px; line-height: 1.7; }
 
-    .section-tag {
-      display: inline-flex;
-      margin-bottom: 10px;
-      color: var(--accent);
-      font-size: 13px;
-      font-weight: 800;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-    }
-
-    h2 {
-      margin: 0 0 8px;
-      font-size: clamp(30px, 4vw, 42px);
-      line-height: 1.08;
-      letter-spacing: -0.04em;
-    }
-
-    .section-head p {
-      margin: 0;
-      max-width: 760px;
-      color: var(--text-soft);
-      font-size: 18px;
-      line-height: 1.75;
-    }
-
-    .service-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 16px;
-    }
+    .service-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
 
     .service-card {
       display: flex;
       flex-direction: column;
       background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
       border: 1px solid var(--line);
-      border-radius: 22px;
+      border-radius: 20px;
       overflow: hidden;
       min-height: 100%;
-    }
-
-    .service-card img {
-      aspect-ratio: 16 / 10;
-      width: 100%;
-      object-fit: cover;
-      border-bottom: 1px solid var(--line);
-    }
-
-    .service-card-body {
-      display: grid;
-      gap: 12px;
-      padding: 18px;
-      flex: 1;
-    }
-
-    .service-card h3 {
-      margin: 0;
-      font-size: 21px;
-      line-height: 1.18;
-      letter-spacing: -0.02em;
-    }
-
-    .service-card p {
-      margin: 0;
-      color: var(--text-soft);
-      font-size: 15px;
-      line-height: 1.7;
-    }
-
-    .service-card .btn {
-      margin-top: auto;
-      width: 100%;
-    }
-
-    .steps-grid,
-    .trust-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 16px;
-    }
-
-    .step-card,
-    .trust-card {
-      background: var(--surface-alt);
-      border: 1px solid var(--line);
-      border-radius: 22px;
-      padding: 22px;
-    }
-
-    .step-number {
-      width: 46px;
-      height: 46px;
-      border-radius: 999px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 16px;
-      background: var(--navy);
-      color: #fff;
-      font-weight: 800;
-    }
-
-    .step-card strong,
-    .trust-card strong {
-      display: block;
-      margin-bottom: 8px;
-      font-size: 20px;
-      line-height: 1.25;
-      letter-spacing: -0.02em;
-    }
-
-    .step-card p,
-    .trust-card p {
-      margin: 0;
-      color: var(--text-soft);
-      font-size: 15px;
-      line-height: 1.7;
-    }
-
-    .form-shell {
-      display: grid;
-      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-      gap: 22px;
-    }
-
-    .form-side {
-      display: grid;
-      gap: 16px;
-      align-content: start;
-      position: sticky;
-      top: 118px;
-      height: fit-content;
-    }
-
-    .form-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      width: fit-content;
-      padding: 10px 14px;
-      border-radius: 999px;
-      background: #fff8e8;
-      border: 1px solid #f6d9a8;
-      color: #a35f00;
-      font-size: 13px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
-
-    .form-side p {
-      margin: 0;
-      color: var(--text-soft);
-      font-size: 17px;
-      line-height: 1.75;
-    }
-
-    .form-side ul {
-      display: grid;
-      gap: 12px;
-      margin: 0;
-      padding: 0;
-      list-style: none;
-    }
-
-    .form-side li {
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
-      padding: 14px;
-      border-radius: 18px;
-      background: var(--surface-alt);
-      border: 1px solid var(--line);
-      color: var(--text-soft);
-      font-size: 15px;
-      line-height: 1.7;
-    }
-
-    .form-side li strong {
-      color: var(--navy);
-      display: block;
-      margin-bottom: 4px;
-    }
-
-    .form-side li::before {
-      content: "";
-      width: 12px;
-      height: 12px;
-      margin-top: 6px;
-      border-radius: 999px;
-      background: var(--green);
-      flex: 0 0 12px;
-      box-shadow: 0 0 0 5px rgba(15, 138, 95, 0.1);
-    }
-
-    .lead-form {
-      display: grid;
-      gap: 18px;
-      background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
-      border: 1px solid #dfe8f0;
-      border-radius: 26px;
-      padding: 22px;
-    }
-
-    #leadForm {
-      scroll-margin-top: 148px;
-    }
-
-    .form-progress {
-      display: grid;
-      gap: 12px;
-      padding: 18px;
-      border-radius: 20px;
-      background: #fff;
-      border: 1px solid var(--line);
-    }
-
-    .progress-meta {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-      flex-wrap: wrap;
-    }
-
-    .progress-meta strong {
-      font-size: 16px;
-      letter-spacing: -0.01em;
-    }
-
-    .progress-meta span {
-      color: var(--text-soft);
-      font-size: 14px;
-    }
-
-    .progress-track {
-      position: relative;
-      width: 100%;
-      height: 10px;
-      border-radius: 999px;
-      background: #e6edf5;
-      overflow: hidden;
-    }
-
-    .progress-fill {
-      position: absolute;
-      inset: 0 auto 0 0;
-      width: 25%;
-      border-radius: 999px;
-      background: linear-gradient(90deg, var(--accent) 0%, #ff934d 100%);
-      transition: width 0.25s ease;
-    }
-
-    .progress-steps {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
-    }
-
-    .progress-step {
-      display: grid;
-      gap: 4px;
-      padding: 12px;
-      border-radius: 16px;
-      border: 1px solid var(--line);
-      background: var(--surface-alt);
       transition: 0.2s ease;
     }
 
-    .progress-step strong {
-      font-size: 13px;
-      line-height: 1.2;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
+    .service-card:hover { transform: translateY(-3px); box-shadow: 0 16px 30px rgba(16, 24, 40, 0.10); border-color: rgba(244, 100, 22, 0.35); }
+    .service-card img { aspect-ratio: 16 / 9; width: 100%; object-fit: cover; border-bottom: 1px solid var(--line); }
+    .service-card-body { display: grid; gap: 10px; padding: 15px; flex: 1; }
+    .service-card h3 { margin: 0; font-size: 19px; line-height: 1.18; letter-spacing: -0.02em; }
+    .service-card p { margin: 0; color: var(--text-soft); font-size: 14px; line-height: 1.55; }
+    .service-card .btn { margin-top: auto; width: 100%; min-height: 44px; padding: 10px 16px; }
 
-    .progress-step span {
-      color: var(--text-soft);
-      font-size: 14px;
-      line-height: 1.45;
-      font-weight: 700;
-    }
-
-    .progress-step.is-active {
-      border-color: rgba(244, 100, 22, 0.25);
-      background: #fff6f0;
-      box-shadow: inset 0 0 0 1px rgba(244, 100, 22, 0.12);
-    }
-
-    .progress-step.is-active strong,
-    .progress-step.is-active span {
-      color: var(--navy);
-    }
-
-    .form-step {
-      display: none;
-    }
-
-    .form-step.is-active {
-      display: grid;
-    }
-
-    .form-block {
-      display: grid;
-      gap: 14px;
-      padding: 18px;
-      border-radius: 20px;
-      background: #fff;
-      border: 1px solid var(--line);
-    }
-
-    .form-block h3 {
-      margin: 0;
-      font-size: 21px;
-      letter-spacing: -0.02em;
-    }
-
-    .form-block p {
-      margin: 0;
-      color: var(--text-soft);
-      font-size: 15px;
-      line-height: 1.7;
-    }
-
-    .service-selector {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-    }
-
-    .service-option {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      min-height: 60px;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      background: var(--surface-alt);
-      padding: 14px 16px;
-      color: var(--navy);
-      font-weight: 800;
-      text-align: left;
-      cursor: pointer;
-      transition: 0.2s ease;
-    }
-
-    .service-option:hover,
-    .service-option.active {
-      border-color: var(--accent);
-      background: #fff6f0;
-      box-shadow: 0 12px 28px rgba(244, 100, 22, 0.12);
-      transform: translateY(-1px);
-    }
-
-    .service-option small {
-      color: var(--muted);
-      font-weight: 700;
-    }
-
-    .question-grid,
-    .general-grid {
-      display: grid;
-      gap: 14px;
-    }
-
-    .question-card {
-      padding: 16px;
-      border-radius: 18px;
-      border: 1px solid var(--line);
-      background: var(--surface-alt);
-    }
-
-    .question-card legend,
-    .field label {
-      display: block;
-      margin-bottom: 10px;
-      font-weight: 800;
-      color: var(--navy);
-      font-size: 15px;
-      line-height: 1.5;
-    }
-
-    .choice-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-    }
-
-    .choice-card {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      min-height: 54px;
-      padding: 12px 14px;
-      border-radius: 16px;
-      border: 1px solid var(--line);
-      background: #fff;
-      color: var(--text-soft);
-      cursor: pointer;
-      font-weight: 700;
-      line-height: 1.5;
-    }
-
-    .choice-card input {
-      accent-color: var(--accent);
-      width: 18px;
-      height: 18px;
-      margin: 0;
-    }
-
-    .choice-card:has(input:checked) {
-      border-color: var(--accent);
-      background: #fff6f0;
-      color: var(--navy);
-      box-shadow: inset 0 0 0 1px rgba(244, 100, 22, 0.18);
-    }
-
-    .field-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
-    }
-
-    .field {
-      display: grid;
-      gap: 10px;
-    }
-
-    .field.full {
-      grid-column: 1 / -1;
-    }
-
-    input[type="text"],
-    input[type="tel"],
-    input[type="email"],
-    textarea,
-    select,
-    input[type="file"] {
-      width: 100%;
-      border: 1px solid var(--line-strong);
-      border-radius: 14px;
-      background: #fff;
-      color: var(--text);
-      padding: 14px 15px;
-    }
-
-    textarea {
-      min-height: 140px;
-      resize: vertical;
-    }
-
-    input[type="file"] {
-      background: var(--surface-alt);
-      border-style: dashed;
-    }
-
-    .help-text {
-      margin-top: -4px !important;
-      color: var(--muted) !important;
-      font-size: 13px !important;
-    }
-
-    .form-error {
-      display: none;
-      padding: 12px 14px;
-      border-radius: 14px;
-      background: #fff1f1;
-      border: 1px solid #f1c0c0;
-      color: #ad1c1c;
-      font-size: 14px;
-      font-weight: 700;
-    }
-
-    .form-error.show {
-      display: block;
-    }
-
-    .form-nav {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-      flex-wrap: wrap;
-    }
-
-    .form-nav-group {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .submit-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
-    .submit-note {
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .review-carousel {
-      position: relative;
-      display: grid;
-      gap: 18px;
-    }
-
-    .review-carousel-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
-    .review-nav {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .review-arrow {
-      width: 46px;
-      height: 46px;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      background: #fff;
-      color: var(--navy);
-      font-size: 22px;
-      font-weight: 800;
-      cursor: pointer;
-      transition: 0.2s ease;
-    }
-
-    .review-arrow:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-      transform: translateY(-1px);
-    }
-
-    .review-viewport {
-      overflow: hidden;
-    }
-
-    .review-track {
-      display: flex;
-      gap: 16px;
-    }
-
-    .review-slide {
-      flex: 0 0 calc((100% - 32px) / 3);
-      min-width: 0;
-    }
-
-    .review-card {
-      display: grid;
-      gap: 12px;
-      padding: 16px;
-      background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
-      border: 1px solid var(--line);
-      border-radius: 22px;
-      height: 100%;
-    }
-
-    .review-card img {
-      width: 100%;
-      aspect-ratio: 4 / 3;
-      object-fit: cover;
-      border-radius: 16px;
-      border: 1px solid var(--line);
-    }
-
-    .review-card strong {
-      font-size: 16px;
-      line-height: 1.3;
-      letter-spacing: -0.01em;
-    }
-
-    .review-meta {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    .review-stars {
-      color: #f59e0b;
-      letter-spacing: 0.08em;
-      font-size: 14px;
-    }
-
-    .review-card p {
-      margin: 0;
-      color: var(--text-soft);
-      font-size: 14px;
-      line-height: 1.7;
-    }
+    .steps-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .step-card { background: var(--surface-alt); border: 1px solid var(--line); border-radius: 20px; padding: 20px; }
+    .step-number { width: 42px; height: 42px; border-radius: 999px; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; background: var(--navy); color: #fff; font-weight: 900; }
+    .step-card strong { display: block; margin-bottom: 7px; font-size: 19px; line-height: 1.25; letter-spacing: -0.02em; }
+    .step-card p { margin: 0; color: var(--text-soft); font-size: 15px; line-height: 1.65; }
 
     .cta-band {
       overflow: hidden;
-      background:
-        radial-gradient(circle at top right, rgba(255, 255, 255, 0.14), transparent 26%),
-        linear-gradient(135deg, var(--navy) 0%, #1b3555 100%);
+      background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.14), transparent 26%), linear-gradient(135deg, var(--navy) 0%, #1b3555 100%);
       border-radius: 28px;
       padding: 34px;
       color: #fff;
@@ -1017,165 +285,57 @@
       text-align: center;
     }
 
-    .cta-band h2 {
-      color: #fff;
-      margin-bottom: 12px;
-    }
+    .cta-band h2 { color: #fff; margin-bottom: 12px; }
+    .cta-band p { margin: 0 auto 16px; max-width: 760px; color: rgba(255, 255, 255, 0.86); font-size: 18px; line-height: 1.65; }
 
-    .cta-band p {
-      margin: 0 auto 20px;
-      max-width: 760px;
-      color: rgba(255, 255, 255, 0.86);
-      font-size: 18px;
-      line-height: 1.75;
-    }
+    .trust-line { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 18px; margin: 0 auto 20px; color: rgba(255, 255, 255, 0.92); font-size: 14px; font-weight: 800; }
+    .microcopy { margin-top: 10px; color: rgba(255, 255, 255, 0.74); font-size: 13px; font-weight: 700; }
 
-    .footer {
-      padding: 0 0 42px;
-    }
-
-    .footer-card {
-      border-top: 1px solid var(--line);
-      padding-top: 20px;
-      text-align: center;
-      color: var(--muted);
-      font-size: 14px;
-    }
+    .footer { padding: 0 0 42px; }
+    .footer-card { border-top: 1px solid var(--line); padding-top: 20px; text-align: center; color: var(--muted); font-size: 14px; }
 
     @media (max-width: 1120px) {
-      .hero-shell,
-      .form-shell {
-        grid-template-columns: 1fr;
-      }
-
-      .form-side {
-        position: static;
-      }
-
-      .service-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-      }
+      .hero-shell { grid-template-columns: 1fr; }
+      .hero-media { min-height: 360px; }
+      .service-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     }
 
     @media (max-width: 900px) {
-      .nav {
-        display: none;
-      }
-
-      .service-grid,
-      .steps-grid,
-      .trust-grid,
-      .field-grid {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .review-slide {
-        flex-basis: calc((100% - 16px) / 2);
-      }
+      .header-inner { min-height: auto; }
+      .brand-pill { display: none; }
+      .nav a:not(.btn) { display: none; }
+      .steps-grid { grid-template-columns: 1fr; }
+      .service-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
     @media (max-width: 720px) {
-      .topbar {
-        font-size: 12px;
-      }
-
-      .topbar-inner {
-        gap: 8px;
-        padding: 8px 0;
-      }
-
-      .topbar-divider {
-        display: none;
-      }
-
-      .header-inner {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 14px;
-        padding: 18px 0;
-      }
-
-      .brand-block {
-        justify-content: center;
-        flex-direction: column;
-        gap: 12px;
-      }
-
-      .hero-shell,
-      .section-card,
-      .lead-form,
-      .cta-band {
-        padding: 20px;
-      }
-
-      .hero-media {
-        min-height: 320px;
-      }
-
-      .service-grid,
-      .steps-grid,
-      .trust-grid,
-      .service-selector,
-      .choice-grid,
-      .field-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .progress-steps {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .brand-badge {
-        width: 100%;
-        justify-content: center;
-        text-align: center;
-        padding: 12px 18px;
-      }
-
-      .review-slide {
-        flex-basis: 100%;
-      }
-
-      .hero-actions,
-      .submit-row,
-      .form-nav {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .hero-actions .btn,
-      .submit-row .btn,
-      .form-nav .btn {
-        width: 100%;
-      }
+      .header-inner { padding: 10px 0; }
+      .brand { font-size: 24px; }
+      .nav .btn { min-height: 42px; padding: 10px 14px; font-size: 14px; }
+      .hero { padding-top: 14px; }
+      .hero-shell, .section-card, .cta-band { padding: 20px; border-radius: 22px; }
+      h1 { font-size: clamp(34px, 10vw, 44px); }
+      .hero-subheadline { font-size: 16px; }
+      .hero-media { min-height: 300px; }
+      .hero-actions .btn, .cta-band .btn { width: 100%; }
+      .service-grid { grid-template-columns: 1fr; }
+      .service-card-body { padding: 16px; }
     }
   </style>
 </head>
-<body>
-  <div class="topbar">
-    <div class="container">
-      <div class="topbar-inner">
-        <span>Up to 3 free quotes</span>
-        <span class="topbar-divider">•</span>
-        <span>Trusted local pros</span>
-        <span class="topbar-divider">•</span>
-        <span>Serving Riverview, FL and nearby areas</span>
-      </div>
-    </div>
-  </div>
 
+<body>
   <header class="header">
     <div class="container">
       <div class="header-inner">
         <div class="brand-block">
-          <a class="brand" href="#top">GetEstimateFast</a>
+          <a class="brand" href="index.html">GetEstimateFast</a>
           <span class="brand-pill"><strong>Free</strong> to use for homeowners</span>
         </div>
 
         <nav class="nav" aria-label="Main navigation">
           <a href="#services">Services</a>
           <a href="#how-it-works">How It Works</a>
-          <a href="#reviews">Reviews</a>
           <a href="get-quotes.html">Get Quotes</a>
           <a href="get-quotes.html" class="btn btn-primary">Get Free Quotes</a>
         </nav>
@@ -1189,8 +349,15 @@
         <div class="hero-shell">
           <div class="hero-copy">
             <div class="eyebrow">Riverview-area home improvement quotes</div>
-            <h1>Get Up to 3 Free Quotes from Trusted Local Pros</h1>
-            <p class="hero-subheadline">Tell us what you need and we'll help connect you with qualified professionals near you - fast, easy, and free.</p>
+            <h1>Get Up to 3 Free Quotes<br>from Trusted Local Pros</h1>
+
+            <div class="social-proof-strip" aria-label="Customer feedback">
+              <div class="proof-item active"><span class="stars">★★★★★</span><span>Fast quote request for homeowners near Riverview, FL.</span></div>
+              <div class="proof-item"><span class="stars">★★★★★</span><span>Compare local professionals with no obligation.</span></div>
+              <div class="proof-item"><span class="stars">★★★★★</span><span>Simple process for remodeling and home improvement projects.</span></div>
+            </div>
+
+            <p class="hero-subheadline">Tell us what you need and we'll connect you with qualified professionals near you - fast, easy, and free.</p>
 
             <ul class="hero-points" aria-label="Trust points">
               <li>Free to use</li>
@@ -1199,23 +366,12 @@
               <li>Fast response</li>
             </ul>
 
-            <div class="hero-actions">
-              <a class="btn btn-primary" href="get-quotes.html">Get My Free Quotes</a>
-              <a class="btn btn-secondary" href="#services">View Services</a>
-            </div>
-
-            <p class="hero-note">Homeowners can request quotes online in just a few minutes.</p>
+            <div class="hero-actions"><a class="btn btn-primary" href="get-quotes.html">Get My Free Quotes</a></div>
           </div>
 
           <div class="hero-media">
-            <!-- Replace this image later with your final hero banner -->
-            <img src="assets/images/hero-home-improvement.jpg" alt="Home improvement project planning and contractor consultation placeholder" />
-            <div class="hero-overlay">
-              <div class="hero-overlay-card">
-                <strong>Local matches for residential projects</strong>
-                <span>Bathroom remodeling, flooring, painting, drywall, electrical, plumbing, and handyman services.</span>
-              </div>
-            </div>
+            <img src="assets/images/hero-home-improvement.jpg" alt="Family reviewing a home improvement project with a local professional" />
+            <div class="hero-overlay"><a class="btn btn-primary" href="get-quotes.html">Get My Free Quotes</a></div>
           </div>
         </div>
       </div>
@@ -1225,94 +381,21 @@
       <div class="container">
         <div class="section-card">
           <div class="section-head">
-            <div>
-              <span class="section-tag">Services</span>
-              <h2>Choose the service you need</h2>
-              <p>Select your project type and continue to a short quote request form tailored to that service.</p>
-            </div>
+            <span class="section-tag">Services</span>
+            <h2>Choose the service you need</h2>
+            <p>Select a service below and continue to a dedicated quote request page for that project.</p>
           </div>
 
           <div class="service-grid">
-            <article class="service-card">
-              <!-- Replace this image later -->
-              <img src="assets/images/service-bathroom.jpg" alt="Bathroom remodeling placeholder image" />
-              <div class="service-card-body">
-                <h3>Bathroom Remodeling</h3>
-                <p>Shower updates, vanity replacements, tub conversions, tile work, and full remodel quote requests.</p>
-                  <a class="btn btn-primary" href="bathroom-remodeling.html">Get Quotes</a>
-              </div>
-            </article>
-
-            <article class="service-card">
-              <!-- Replace this image later -->
-              <img src="assets/images/service-flooring.jpg" alt="Flooring installation placeholder image" />
-              <div class="service-card-body">
-                <h3>Flooring Installation</h3>
-                <p>LVP, laminate, hardwood, tile, carpet, repairs, and flooring replacement projects for residential spaces.</p>
-                  <a class="btn btn-primary" href="flooring-installation.html">Get Quotes</a>
-              </div>
-            </article>
-
-            <article class="service-card">
-              <!-- Replace this image later -->
-              <img src="assets/images/service-painting.jpg" alt="Painting services placeholder image" />
-              <div class="service-card-body">
-                <h3>Painting Services</h3>
-                <p>Interior rooms, exterior work, cabinet painting, trim updates, touch-ups, and residential repainting.</p>
-                  <a class="btn btn-primary" href="painting.html">Get Quotes</a>
-              </div>
-            </article>
-
-            <article class="service-card">
-              <!-- Replace this image later -->
-              <img src="assets/images/service-drywall.jpg" alt="Drywall services placeholder image" />
-              <div class="service-card-body">
-                <h3>Drywall Services</h3>
-                <p>Repairs, installation, ceiling fixes, texture matching, water damage patches, and room-by-room drywall work.</p>
-                  <a class="btn btn-primary" href="drywall.html">Get Quotes</a>
-              </div>
-            </article>
-
-            <article class="service-card">
-              <!-- Replace this image later -->
-              <img src="assets/images/service-electrical.jpg" alt="Electrical services placeholder image" />
-              <div class="service-card-body">
-                <h3>Electrical Services</h3>
-                <p>Fixtures, outlets, panels, fans, wiring, repairs, inspections, and electrical upgrades for homeowners.</p>
-                  <a class="btn btn-primary" href="electrical.html">Get Quotes</a>
-              </div>
-            </article>
-
-            <article class="service-card">
-              <!-- Replace this image later -->
-              <img src="assets/images/service-plumbing.jpg" alt="Plumbing services placeholder image" />
-              <div class="service-card-body">
-                <h3>Plumbing Services</h3>
-                <p>Leaks, toilets, drains, faucets, water heaters, showers, disposals, and plumbing repairs or installation.</p>
-                  <a class="btn btn-primary" href="plumbing.html">Get Quotes</a>
-              </div>
-            </article>
-
-            <article class="service-card">
-              <!-- Replace this image later -->
-              <img src="assets/images/service-handyman.jpg" alt="Handyman services placeholder image" />
-              <div class="service-card-body">
-                <h3>Handyman Services</h3>
-                <p>General repairs, TV mounting, furniture assembly, caulking, hardware installation, and small home tasks.</p>
-                  <a class="btn btn-primary" href="handyman.html">Get Quotes</a>
-                </div>
-              </article>
-
-              <article class="service-card">
-                <!-- Replace this image later -->
-                <img src="assets/images/service-kitchen.png" alt="Kitchen remodeling placeholder image" />
-                <div class="service-card-body">
-                  <h3>Kitchen Remodeling</h3>
-                  <p>Cabinets, countertops, backsplash, lighting, flooring, and full kitchen update quote requests.</p>
-                  <a class="btn btn-primary" href="kitchen-remodeling.html">Get Quotes</a>
-                </div>
-              </article>
-            </div>
+            <a class="service-card" href="bathroom-remodeling.html"><img src="assets/images/service-bathroom.jpg" alt="Bathroom remodeling service" /><div class="service-card-body"><h3>Bathroom Remodeling</h3><p>Showers, tubs, tile, vanities, fixtures, and full bathroom update requests.</p><span class="btn btn-primary">Get Quotes</span></div></a>
+            <a class="service-card" href="flooring-installation.html"><img src="assets/images/service-flooring.jpg" alt="Flooring installation service" /><div class="service-card-body"><h3>Flooring Installation</h3><p>LVP, laminate, hardwood, tile, carpet, repairs, and floor replacement.</p><span class="btn btn-primary">Get Quotes</span></div></a>
+            <a class="service-card" href="painting.html"><img src="assets/images/service-painting.jpg" alt="Painting services" /><div class="service-card-body"><h3>Painting Services</h3><p>Interior, exterior, cabinets, trim, touch-ups, and repainting projects.</p><span class="btn btn-primary">Get Quotes</span></div></a>
+            <a class="service-card" href="drywall.html"><img src="assets/images/service-drywall.jpg" alt="Drywall repair and installation service" /><div class="service-card-body"><h3>Drywall Services</h3><p>Repairs, installation, ceiling fixes, texture matching, and water damage patches.</p><span class="btn btn-primary">Get Quotes</span></div></a>
+            <a class="service-card" href="electrical.html"><img src="assets/images/service-electrical.jpg" alt="Electrical services" /><div class="service-card-body"><h3>Electrical Services</h3><p>Fixtures, outlets, fans, panels, wiring, inspections, and electrical repairs.</p><span class="btn btn-primary">Get Quotes</span></div></a>
+            <a class="service-card" href="plumbing.html"><img src="assets/images/service-plumbing.jpg" alt="Plumbing services" /><div class="service-card-body"><h3>Plumbing Services</h3><p>Leaks, drains, toilets, faucets, water heaters, disposals, and pipe repairs.</p><span class="btn btn-primary">Get Quotes</span></div></a>
+            <a class="service-card" href="handyman.html"><img src="assets/images/service-handyman.jpg" alt="Handyman services" /><div class="service-card-body"><h3>Handyman Services</h3><p>Small repairs, mounting, assembly, caulking, hardware, and home tasks.</p><span class="btn btn-primary">Get Quotes</span></div></a>
+            <a class="service-card" href="kitchen-remodeling.html"><img src="assets/images/service-kitchen.jpg" alt="Kitchen remodeling service" /><div class="service-card-body"><h3>Kitchen Remodeling</h3><p>Cabinets, countertops, backsplash, lighting, flooring, and kitchen updates.</p><span class="btn btn-primary">Get Quotes</span></div></a>
+          </div>
         </div>
       </div>
     </section>
@@ -1321,104 +404,15 @@
       <div class="container">
         <div class="section-card">
           <div class="section-head">
-            <div>
-              <span class="section-tag">How it works</span>
-              <h2>A simple way to request local quotes</h2>
-              <p>You do not pay to request quotes. Start online and see who may be available for your project.</p>
-            </div>
+            <span class="section-tag">How it works</span>
+            <h2>How It Works</h2>
+            <p>Tell us what you need and get matched with trusted local professionals near you.</p>
           </div>
 
           <div class="steps-grid">
-            <article class="step-card">
-              <div class="step-number">1</div>
-              <strong>Tell us what you need</strong>
-              <p>Choose your service and answer a few project questions so your request is clear and useful.</p>
-            </article>
-
-            <article class="step-card">
-              <div class="step-number">2</div>
-              <strong>We match you with local pros</strong>
-              <p>We help connect your request with professionals serving Riverview, FL and nearby areas.</p>
-            </article>
-
-            <article class="step-card">
-              <div class="step-number">3</div>
-              <strong>Get up to 3 free quotes</strong>
-              <p>When available, you may receive up to 3 quote opportunities from local professionals - no obligation.</p>
-            </article>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="container">
-        <div class="section-card">
-          <div class="section-head">
-            <div>
-              <span class="section-tag">Trust</span>
-              <h2>Built to help homeowners request quotes faster</h2>
-              <p>From service selection to follow-up, the experience is designed to feel clear, local, and easy to use on any device.</p>
-            </div>
-          </div>
-
-          <div class="trust-grid">
-            <article class="trust-card">
-              <strong>Verified local professionals</strong>
-              <p>We focus on local service coverage for Riverview, FL and nearby communities.</p>
-            </article>
-
-            <article class="trust-card">
-              <strong>Up to 3 free quotes</strong>
-              <p>Requesting quotes is free for homeowners and residential improvement projects.</p>
-            </article>
-
-            <article class="trust-card">
-              <strong>Same-day response when available</strong>
-              <p>Some projects may receive fast follow-up depending on service type and availability.</p>
-            </article>
-
-            <article class="trust-card">
-              <strong>No obligation</strong>
-              <p>Review your options and decide what makes sense for your home project.</p>
-            </article>
-
-            <article class="trust-card">
-              <strong>Serving Riverview, FL</strong>
-              <p>Also supporting nearby areas such as Brandon, Tampa, Apollo Beach, Gibsonton, and Valrico.</p>
-            </article>
-
-            <article class="trust-card">
-              <strong>Residential project focus</strong>
-              <p>Designed for homeowners looking for remodeling and home improvement quote requests.</p>
-            </article>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="reviews">
-      <div class="container">
-        <div class="section-card">
-          <div class="section-head">
-            <div>
-              <span class="section-tag">Reviews</span>
-              <h2>Homeowner feedback from nearby areas</h2>
-              <p>Swipe or use the arrows to browse local review placeholders. Replace the images later with your final review screenshots.</p>
-            </div>
-          </div>
-
-          <div class="review-carousel" id="reviewCarousel">
-            <div class="review-carousel-head">
-              <div class="submit-note">Autoplay every 5 seconds. Hover to pause.</div>
-              <div class="review-nav">
-                <button type="button" class="review-arrow" id="reviewPrev" aria-label="Previous reviews">‹</button>
-                <button type="button" class="review-arrow" id="reviewNext" aria-label="Next reviews">›</button>
-              </div>
-            </div>
-            <div class="review-viewport">
-              <div class="review-track" id="reviewTrack"></div>
-            </div>
+            <article class="step-card"><div class="step-number">1</div><strong>Submit your request</strong><p>Tell us about your project in a few quick steps.</p></article>
+            <article class="step-card"><div class="step-number">2</div><strong>We match you with local pros</strong><p>We review your request and connect you with qualified professionals.</p></article>
+            <article class="step-card"><div class="step-number">3</div><strong>Get up to 3 free quotes</strong><p>Compare options and choose the best one - no obligation.</p></article>
           </div>
         </div>
       </div>
@@ -1427,705 +421,30 @@
     <section class="section">
       <div class="container">
         <div class="cta-band">
-          <h2>Ready to Get Free Quotes?</h2>
-          <p>Start your request today and get connected with trusted local pros near you.</p>
+          <h2>Start Your Request and Get Up to 3 Free Quotes Today</h2>
+          <p>It takes less than a minute. No obligation. Just fast, local quotes you can compare.</p>
+          <div class="trust-line"><span>Free to use</span><span>-</span><span>No obligation</span><span>-</span><span>No spam</span><span>-</span><span>Local professionals</span></div>
           <a class="btn btn-primary" href="get-quotes.html">Get My Free Quotes</a>
+          <div class="microcopy">Takes less than 60 seconds</div>
         </div>
       </div>
     </section>
   </main>
 
   <footer class="footer">
-    <div class="container">
-      <div class="footer-card">
-        GetEstimateFast serves Riverview, Brandon, Tampa, Apollo Beach, Gibsonton, Valrico, and nearby Florida communities.
-      </div>
-    </div>
+    <div class="container"><div class="footer-card">GetEstimateFast serves Riverview, Brandon, Tampa, Apollo Beach, Gibsonton, Valrico, and nearby Florida communities.</div></div>
   </footer>
 
   <script>
-    const serviceConfigs = {
-      "Bathroom Remodeling": {
-        summaryLabel: "Bathroom Remodeling",
-        questions: [
-          {
-            id: "bathroom-project-type",
-            name: "Bathroom Project Type",
-            label: "What type of bathroom project do you need?",
-            options: ["Full bathroom remodel", "Shower remodel", "Tub to shower conversion", "Vanity / sink replacement", "Toilet replacement", "Tile installation", "Bathroom flooring", "Plumbing fixtures", "Other"]
-          },
-          {
-            id: "bathroom-current-type",
-            name: "Current Bathroom Type",
-            label: "What is the current bathroom type?",
-            options: ["Half bathroom", "Full bathroom", "Master bathroom", "Guest bathroom"]
-          },
-          {
-            id: "bathroom-project-size",
-            name: "Bathroom Project Size",
-            label: "What best describes the project size?",
-            options: ["Small update", "Medium remodel", "Full renovation", "Not sure"]
-          },
-          {
-            id: "bathroom-plumbing-changes",
-            name: "Bathroom Plumbing Changes",
-            label: "Do you need plumbing changes?",
-            options: ["Yes", "No", "Not sure"]
-          },
-          {
-            id: "bathroom-tile-work",
-            name: "Bathroom Tile Work",
-            label: "Do you need tile work?",
-            options: ["Yes", "No", "Not sure"]
-          }
-        ]
-      },
-      "Flooring Installation": {
-        summaryLabel: "Flooring Installation",
-        questions: [
-          {
-            id: "flooring-type",
-            name: "Flooring Type",
-            label: "What type of flooring do you need?",
-            options: ["Vinyl / LVP", "Laminate", "Hardwood", "Tile", "Carpet", "Floor repair", "Floor removal", "Not sure yet"]
-          },
-          {
-            id: "flooring-location",
-            name: "Flooring Location",
-            label: "Where will the flooring be installed?",
-            options: ["Living room", "Bedroom", "Kitchen", "Bathroom", "Stairs", "Whole house", "Other"]
-          },
-          {
-            id: "flooring-area-size",
-            name: "Approximate Area Size",
-            label: "Approximate area size:",
-            options: ["Under 300 sq ft", "300-700 sq ft", "700-1,500 sq ft", "Over 1,500 sq ft", "Not sure"]
-          },
-          {
-            id: "flooring-material",
-            name: "Flooring Material Availability",
-            label: "Do you already have the flooring material?",
-            options: ["Yes", "No", "Need help choosing"]
-          }
-        ]
-      },
-      "Painting Services": {
-        summaryLabel: "Painting Services",
-        questions: [
-          {
-            id: "painting-type",
-            name: "Painting Service Type",
-            label: "What type of painting do you need?",
-            options: ["Interior painting", "Exterior painting", "Cabinets", "Doors / trim", "Fence / deck", "Touch-ups", "Other"]
-          },
-          {
-            id: "painting-areas",
-            name: "Painting Areas",
-            label: "How many rooms or areas?",
-            options: ["1 room", "2-3 rooms", "4+ rooms", "Whole house", "Exterior only", "Not sure"]
-          },
-          {
-            id: "painting-wall-condition",
-            name: "Wall Condition",
-            label: "Are walls in good condition?",
-            options: ["Yes", "Minor repairs needed", "Major repairs needed", "Not sure"]
-          },
-          {
-            id: "painting-include-paint",
-            name: "Paint Included",
-            label: "Do you need paint included?",
-            options: ["Yes", "No", "Not sure"]
-          }
-        ]
-      },
-      "Drywall Services": {
-        summaryLabel: "Drywall Services",
-        questions: [
-          {
-            id: "drywall-service",
-            name: "Drywall Service Type",
-            label: "What drywall service do you need?",
-            options: ["Drywall repair", "Drywall installation", "Ceiling repair", "Texture matching", "Water damage repair", "Hole repair", "Popcorn ceiling removal", "Other"]
-          },
-          {
-            id: "drywall-area-size",
-            name: "Drywall Area Size",
-            label: "How large is the affected area?",
-            options: ["Small hole / patch", "One wall", "One room", "Multiple rooms", "Ceiling", "Not sure"]
-          },
-          {
-            id: "drywall-cause",
-            name: "Drywall Damage Cause",
-            label: "What caused the damage?",
-            options: ["Water leak", "Impact / accident", "Remodeling", "Cracks", "Unknown"]
-          },
-          {
-            id: "drywall-painting",
-            name: "Painting After Drywall",
-            label: "Do you need painting after drywall?",
-            options: ["Yes", "No", "Not sure"]
-          }
-        ]
-      },
-      "Electrical Services": {
-        summaryLabel: "Electrical Services",
-        questions: [
-          {
-            id: "electrical-service",
-            name: "Electrical Service Type",
-            label: "What electrical service do you need?",
-            options: ["Outlet / switch installation", "Light fixture installation", "Ceiling fan installation", "Breaker / panel issue", "New wiring", "EV charger installation", "Electrical repair", "Safety inspection", "Other"]
-          },
-          {
-            id: "electrical-emergency",
-            name: "Electrical Emergency",
-            label: "Is this an emergency?",
-            options: ["Yes, urgent", "No, but soon", "Not urgent"]
-          },
-          {
-            id: "electrical-location",
-            name: "Electrical Issue Location",
-            label: "Where is the issue located?",
-            options: ["Kitchen", "Bathroom", "Bedroom", "Garage", "Outdoor", "Whole house", "Not sure"]
-          },
-          {
-            id: "electrical-wiring",
-            name: "Wiring Requirement",
-            label: "Do you need new wiring or replacement?",
-            options: ["New installation", "Replacement", "Repair only", "Not sure"]
-          }
-        ]
-      },
-      "Plumbing Services": {
-        summaryLabel: "Plumbing Services",
-        questions: [
-          {
-            id: "plumbing-service",
-            name: "Plumbing Service Type",
-            label: "What plumbing service do you need?",
-            options: ["Leak repair", "Faucet / sink installation", "Toilet repair / replacement", "Shower / tub issue", "Water heater", "Drain clog", "Garbage disposal", "Pipe repair", "Other"]
-          },
-          {
-            id: "plumbing-leak-status",
-            name: "Active Leaking or Water Damage",
-            label: "Is there active leaking or water damage?",
-            options: ["Yes, active leak", "Water damage but not active", "No", "Not sure"]
-          },
-          {
-            id: "plumbing-location",
-            name: "Plumbing Issue Location",
-            label: "Where is the issue located?",
-            options: ["Kitchen", "Bathroom", "Laundry room", "Garage", "Outdoor", "Whole house", "Not sure"]
-          },
-          {
-            id: "plumbing-repair-installation",
-            name: "Plumbing Repair or Installation",
-            label: "Do you need repair or installation?",
-            options: ["Repair", "Installation", "Replacement", "Not sure"]
-          }
-        ]
-      },
-      "Handyman Services": {
-        summaryLabel: "Handyman Services",
-        questions: [
-          {
-            id: "handyman-service",
-            name: "Handyman Service Type",
-            label: "What handyman service do you need?",
-            options: ["General repairs", "Furniture assembly", "TV mounting", "Door repair / installation", "Caulking / sealing", "Minor drywall repair", "Minor painting", "Fixture installation", "Shelving / hardware", "Other"]
-          },
-          {
-            id: "handyman-task-count",
-            name: "Handyman Task Count",
-            label: "How many tasks do you need help with?",
-            options: ["1 task", "2-3 tasks", "4+ tasks", "Ongoing help"]
-          },
-          {
-            id: "handyman-work-location",
-            name: "Handyman Work Location",
-            label: "Where is the work located?",
-            options: ["Indoor", "Outdoor", "Both"]
-          },
-          {
-            id: "handyman-materials",
-            name: "Handyman Materials Availability",
-            label: "Do you already have materials?",
-            options: ["Yes", "No", "Some materials"]
-          }
-        ]
-      }
-    };
-
-    const reviewData = [
-      {
-        image: "assets/images/review-01.jpg",
-        name: "Amanda R.",
-        location: "Brandon, FL",
-        text: "The request form was easy to use and I heard back quickly about our bathroom remodel project."
-      },
-      {
-        image: "assets/images/review-02.jpg",
-        name: "Kevin T.",
-        location: "Apollo Beach, FL",
-        text: "We needed help finding someone for a fence and outdoor project. The process felt simple and organized."
-      },
-      {
-        image: "assets/images/review-03.jpg",
-        name: "Melissa C.",
-        location: "Riverview, FL",
-        text: "The bathroom update details were easy to submit and the quote request took only a few minutes."
-      },
-      {
-        image: "assets/images/review-04.jpg",
-        name: "Jordan P.",
-        location: "Valrico, FL",
-        text: "Our flooring request was straightforward and the questions helped us explain the scope clearly."
-      },
-      {
-        image: "assets/images/review-05.jpg",
-        name: "Erica W.",
-        location: "Tampa, FL",
-        text: "The painting request form was clear and helped us outline exactly what rooms needed attention."
-      },
-      {
-        image: "assets/images/review-06.jpg",
-        name: "Brian S.",
-        location: "Gibsonton, FL",
-        text: "The drywall repair request was easy to submit, and the follow-up process felt professional."
-      },
-      {
-        image: "assets/images/review-07.jpg",
-        name: "Natalie D.",
-        location: "Sun City Center, FL",
-        text: "We used the form for a bathroom project and appreciated how simple it was to share the details."
-      },
-      {
-        image: "assets/images/review-08.jpg",
-        name: "Chris M.",
-        location: "Lithia, FL",
-        text: "The flooring questions were clear and helped us request quotes without wasting time."
-      },
-      {
-        image: "assets/images/review-09.jpg",
-        name: "Lauren H.",
-        location: "Seffner, FL",
-        text: "Submitting a painting request online was fast, and the service options made it easy to choose."
-      },
-      {
-        image: "assets/images/review-10.jpg",
-        name: "David L.",
-        location: "Plant City, FL",
-        text: "The drywall form made it easy to explain the problem area and what kind of repair we needed."
-      },
-      {
-        image: "assets/images/review-11.jpg",
-        name: "Monica F.",
-        location: "Ruskin, FL",
-        text: "Our electrical request was easy to complete and the timeline options were helpful."
-      },
-      {
-        image: "assets/images/review-12.jpg",
-        name: "Jason B.",
-        location: "Dover, FL",
-        text: "We submitted a plumbing request and liked how simple the process was from start to finish."
-      }
-    ];
-
-    const serviceSelector = document.getElementById("serviceSelector");
-    const serviceQuestions = document.getElementById("serviceQuestions");
-    const requestedServiceInput = document.getElementById("requestedServiceInput");
-    const leadForm = document.getElementById("leadForm");
-    const stepError = document.getElementById("stepError");
-    const customerSummary = document.getElementById("customerSummary");
-    const serviceSummary = document.getElementById("serviceSummary");
-    const projectSummary = document.getElementById("projectSummary");
-    const locationSummary = document.getElementById("locationSummary");
-    const urgencySummary = document.getElementById("urgencySummary");
-    const emailSubject = document.getElementById("email-subject");
-    const replyToEmail = document.getElementById("reply-to-email");
-    const serviceJumpLinks = document.querySelectorAll(".service-jump");
-    const anchorLinks = document.querySelectorAll('a[href^="#"]');
-    const formSteps = Array.from(document.querySelectorAll(".form-step"));
-    const progressIndicators = Array.from(document.querySelectorAll("[data-step-indicator]"));
-    const progressFill = document.getElementById("progressFill");
-    const currentStepLabel = document.getElementById("currentStepLabel");
-    const nextButton = document.getElementById("nextButton");
-    const backButton = document.getElementById("backButton");
-    const submitButton = document.getElementById("submitButton");
-    const header = document.querySelector(".header");
-    const reviewCarousel = document.getElementById("reviewCarousel");
-    const reviewTrack = document.getElementById("reviewTrack");
-    const reviewPrev = document.getElementById("reviewPrev");
-    const reviewNext = document.getElementById("reviewNext");
-
-    let selectedService = "";
-    let currentStep = 1;
-    let reviewIndex = 0;
-    let reviewAutoplay = null;
-    let touchStartX = 0;
-
-    function showStepError(message) {
-      stepError.textContent = message;
-      stepError.classList.add("show");
+    const proofItems = Array.from(document.querySelectorAll('.proof-item'));
+    let proofIndex = 0;
+    if (proofItems.length > 1) {
+      setInterval(() => {
+        proofItems[proofIndex].classList.remove('active');
+        proofIndex = (proofIndex + 1) % proofItems.length;
+        proofItems[proofIndex].classList.add('active');
+      }, 4500);
     }
-
-    function clearStepError() {
-      stepError.classList.remove("show");
-    }
-
-    function getHeaderOffset() {
-      return header ? Math.ceil(header.getBoundingClientRect().height) + 16 : 24;
-    }
-
-    function scrollToElement(target, behavior = "smooth") {
-      if (!target) {
-        return;
-      }
-
-      const top = window.scrollY + target.getBoundingClientRect().top - getHeaderOffset();
-      window.scrollTo({
-        top: Math.max(0, top),
-        behavior
-      });
-    }
-
-    function createServiceButtons() {
-      Object.keys(serviceConfigs).forEach((serviceName) => {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "service-option";
-        button.dataset.service = serviceName;
-        button.innerHTML = `<span>${serviceName}</span><small>Get quotes</small>`;
-        button.addEventListener("click", () => {
-          setSelectedService(serviceName, true);
-          clearStepError();
-        });
-        serviceSelector.appendChild(button);
-      });
-    }
-
-    function createChoiceGroup(question) {
-      const fieldset = document.createElement("fieldset");
-      fieldset.className = "question-card";
-      fieldset.dataset.question = question.id;
-
-      const legend = document.createElement("legend");
-      legend.textContent = question.label;
-      fieldset.appendChild(legend);
-
-      const grid = document.createElement("div");
-      grid.className = "choice-grid";
-
-      question.options.forEach((option, index) => {
-        const label = document.createElement("label");
-        label.className = "choice-card";
-
-        const input = document.createElement("input");
-        input.type = "radio";
-        input.name = question.name;
-        input.value = option;
-        input.id = `${question.id}-${index}`;
-
-        label.appendChild(input);
-        label.appendChild(document.createTextNode(option));
-        grid.appendChild(label);
-      });
-
-      fieldset.appendChild(grid);
-      return fieldset;
-    }
-
-    function renderServiceQuestions() {
-      serviceQuestions.innerHTML = "";
-
-      if (!selectedService || !serviceConfigs[selectedService]) {
-        return;
-      }
-
-      const config = serviceConfigs[selectedService];
-      config.questions.forEach((question) => {
-        serviceQuestions.appendChild(createChoiceGroup(question));
-      });
-
-      const intro = document.getElementById("serviceStepIntro");
-      if (intro) {
-        intro.textContent = `Answer a few quick questions about your ${selectedService.toLowerCase()} project.`;
-      }
-    }
-
-    function setSelectedService(serviceName, scrollIntoView = false) {
-      selectedService = serviceName;
-      requestedServiceInput.value = serviceName;
-
-      Array.from(serviceSelector.children).forEach((button) => {
-        button.classList.toggle("active", button.dataset.service === serviceName);
-      });
-
-      renderServiceQuestions();
-
-      if (scrollIntoView) {
-        scrollToElement(leadForm);
-      }
-    }
-
-    function updateProgress() {
-      currentStepLabel.textContent = `Step ${currentStep} of 4`;
-      progressFill.style.width = `${(currentStep / 4) * 100}%`;
-
-      formSteps.forEach((step) => {
-        step.classList.toggle("is-active", Number(step.dataset.step) === currentStep);
-      });
-
-      progressIndicators.forEach((indicator) => {
-        indicator.classList.toggle("is-active", Number(indicator.dataset.stepIndicator) === currentStep);
-      });
-
-      backButton.style.display = currentStep === 1 ? "none" : "inline-flex";
-      nextButton.style.display = currentStep === 4 ? "none" : "inline-flex";
-      submitButton.style.display = currentStep === 4 ? "inline-flex" : "none";
-    }
-
-    function readServiceAnswers() {
-      if (!selectedService || !serviceConfigs[selectedService]) {
-        return [];
-      }
-
-      const config = serviceConfigs[selectedService];
-      return config.questions.map((question) => {
-        const selected = leadForm.querySelector(`input[name="${question.name}"]:checked`);
-        return {
-          label: question.label,
-          value: selected ? selected.value : ""
-        };
-      });
-    }
-
-    function validateStep(stepNumber) {
-      if (stepNumber === 1) {
-        if (!selectedService) {
-          showStepError("Please choose a service to continue.");
-          return false;
-        }
-        return true;
-      }
-
-      if (stepNumber === 2) {
-        const answers = readServiceAnswers();
-        const missing = answers.some((item) => !item.value);
-        if (missing) {
-          showStepError("Please answer the service-specific questions to continue.");
-          return false;
-        }
-        return true;
-      }
-
-      if (stepNumber === 3) {
-        const urgency = leadForm.querySelector('input[name="When do you need this done?"]:checked');
-        const description = document.getElementById("projectDescription").value.trim();
-        if (!urgency || !description) {
-          showStepError("Please add your timing and project description to continue.");
-          return false;
-        }
-        return true;
-      }
-
-      if (stepNumber === 4) {
-        const requiredFields = [
-          document.getElementById("fullName"),
-          document.getElementById("phone"),
-          document.getElementById("email"),
-          document.getElementById("city"),
-          document.getElementById("zipCode")
-        ];
-        const missingField = requiredFields.some((field) => !field.value.trim());
-        if (missingField) {
-          showStepError("Please complete your contact details before submitting.");
-          return false;
-        }
-        return true;
-      }
-
-      return true;
-    }
-
-    function setSummaryFields() {
-      const urgency = leadForm.querySelector('input[name="When do you need this done?"]:checked')?.value || "";
-      const serviceAnswers = readServiceAnswers();
-      const description = document.getElementById("projectDescription").value.trim();
-      const city = document.getElementById("city").value.trim();
-      const zipCode = document.getElementById("zipCode").value.trim();
-      const name = document.getElementById("fullName").value.trim();
-      const phone = document.getElementById("phone").value.trim();
-      const email = document.getElementById("email").value.trim();
-
-      customerSummary.value = `Customer Info\nName: ${name}\nPhone: ${phone}\nEmail: ${email}`;
-      serviceSummary.value = `Service Requested\nService Type: ${selectedService}`;
-      projectSummary.value = `Project Details\n${serviceAnswers.map((item) => `${item.label}: ${item.value}`).join("\n")}\nWhen do you need this done?: ${urgency}\nDescribe your project: ${description}`;
-      locationSummary.value = `Location\nCity: ${city}\nZIP Code: ${zipCode}`;
-      urgencySummary.value = `Urgency\nWhen do you need this done?: ${urgency}`;
-      emailSubject.value = `${name || "Customer"} - ${selectedService} - ${zipCode || "No ZIP"} - ${urgency || "No Urgency"}`;
-      replyToEmail.value = email;
-    }
-
-    function getCardsPerView() {
-      if (window.innerWidth <= 720) return 1;
-      if (window.innerWidth <= 1024) return 2;
-      return 3;
-    }
-
-    function createReviewCard(review) {
-      const card = document.createElement("article");
-      card.className = "review-slide review-card";
-      card.innerHTML = `
-        <img src="${review.image}" alt="Customer review image placeholder for ${review.location}" />
-        <div class="review-meta">
-          <span>${review.location}</span>
-          <span class="review-stars">★★★★★</span>
-        </div>
-        <strong>${review.name}</strong>
-        <p>${review.text}</p>
-      `;
-      return card;
-    }
-
-    function renderReviewCarousel() {
-      reviewTrack.innerHTML = "";
-      const cardsPerView = getCardsPerView();
-
-      for (let i = 0; i < cardsPerView; i += 1) {
-        const review = reviewData[(reviewIndex + i) % reviewData.length];
-        reviewTrack.appendChild(createReviewCard(review));
-      }
-    }
-
-    function startReviewAutoplay() {
-      stopReviewAutoplay();
-      reviewAutoplay = window.setInterval(() => {
-        reviewIndex = (reviewIndex + 1) % reviewData.length;
-        renderReviewCarousel();
-      }, 5000);
-    }
-
-    function stopReviewAutoplay() {
-      if (reviewAutoplay) {
-        window.clearInterval(reviewAutoplay);
-        reviewAutoplay = null;
-      }
-    }
-
-    if (leadForm && nextButton && backButton && submitButton) {
-      serviceJumpLinks.forEach((link) => {
-        link.addEventListener("click", (event) => {
-          event.preventDefault();
-          const selected = link.dataset.service;
-          if (selected && serviceConfigs[selected]) {
-            setSelectedService(selected);
-            currentStep = 2;
-            updateProgress();
-            clearStepError();
-            scrollToElement(leadForm);
-          }
-        });
-      });
-
-      anchorLinks.forEach((link) => {
-        if (link.classList.contains("service-jump")) {
-          return;
-        }
-
-        const targetId = link.getAttribute("href");
-        if (!targetId || targetId === "#") {
-          return;
-        }
-
-        const target = document.querySelector(targetId);
-        if (!target) {
-          return;
-        }
-
-        link.addEventListener("click", (event) => {
-          event.preventDefault();
-
-          if (targetId === "#get-quotes") {
-            currentStep = 1;
-            updateProgress();
-            clearStepError();
-            scrollToElement(leadForm);
-            return;
-          }
-
-          scrollToElement(target);
-        });
-      });
-
-      nextButton.addEventListener("click", () => {
-        if (!validateStep(currentStep)) {
-          return;
-        }
-
-        clearStepError();
-        currentStep += 1;
-        updateProgress();
-      });
-
-      backButton.addEventListener("click", () => {
-        clearStepError();
-        currentStep = Math.max(1, currentStep - 1);
-        updateProgress();
-      });
-
-      leadForm.addEventListener("submit", (event) => {
-        if (!validateStep(1) || !validateStep(2) || !validateStep(3) || !validateStep(4)) {
-          event.preventDefault();
-          return;
-        }
-
-        clearStepError();
-        setSummaryFields();
-
-        submitButton.disabled = true;
-        submitButton.textContent = "Sending...";
-      });
-    }
-
-    reviewPrev.addEventListener("click", () => {
-      reviewIndex = (reviewIndex - 1 + reviewData.length) % reviewData.length;
-      renderReviewCarousel();
-      startReviewAutoplay();
-    });
-
-    reviewNext.addEventListener("click", () => {
-      reviewIndex = (reviewIndex + 1) % reviewData.length;
-      renderReviewCarousel();
-      startReviewAutoplay();
-    });
-
-    reviewCarousel.addEventListener("mouseenter", stopReviewAutoplay);
-    reviewCarousel.addEventListener("mouseleave", startReviewAutoplay);
-
-    reviewCarousel.addEventListener("touchstart", (event) => {
-      touchStartX = event.changedTouches[0].clientX;
-    }, { passive: true });
-
-    reviewCarousel.addEventListener("touchend", (event) => {
-      const delta = event.changedTouches[0].clientX - touchStartX;
-      if (Math.abs(delta) < 40) {
-        return;
-      }
-      if (delta < 0) {
-        reviewIndex = (reviewIndex + 1) % reviewData.length;
-      } else {
-        reviewIndex = (reviewIndex - 1 + reviewData.length) % reviewData.length;
-      }
-      renderReviewCarousel();
-      startReviewAutoplay();
-    }, { passive: true });
-
-    window.addEventListener("resize", renderReviewCarousel);
-
-    renderReviewCarousel();
-    startReviewAutoplay();
   </script>
 </body>
 </html>
-
