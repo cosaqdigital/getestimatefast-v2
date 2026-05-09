@@ -1,0 +1,197 @@
+[
+  {
+    "key": "kitchen-remodeling",
+    "label": "Kitchen Remodeling",
+    "slug": "kitchen-remodeling",
+    "status": "active",
+    "requestFlow": "premium",
+    "categoryKey": "remodeling-construction",
+    "image": "../assets/images/kitchen-remodeling.svg",
+    "shortText": "Cabinets, countertops, flooring, backsplash, lighting, layouts, and full kitchen renovation projects.",
+    "metaTitle": "Kitchen Remodeling Quotes Near Riverview, FL | GetEstimateFast",
+    "metaDescription": "Get up to 3 free kitchen remodeling quotes from local professionals near Riverview, FL for cabinets, countertops, backsplashes, flooring, lighting, and more.",
+    "heroHeading": "Get up to 3 free kitchen remodeling quotes near Riverview, FL",
+    "heroText": "Request kitchen remodeling estimates from trusted local professionals for cabinets, countertops, flooring, backsplashes, lighting, layouts, and full kitchen renovation projects.",
+    "benefits": [
+      "Tell us once instead of calling several companies individually.",
+      "Give local professionals the details they need before they contact you.",
+      "Compare local options with a request built for real kitchen projects."
+    ],
+    "included": [
+      "Full kitchen remodels",
+      "Cabinet replacement or refacing",
+      "Countertop replacement",
+      "Backsplash installation",
+      "Sink and faucet upgrades",
+      "Kitchen flooring updates",
+      "Lighting and electrical improvements",
+      "Appliance installation coordination"
+    ],
+    "projectTypes": [
+      "Full kitchen remodel",
+      "Partial kitchen update",
+      "Specific upgrades",
+      "Repair or replacement",
+      "Not sure yet"
+    ],
+    "pricingGuidance": "Kitchen remodeling costs vary based on cabinets, countertops, layout changes, plumbing, electrical work, appliances, materials, and finishes. A more detailed request helps professionals respond with better context instead of repeating basic questions later.",
+    "timelineGuidance": "Smaller kitchen updates may move faster, while larger remodels often involve planning, materials, measurements, scheduling, and trade coordination. A guided request helps communicate what stage the project is in.",
+    "includedHeading": "What is commonly included in kitchen remodeling requests",
+    "nearbyCities": [
+      "brandon-fl",
+      "valrico-fl",
+      "apollo-beach-fl",
+      "tampa-fl"
+    ]
+  },
+  {
+    "key": "house-cleaning",
+    "label": "House Cleaning",
+    "slug": "house-cleaning",
+    "status": "active",
+    "requestFlow": "premium",
+    "categoryKey": "cleaning-services",
+    "image": "../assets/images/house-cleaning.svg",
+    "shortText": "Recurring cleanings, deep cleaning, move-in and move-out cleaning, and more."
+  },
+  {
+    "key": "roofing",
+    "label": "Roofing",
+    "slug": "roofing",
+    "status": "active",
+    "requestFlow": "standard",
+    "categoryKey": "roofing-exterior",
+    "image": "../assets/images/standard-service.svg",
+    "shortText": "Roof repairs, replacements, leaks, flashing, shingles, and general roofing projects."
+  },
+  {
+    "key": "plumbing",
+    "label": "Plumbing",
+    "slug": "plumbing",
+    "status": "active",
+    "requestFlow": "standard",
+    "categoryKey": "plumbing",
+    "image": "../assets/images/standard-service.svg",
+    "shortText": "Leaks, drains, faucets, toilets, water heaters, and general plumbing work."
+  },
+  {
+    "key": "electrical-services",
+    "label": "Electrical Services",
+    "slug": "electrical-services",
+    "status": "active",
+    "requestFlow": "standard",
+    "categoryKey": "electrical",
+    "image": "../assets/images/standard-service.svg",
+    "shortText": "Panels, outlets, fans, lighting, EV chargers, and electrical repairs."
+  },
+  {
+    "key": "hvac",
+    "label": "HVAC",
+    "slug": "hvac",
+    "status": "active",
+    "requestFlow": "standard",
+    "categoryKey": "hvac",
+    "image": "../assets/images/standard-service.svg",
+    "shortText": "AC repair, installations, replacements, ductwork, and indoor comfort services."
+  },
+  {
+    "key": "handyman",
+    "label": "Handyman",
+    "slug": "handyman",
+    "status": "active",
+    "requestFlow": "standard",
+    "categoryKey": "general-home-services",
+    "image": "../assets/images/standard-service.svg",
+    "shortText": "Small repairs, mounting, assembly, patching, fixtures, and general home help."
+  },
+  {
+    "key": "landscaping",
+    "label": "Landscaping",
+    "slug": "landscaping",
+    "status": "active",
+    "requestFlow": "standard",
+    "categoryKey": "outdoor-landscaping",
+    "image": "../assets/images/standard-service.svg",
+    "shortText": "Landscape cleanup, planting, yard upgrades, and outdoor project help."
+  },
+  {
+    "key": "flooring-installation",
+    "label": "Flooring Installation",
+    "slug": "flooring-installation",
+    "status": "active",
+    "requestFlow": "standard",
+    "categoryKey": "flooring-interior",
+    "image": "../assets/images/standard-service.svg",
+    "shortText": "Vinyl, laminate, hardwood, tile, floor replacement, and floor updates."
+  },
+  {
+    "key": "painting-services",
+    "label": "Painting Services",
+    "slug": "painting-services",
+    "status": "active",
+    "requestFlow": "standard",
+    "categoryKey": "flooring-interior",
+    "image": "../assets/images/standard-service.svg",
+    "shortText": "Interior painting, exterior painting, touch-ups, and paint-related updates."
+  },
+  {
+    "key": "pressure-washing",
+    "label": "Pressure Washing",
+    "slug": "pressure-washing",
+    "status": "active",
+    "requestFlow": "standard",
+    "categoryKey": "outdoor-landscaping",
+    "image": "../assets/images/standard-service.svg",
+    "shortText": "Driveways, patios, siding, fences, and outdoor surface cleaning."
+  },
+  {
+    "key": "remodeling-services",
+    "label": "Remodeling Services",
+    "slug": "remodeling-services",
+    "status": "active",
+    "requestFlow": "standard",
+    "categoryKey": "remodeling-construction",
+    "image": "../assets/images/remodeling-category.svg",
+    "shortText": "General remodeling help for broader renovation projects that are still taking shape."
+  },
+  {
+    "key": "bathroom-remodeling",
+    "label": "Bathroom Remodeling",
+    "slug": "bathroom-remodeling",
+    "status": "planned",
+    "requestFlow": "planned",
+    "categoryKey": "remodeling-construction",
+    "image": "../assets/images/remodeling-category.svg",
+    "shortText": "Showers, tubs, vanities, tile, fixtures, waterproofing, and full bathroom remodel projects."
+  },
+  {
+    "key": "home-remodeling",
+    "label": "Home Remodeling",
+    "slug": "home-remodeling",
+    "status": "planned",
+    "requestFlow": "planned",
+    "categoryKey": "remodeling-construction",
+    "image": "../assets/images/remodeling-category.svg",
+    "shortText": "Whole-home updates, layout changes, multi-room renovations, and contractor-led remodels."
+  },
+  {
+    "key": "room-additions",
+    "label": "Room Additions",
+    "slug": "room-additions",
+    "status": "planned",
+    "requestFlow": "planned",
+    "categoryKey": "remodeling-construction",
+    "image": "../assets/images/remodeling-category.svg",
+    "shortText": "Bedroom additions, office additions, enclosed spaces, and larger expansion projects."
+  },
+  {
+    "key": "general-contractors",
+    "label": "General Contractors",
+    "slug": "general-contractors",
+    "status": "planned",
+    "requestFlow": "planned",
+    "categoryKey": "remodeling-construction",
+    "image": "../assets/images/remodeling-category.svg",
+    "shortText": "Projects requiring planning, multiple trades, coordination, and contractor-level oversight."
+  }
+]

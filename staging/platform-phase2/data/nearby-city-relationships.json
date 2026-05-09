@@ -1,0 +1,33 @@
+{
+  "riverview-fl": [
+    "brandon-fl",
+    "valrico-fl",
+    "apollo-beach-fl",
+    "gibsonton-fl"
+  ],
+  "brandon-fl": [
+    "riverview-fl",
+    "valrico-fl",
+    "tampa-fl"
+  ],
+  "valrico-fl": [
+    "brandon-fl",
+    "riverview-fl",
+    "tampa-fl"
+  ],
+  "apollo-beach-fl": [
+    "riverview-fl",
+    "gibsonton-fl",
+    "tampa-fl"
+  ],
+  "gibsonton-fl": [
+    "riverview-fl",
+    "apollo-beach-fl",
+    "tampa-fl"
+  ],
+  "tampa-fl": [
+    "riverview-fl",
+    "brandon-fl",
+    "valrico-fl"
+  ]
+}

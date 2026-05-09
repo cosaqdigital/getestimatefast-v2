@@ -1,0 +1,154 @@
+[
+  {
+    "key": "remodeling-construction",
+    "label": "Remodeling & Construction",
+    "slug": "remodeling-construction",
+    "description": "Kitchen remodeling, bathroom remodeling, additions, contractor-led remodels, and larger renovation projects.",
+    "metaTitle": "Remodeling & Construction Quotes Near Riverview, FL | GetEstimateFast",
+    "metaDescription": "Compare remodeling and construction estimates near Riverview, FL for kitchens, bathrooms, additions, home remodeling, and contractor-led projects.",
+    "heroHeading": "Choose the type of remodeling project you need help with",
+    "heroText": "Start with the project category that feels closest to your job and we'll guide you to the most relevant request.",
+    "introParagraphs": [
+      "Some projects are easy to name right away. Others start with a broad idea like a remodel, addition, or major update before you know exactly which option fits best.",
+      "This page helps you choose the right starting point so local professionals get clearer project details from the beginning."
+    ],
+    "whyItWorks": [
+      "You can start broad and still move into a more specific request.",
+      "It is easier to compare local professionals when the project type is clear.",
+      "Better project details can lead to better first responses."
+    ],
+    "services": [
+      "kitchen-remodeling",
+      "remodeling-services",
+      "bathroom-remodeling",
+      "home-remodeling",
+      "room-additions",
+      "general-contractors"
+    ],
+    "servicesDisplay": [
+      "Kitchen Remodeling",
+      "Remodeling Services",
+      "Bathroom Remodeling",
+      "Home Remodeling",
+      "Room Additions",
+      "General Contractors"
+    ],
+    "popularCities": [
+      "riverview-fl",
+      "brandon-fl",
+      "valrico-fl",
+      "tampa-fl"
+    ],
+    "hasPage": true
+  },
+  {
+    "key": "roofing-exterior",
+    "label": "Roofing & Exterior",
+    "slug": "roofing-exterior",
+    "description": "Roofing, roof repair, gutters, fence installation, pavers, and exterior improvement projects.",
+    "servicesDisplay": [
+      "Roofing",
+      "Roof Repair",
+      "Roof Replacement",
+      "Gutters",
+      "Fence Installation",
+      "Pavers"
+    ],
+    "hasPage": false
+  },
+  {
+    "key": "plumbing",
+    "label": "Plumbing",
+    "slug": "plumbing",
+    "description": "Plumbing repairs, drain work, leak repair, fixture installs, and water heater services.",
+    "servicesDisplay": [
+      "Plumbing",
+      "Drain Cleaning",
+      "Water Heater Installation",
+      "Leak Repair"
+    ],
+    "hasPage": false
+  },
+  {
+    "key": "electrical",
+    "label": "Electrical",
+    "slug": "electrical",
+    "description": "Panels, lighting, EV chargers, troubleshooting, inspections, and electrical upgrades.",
+    "servicesDisplay": [
+      "Electrical Services",
+      "EV Charger Installation",
+      "Panel Upgrade",
+      "Lighting Installation"
+    ],
+    "hasPage": false
+  },
+  {
+    "key": "hvac",
+    "label": "HVAC",
+    "slug": "hvac",
+    "description": "AC repair, replacement, installation, duct cleaning, and indoor comfort services.",
+    "servicesDisplay": [
+      "HVAC",
+      "AC Repair",
+      "Air Conditioning Replacement",
+      "Air Duct Cleaning"
+    ],
+    "hasPage": false
+  },
+  {
+    "key": "flooring-interior",
+    "label": "Flooring & Interior",
+    "slug": "flooring-interior",
+    "description": "Flooring, drywall, tile, and painting projects for interiors and other living spaces.",
+    "servicesDisplay": [
+      "Flooring Installation",
+      "Painting Services",
+      "Drywall Repair",
+      "Interior Painting",
+      "Exterior Painting"
+    ],
+    "hasPage": false
+  },
+  {
+    "key": "outdoor-landscaping",
+    "label": "Outdoor & Landscaping",
+    "slug": "outdoor-landscaping",
+    "description": "Landscaping, lawn care, irrigation, pressure washing, and outdoor improvement projects.",
+    "servicesDisplay": [
+      "Landscaping",
+      "Lawn Care",
+      "Pressure Washing",
+      "Irrigation Systems",
+      "Tree Removal"
+    ],
+    "hasPage": false
+  },
+  {
+    "key": "cleaning-services",
+    "label": "Cleaning Services",
+    "slug": "cleaning-services",
+    "description": "House cleaning, deep cleaning, office cleaning, move-in and move-out cleaning, and recurring cleanings.",
+    "servicesDisplay": [
+      "House Cleaning",
+      "Deep Cleaning",
+      "Move-In Cleaning",
+      "Move-Out Cleaning",
+      "Office Cleaning",
+      "Commercial Cleaning"
+    ],
+    "hasPage": false
+  },
+  {
+    "key": "general-home-services",
+    "label": "General Home Services",
+    "slug": "general-home-services",
+    "description": "Handyman work, junk removal, pool services, pest control, and general maintenance help.",
+    "servicesDisplay": [
+      "Handyman",
+      "Junk Removal",
+      "Pool Services",
+      "Pest Control"
+    ],
+    "hasPage": false
+  }
+]
