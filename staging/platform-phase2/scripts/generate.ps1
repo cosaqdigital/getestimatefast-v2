@@ -784,6 +784,47 @@ $websiteSchema = New-WebsiteSchema
 $homeFaqs = Get-DataValue $faqs "home"
 $homeTrust = Get-DataValue $trustBlocks "home"
 
+$starterKeywordMap = @{
+  "kitchen-remodeling"   = @("kitchen", "cabinets", "countertops", "backsplash", "remodel")
+  "house-cleaning"       = @("clean", "cleaning", "house cleaning", "deep cleaning", "move out", "move in")
+  "roofing"              = @("roof", "roofing", "shingles", "roof repair", "roof replacement")
+  "plumbing"             = @("plumbing", "plumber", "leak", "drain", "toilet", "water heater")
+  "hvac"                 = @("hvac", "ac", "air conditioning", "cooling", "heating", "duct")
+  "handyman"             = @("handyman", "repair", "mounting", "assembly", "fixtures")
+  "electrical-services"  = @("electrical", "electrician", "panel", "outlet", "lighting")
+  "landscaping"          = @("landscaping", "landscape", "yard", "lawn", "outdoor")
+  "flooring-installation"= @("flooring", "floor", "tile", "vinyl", "laminate", "hardwood")
+  "painting-services"    = @("painting", "paint", "interior paint", "exterior paint")
+  "pressure-washing"     = @("pressure washing", "power washing", "driveway cleaning")
+  "remodeling-services"  = @("remodeling", "renovation", "general remodel", "construction")
+}
+
+$serviceStarterItems = @(
+  "kitchen-remodeling",
+  "house-cleaning",
+  "roofing",
+  "plumbing",
+  "hvac",
+  "handyman",
+  "electrical-services",
+  "landscaping",
+  "flooring-installation",
+  "painting-services",
+  "pressure-washing",
+  "remodeling-services"
+) | ForEach-Object {
+  $service = $serviceMap[$_]
+  [pscustomobject]@{
+    key = $service.key
+    label = $service.label
+    href = Resolve-ServiceCtaHref $service.key
+    summary = $service.shortText
+    cta = if ($service.requestFlow -eq "premium") { "Premium request" } else { "Quick request" }
+    keywords = $starterKeywordMap[$service.key]
+  }
+}
+$serviceStarterJson = ($serviceStarterItems | ConvertTo-Json -Depth 10 -Compress)
+
 $mostRequestedCards = @(
   $serviceMap["kitchen-remodeling"],
   $serviceMap["house-cleaning"],
@@ -795,7 +836,7 @@ $mostRequestedCards = @(
   @{
     title = $_.label
     text = $_.shortText
-    href = Resolve-ServiceHref $_.key
+    href = Resolve-ServiceCtaHref $_.key
     image = $_.image
     alt = "$($_.label) service image"
     cta = if ($_.requestFlow -eq "premium") { "Start request" } else { "Quick request" }
@@ -858,6 +899,14 @@ $(Render-HomeHeader)
         <div>
           <h1>$($site.heroTitle)</h1>
           <p class="lead">$($site.heroText)</p>
+          <div class="service-starter" data-service-starter data-track="service-search-starter">
+            <label class="service-starter-label" for="serviceStarterInput">What service do you need?</label>
+            <div class="service-starter-input-wrap">
+              <input id="serviceStarterInput" class="service-starter-input" type="text" autocomplete="off" placeholder="Try kitchen remodeling, house cleaning, or roofing" data-service-starter-input data-track="service-search-input" />
+            </div>
+            <div class="service-starter-results" data-service-starter-results></div>
+            <p class="service-starter-help">Popular searches: Kitchen Remodeling, House Cleaning, Roofing, Plumbing</p>
+          </div>
           <div class="hero-actions">
             <a class="btn btn-primary" href="services.html" data-track="hero_start_request" data-cta="start-request">$($site.requestCta)</a>
             <a class="btn btn-secondary" href="services.html" data-track="browse_services" data-cta="browse-services">$($site.secondaryCta)</a>
@@ -964,6 +1013,8 @@ $(Render-HomeHeader)
   </section>
 </main>
 $(Render-Footer)
+<script>window.serviceStarterConfig = {"items":$serviceStarterJson};</script>
+<script src="assets/platform-forms.js"></script>
 "@
 
 $homeSchemas = @(
