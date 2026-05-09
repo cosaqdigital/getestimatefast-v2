@@ -10,6 +10,20 @@
   "requestCta": "Start My Request",
   "heroTitle": "Get multiple local estimates without calling contractors one by one.",
   "heroText": "Describe your project once and connect with trusted local professionals in the Tampa Bay area.",
+  "homeAreas": [
+    "Riverview",
+    "Tampa",
+    "Brandon",
+    "Valrico",
+    "Apollo Beach",
+    "Ruskin",
+    "Wimauma",
+    "Wesley Chapel",
+    "Clearwater",
+    "St. Petersburg",
+    "Lakeland",
+    "Bradenton"
+  ],
   "areas": [
     "Riverview",
     "Tampa",
@@ -42,7 +56,7 @@
     "Free to use",
     "No obligation",
     "Local professionals",
-    "No spam blast"
+    "No spam"
   ],
   "trustExplainers": [
     "Tell us once, instead of calling several companies individually.",

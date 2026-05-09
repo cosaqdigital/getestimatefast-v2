@@ -2,23 +2,23 @@
   "home": [
     {
       "question": "Is GetEstimateFast free to use?",
-      "answer": "Yes. You can request quotes, compare local professionals, and submit project details without paying to start a request."
-    },
-    {
-      "question": "Why does GetEstimateFast ask for detailed project information?",
-      "answer": "Detailed requests help professionals understand the scope earlier, respond with better context, and reduce repetitive follow-up questions."
-    },
-    {
-      "question": "Will my information be shared with a lot of companies?",
-      "answer": "Your request is intended to be shared only with relevant local professionals for that service and area, not broadly blasted to unrelated companies."
-    },
-    {
-      "question": "Can I use GetEstimateFast for residential and commercial work?",
-      "answer": "Yes. GetEstimateFast can help homeowners, landlords, property managers, and businesses request quotes for different types of projects."
+      "answer": "Yes. You can describe your project, compare options, and request help from local professionals without paying to use GetEstimateFast."
     },
     {
       "question": "What happens after I submit a request?",
-      "answer": "Your request is reviewed for service type, location, and scope so matched professionals can understand the basics before contacting you using your selected contact method."
+      "answer": "Your request is reviewed by service type, location, and timing so relevant local professionals can understand the project before they contact you."
+    },
+    {
+      "question": "Will my information be sent to a lot of companies?",
+      "answer": "No. Your request is meant for only relevant local professionals for that service and area, not a broad list of unrelated companies."
+    },
+    {
+      "question": "Why do you ask for project details?",
+      "answer": "Helpful project details give local professionals more context before they contact you, which can lead to better first responses and fewer repetitive follow-up questions."
+    },
+    {
+      "question": "Can I request more than one type of service?",
+      "answer": "Yes. If you need help with more than one project, you can submit another request so each service gets the right details."
     }
   ],
   "category-remodeling-construction": [

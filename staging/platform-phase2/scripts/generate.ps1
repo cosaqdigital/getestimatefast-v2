@@ -8,7 +8,11 @@ $generatedDir = Join-Path $root "generated-pages"
 if (!(Test-Path $generatedDir)) {
   New-Item -ItemType Directory -Path $generatedDir | Out-Null
 } else {
-  Get-ChildItem -Path $generatedDir -Force -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force
+Get-ChildItem -Path $generatedDir -Force -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force
+New-Item -ItemType Directory -Path (Join-Path $generatedDir "assets\\images") -Force | Out-Null
+Copy-Item -Path (Join-Path $root "assets\\platform.css") -Destination (Join-Path $generatedDir "assets\\platform.css") -Force
+Copy-Item -Path (Join-Path $root "assets\\platform-forms.js") -Destination (Join-Path $generatedDir "assets\\platform-forms.js") -Force
+Copy-Item -Path (Join-Path $root "assets\\images\\*") -Destination (Join-Path $generatedDir "assets\\images") -Recurse -Force
 }
 
 function Load-JsonFile {
@@ -156,6 +160,24 @@ function Render-Header {
 "@
 }
 
+function Render-HomeHeader {
+  return @"
+<header class="site-header home-header">
+  <div class="container">
+    <div class="header-inner">
+      <a class="brand" href="index.html">$($site.name)</a>
+      <nav class="nav">
+        <a class="nav-link" href="services.html" data-track="nav-link" data-cta="services-nav">Services</a>
+        <a class="nav-link" href="#how-it-works" data-track="nav-link" data-cta="how-it-works-nav">How it Works</a>
+        <a class="nav-link" href="#areas" data-track="nav-link" data-cta="areas-nav">Areas</a>
+        <a class="btn btn-header" href="services.html" data-track="header-cta" data-cta="start-my-request">Start My Request</a>
+      </nav>
+    </div>
+  </div>
+</header>
+"@
+}
+
 function Render-FlowHeader {
   return @"
 <header class="site-header flow-header">
@@ -217,7 +239,7 @@ function Render-Cards {
 @"
 <article class="card card-disabled" data-track="$trackAttr" data-cta="$ctaAttr"$serviceAttr$cityAttr>
   $(if ($_.image) { "<img src=""$($_.image)"" alt=""$($_.alt)"">" } else { "" })
-  <div class="card-meta">$badgeMarkup</div>
+  $(if ($badgeMarkup) { "<div class=""card-meta"">$badgeMarkup</div>" } else { "" })
   <h3>$(Html-Escape $_.title)</h3>
   <p>$(Html-Escape $_.text)</p>
   <span class="btn btn-muted">$($_.cta)</span>
@@ -227,7 +249,7 @@ function Render-Cards {
 @"
 <a class="card" href="$($_.href)" data-track="$trackAttr" data-cta="$ctaAttr"$serviceAttr$cityAttr>
   $(if ($_.image) { "<img src=""$($_.image)"" alt=""$($_.alt)"">" } else { "" })
-  <div class="card-meta">$badgeMarkup</div>
+  $(if ($badgeMarkup) { "<div class=""card-meta"">$badgeMarkup</div>" } else { "" })
   <h3>$(Html-Escape $_.title)</h3>
   <p>$(Html-Escape $_.text)</p>
   <span class="btn btn-primary">$($_.cta)</span>
@@ -415,6 +437,37 @@ function Render-HowItWorksCards {
   </div>
 </div>
 "@
+}
+
+function Render-HomeHowItWorksCards {
+  return @"
+<div class="callout-row home-steps">
+  <div class="callout-card">
+    <h3>Describe your project</h3>
+    <p>Tell us what you need and share the details that matter.</p>
+  </div>
+  <div class="callout-card">
+    <h3>Get matched locally</h3>
+    <p>We help connect your request with local professionals serving your area.</p>
+  </div>
+  <div class="callout-card">
+    <h3>Compare your options</h3>
+    <p>Review responses and choose what works best for you. No obligation.</p>
+  </div>
+</div>
+"@
+}
+
+function Render-HomeCategoryGrid {
+  param([array]$Items)
+  return ($Items | ForEach-Object {
+@"
+<a class="category-link" href="$($_.href)" data-track="browse_services" data-cta="$($_.ctaTrack)">
+  <h3>$(Html-Escape $_.title)</h3>
+  <p>$(Html-Escape $_.text)</p>
+</a>
+"@
+  }) -join ""
 }
 
 function Render-FlowStep {
@@ -735,7 +788,9 @@ $mostRequestedCards = @(
   $serviceMap["kitchen-remodeling"],
   $serviceMap["house-cleaning"],
   $serviceMap["roofing"],
-  $serviceMap["plumbing"]
+  $serviceMap["plumbing"],
+  $serviceMap["hvac"],
+  $serviceMap["handyman"]
 ) | ForEach-Object {
   @{
     title = $_.label
@@ -745,23 +800,29 @@ $mostRequestedCards = @(
     alt = "$($_.label) service image"
     cta = if ($_.requestFlow -eq "premium") { "Start request" } else { "Quick request" }
     disabled = $_.status -ne "active"
-    status = $_.status
+    status = $null
     serviceKey = $_.key
     track = "service-card"
     ctaTrack = if ($_.requestFlow -eq "premium") { "premium-service-card" } else { "standard-service-card" }
   }
 }
 
-$categoryCards = $categories | ForEach-Object {
+$homeCategoryCards = @(
+  "remodeling-construction",
+  "cleaning-services",
+  "roofing-exterior",
+  "plumbing",
+  "electrical",
+  "hvac",
+  "outdoor-landscaping",
+  "general-home-services"
+) | ForEach-Object {
+  $category = $categoryMap[$_]
   @{
-    title = $_.label
-    text = $_.description
-    href = Resolve-CategoryHref $_.key
-    image = $null
-    alt = ""
-    cta = if ($_.hasPage) { "View Category" } else { "Browse Category" }
-    track = "category-card"
-    ctaTrack = if ($_.hasPage) { "active-category-card" } else { "services-hub-category-card" }
+    title = $category.label
+    text = $category.description
+    href = Resolve-CategoryHref $category.key
+    ctaTrack = if ($category.hasPage) { "active-category-card" } else { "services-hub-category-card" }
   }
 }
 
@@ -789,29 +850,28 @@ $servicesHubCards = @(
 }
 
 $homeBody = @"
-$(Render-Header "services.html")
+$(Render-HomeHeader)
 <main>
   <section class="hero">
     <div class="container">
       <div class="panel hero-shell">
         <div>
-          <div class="eyebrow">Trusted local professionals across Tampa Bay</div>
           <h1>$($site.heroTitle)</h1>
           <p class="lead">$($site.heroText)</p>
           <div class="hero-actions">
             <a class="btn btn-primary" href="services.html" data-track="hero_start_request" data-cta="start-request">$($site.requestCta)</a>
-            <a class="btn" style="background:#fff; color:var(--navy); border:1px solid var(--line);" href="services.html" data-track="browse_services" data-cta="browse-services">$($site.secondaryCta)</a>
+            <a class="btn btn-secondary" href="services.html" data-track="browse_services" data-cta="browse-services">$($site.secondaryCta)</a>
           </div>
-          <p class="trust-inline">Free to use &middot; No obligation &middot; Local professionals &middot; No spam blast</p>
+          <p class="trust-inline">Free to use &middot; No obligation &middot; Local professionals &middot; No spam</p>
         </div>
         <div class="hero-media">
-          <img src="../assets/images/hero-home.svg" alt="Homeowner requesting local estimates for a home project" />
+          <img src="assets/images/hero-home.svg" alt="Homeowner requesting local estimates for a home project" />
         </div>
       </div>
     </div>
   </section>
 
-  <section class="section">
+  <section class="section" id="services">
     <div class="container">
       <div class="panel">
         <div class="section-head">
@@ -819,7 +879,7 @@ $(Render-Header "services.html")
           <h2>Start with a popular service</h2>
           <p>Pick the service that feels closest to your project and we'll guide you to the right next step.</p>
         </div>
-        <div class="cards">$(Render-Cards $mostRequestedCards)</div>
+        <div class="cards home-cards">$(Render-Cards $mostRequestedCards)</div>
       </div>
     </div>
   </section>
@@ -828,31 +888,24 @@ $(Render-Header "services.html")
     <div class="container">
       <div class="panel">
         <div class="section-head">
-          <div class="eyebrow">Popular in Tampa Bay</div>
-          <h2>Browse by service category</h2>
-          <p>Choose the type of project you need help with and we'll guide you to the right next step.</p>
+          <div class="eyebrow">Categories</div>
+          <h2>Find help for the project you need</h2>
+          <p>Choose a service category or start with one of the most requested services.</p>
         </div>
-        <div class="inline-links">
-          <a class="inline-link" href="category-remodeling-construction.html" data-track="browse_services" data-cta="browse-remodeling-category">Remodeling &amp; Construction</a>
-          <a class="inline-link" href="services.html#category-roofing-exterior" data-track="browse_services" data-cta="browse-roofing-category">Roofing &amp; Exterior</a>
-          <a class="inline-link" href="services.html#category-plumbing" data-track="browse_services" data-cta="browse-plumbing-category">Plumbing</a>
-          <a class="inline-link" href="services.html#category-electrical" data-track="browse_services" data-cta="browse-electrical-category">Electrical</a>
-          <a class="inline-link" href="services.html#category-hvac" data-track="browse_services" data-cta="browse-hvac-category">HVAC</a>
-          <a class="inline-link" href="services.html#category-cleaning-services" data-track="browse_services" data-cta="browse-cleaning-category">Cleaning Services</a>
-        </div>
+        <div class="category-grid">$(Render-HomeCategoryGrid $homeCategoryCards)</div>
       </div>
     </div>
   </section>
 
-  <section class="section">
+  <section class="section" id="how-it-works">
     <div class="container">
       <div class="panel">
         <div class="section-head">
           <div class="eyebrow">How it works</div>
-          <h2>Tell us once instead of calling several companies</h2>
-          <p>Your request helps local professionals understand the work before they reach out, which can lead to better first responses.</p>
+          <h2>How GetEstimateFast works</h2>
+          <p>Simple steps, clear expectations, and no need to call companies one by one.</p>
         </div>
-        $(Render-HowItWorksCards)
+        $(Render-HomeHowItWorksCards)
       </div>
     </div>
   </section>
@@ -861,24 +914,24 @@ $(Render-Header "services.html")
     <div class="container">
       <div class="panel">
         <div class="section-head">
-          <div class="eyebrow">Why homeowners trust GetEstimateFast</div>
-          <h2>Tell us once instead of chasing several companies individually</h2>
-          <p>We focus on local professionals, clear expectations, and better first responses.</p>
+          <div class="eyebrow">Trust</div>
+          <h2>Why homeowners use GetEstimateFast</h2>
+          <p>One request, better context, and more control over what happens next.</p>
         </div>
         <div class="trust-stack">$(Render-TrustCards $homeTrust)</div>
       </div>
     </div>
   </section>
 
-  <section class="section">
+  <section class="section" id="areas">
     <div class="container">
       <div class="panel">
         <div class="section-head">
           <div class="eyebrow">Areas we serve</div>
           <h2>Serving Riverview and the Tampa Bay area</h2>
-          <p>We focus on local professionals serving Riverview, Tampa, Brandon, Valrico, Apollo Beach, and nearby communities across the region.</p>
+          <p>GetEstimateFast is focused on local professionals serving Riverview, Tampa, Brandon, Valrico, Apollo Beach, and nearby communities.</p>
         </div>
-        <div class="areas-list">$(Render-Pills $site.areas "area-pill")</div>
+        <div class="areas-list">$(Render-Pills $site.homeAreas "area-pill")</div>
       </div>
     </div>
   </section>
@@ -888,8 +941,8 @@ $(Render-Header "services.html")
       <div class="panel">
         <div class="section-head">
           <div class="eyebrow">FAQ</div>
-          <h2>What users usually want to know before they submit</h2>
-          <p>These quick answers help explain the process and reduce uncertainty before you start.</p>
+          <h2>Common questions before you start</h2>
+          <p>Short answers to help you understand what happens after you submit a request.</p>
         </div>
         <div class="faq-list">$(Render-FaqList $homeFaqs)</div>
       </div>
@@ -899,12 +952,12 @@ $(Render-Header "services.html")
   <section class="section">
     <div class="container">
       <div class="panel cta-band">
-        <div class="eyebrow" style="background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.18); color: #fff;">Start here</div>
-        <h2>Start your request when you are ready</h2>
-        <p class="lead">Free to use. No obligation. Your request helps local professionals understand the job before they contact you.</p>
+        <div class="eyebrow" style="background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.18); color: #fff;">Get started</div>
+        <h2>Ready to find local professionals?</h2>
+        <p class="lead">Start with one request and compare options without calling companies one by one.</p>
         <div class="hero-actions">
           <a class="btn btn-primary" href="services.html" data-track="hero_start_request" data-cta="footer-start-request">Start My Request</a>
-          <a class="btn" style="background:#fff; color:var(--navy); border:1px solid rgba(255,255,255,0.5);" href="services.html" data-track="browse_services" data-cta="footer-browse-services">Browse Services</a>
+          <a class="btn btn-footer-secondary" href="services.html" data-track="browse_services" data-cta="footer-browse-services">Browse Services</a>
         </div>
       </div>
     </div>
