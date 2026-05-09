@@ -1,4 +1,6 @@
 (function () {
+  initServiceStarter();
+
   const flow = window.flowConfig;
   if (!flow) return;
 
@@ -417,6 +419,74 @@
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "");
+  }
+
+  function initServiceStarter() {
+    const root = document.querySelector("[data-service-starter]");
+    const config = window.serviceStarterConfig;
+    if (!root || !config || !Array.isArray(config.items)) return;
+
+    const input = root.querySelector("[data-service-starter-input]");
+    const results = root.querySelector("[data-service-starter-results]");
+    if (!input || !results) return;
+
+    const items = config.items.map((item) => ({
+      ...item,
+      normalized: normalizeText(`${item.label} ${item.summary || ""} ${(item.keywords || []).join(" ")}`)
+    }));
+
+    render(items.slice(0, 5));
+
+    input.addEventListener("input", () => {
+      const query = normalizeText(input.value);
+      if (!query) {
+        render(items.slice(0, 5));
+        return;
+      }
+
+      const matches = items.filter((item) => item.normalized.includes(query)).slice(0, 6);
+      render(matches);
+    });
+
+    input.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter") return;
+      const firstLink = results.querySelector("a.service-starter-item");
+      if (!firstLink) return;
+      event.preventDefault();
+      window.location.href = firstLink.getAttribute("href");
+    });
+
+    function render(itemsToRender) {
+      if (!itemsToRender.length) {
+        results.innerHTML = '<div class="service-starter-empty">No close match yet. Try kitchen, cleaning, roofing, or plumbing.</div>';
+        results.classList.add("is-visible");
+        return;
+      }
+
+      results.innerHTML = itemsToRender.map((item) => `
+        <a class="service-starter-item" href="${item.href}" data-track="service_selected" data-cta="service-search-result" data-service="${item.key}" data-action="starter-result-click">
+          <strong>${escapeHtml(item.label)}</strong>
+          <span>${escapeHtml(item.cta)} · ${escapeHtml(item.summary || "")}</span>
+        </a>
+      `).join("");
+      results.classList.add("is-visible");
+    }
+  }
+
+  function normalizeText(value) {
+    return String(value || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+  }
+
+  function escapeHtml(value) {
+    return String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&#39;");
   }
 
   function cssEscape(value) {
