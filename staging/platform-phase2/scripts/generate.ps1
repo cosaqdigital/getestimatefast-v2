@@ -36,11 +36,35 @@ $services | ForEach-Object { $serviceMap[$_.key] = $_ }
 $cityMap = @{}
 $cities | ForEach-Object { $cityMap[$_.key] = $_ }
 
+$activeServices = @($services | Where-Object { $_.status -eq "active" })
+$activeStandardServices = @($activeServices | Where-Object { $_.requestFlow -eq "standard" })
+$standardServiceLabels = @($activeStandardServices | ForEach-Object { $_.label })
+
+if ($flows.standard -and $flows.standard.steps.Count -gt 0) {
+  $flows.standard.serviceOptions = $standardServiceLabels
+  $flows.standard.steps[0].options = $standardServiceLabels
+}
+
 function Get-DataValue {
   param($Object, [string]$Key)
   $property = $Object.PSObject.Properties[$Key]
   if ($null -eq $property) { return $null }
   return $property.Value
+}
+
+function Get-ServiceKeywords {
+  param($Service)
+
+  $keywords = @()
+
+  if ($null -ne $Service.PSObject.Properties["searchKeywords"] -and $Service.searchKeywords) {
+    $keywords += @($Service.searchKeywords)
+  }
+
+  $keywords += $Service.label
+  $keywords += ($Service.slug -replace "-", " ")
+
+  return @($keywords | Where-Object { $_ } | Select-Object -Unique)
 }
 
 function Html-Escape {
@@ -784,46 +808,21 @@ $websiteSchema = New-WebsiteSchema
 $homeFaqs = Get-DataValue $faqs "home"
 $homeTrust = Get-DataValue $trustBlocks "home"
 
-$starterKeywordMap = @{
-  "kitchen-remodeling"   = @("kitchen", "cabinets", "countertops", "backsplash", "remodel")
-  "house-cleaning"       = @("clean", "cleaning", "house cleaning", "deep cleaning", "move out", "move in")
-  "roofing"              = @("roof", "roofing", "shingles", "roof repair", "roof replacement")
-  "plumbing"             = @("plumbing", "plumber", "leak", "drain", "toilet", "water heater")
-  "hvac"                 = @("hvac", "ac", "air conditioning", "cooling", "heating", "duct")
-  "handyman"             = @("handyman", "repair", "mounting", "assembly", "fixtures")
-  "electrical-services"  = @("electrical", "electrician", "panel", "outlet", "lighting")
-  "landscaping"          = @("landscaping", "landscape", "yard", "lawn", "outdoor")
-  "flooring-installation"= @("flooring", "floor", "tile", "vinyl", "laminate", "hardwood")
-  "painting-services"    = @("painting", "paint", "interior paint", "exterior paint")
-  "pressure-washing"     = @("pressure washing", "power washing", "driveway cleaning")
-  "remodeling-services"  = @("remodeling", "renovation", "general remodel", "construction")
-}
-
-$serviceStarterItems = @(
-  "kitchen-remodeling",
-  "house-cleaning",
-  "roofing",
-  "plumbing",
-  "hvac",
-  "handyman",
-  "electrical-services",
-  "landscaping",
-  "flooring-installation",
-  "painting-services",
-  "pressure-washing",
-  "remodeling-services"
-) | ForEach-Object {
-  $service = $serviceMap[$_]
+$serviceStarterItems = $activeServices | ForEach-Object {
+  $service = $_
   [pscustomobject]@{
     key = $service.key
     label = $service.label
     href = Resolve-ServiceCtaHref $service.key
     summary = $service.shortText
     cta = if ($service.requestFlow -eq "premium") { "Premium request" } else { "Quick request" }
-    keywords = $starterKeywordMap[$service.key]
+    keywords = @(Get-ServiceKeywords $service)
   }
 }
 $serviceStarterJson = ($serviceStarterItems | ConvertTo-Json -Depth 10 -Compress)
+$serviceStarterCatalogMarkup = ($serviceStarterItems | ForEach-Object {
+  "<a class=""service-starter-option"" href=""$($_.href)"" data-service-option data-track=""service_selected"" data-cta=""service-search-option"" data-service=""$($_.key)"" data-keywords=""$(Html-Escape (($_.keywords -join " | ")))""><strong>$(Html-Escape $_.label)</strong><span>$(Html-Escape $_.cta) &middot; $(Html-Escape $_.summary)</span></a>"
+}) -join ""
 
 $mostRequestedCards = @(
   $serviceMap["kitchen-remodeling"],
@@ -902,9 +901,10 @@ $(Render-HomeHeader)
           <div class="service-starter" data-service-starter data-track="service-search-starter">
             <label class="service-starter-label" for="serviceStarterInput">What service do you need?</label>
             <div class="service-starter-input-wrap">
-              <input id="serviceStarterInput" class="service-starter-input" type="text" autocomplete="off" placeholder="Try kitchen remodeling, house cleaning, or roofing" data-service-starter-input data-track="service-search-input" />
+              <input id="serviceStarterInput" class="service-starter-input" type="text" autocomplete="off" placeholder="Try kitchen remodeling, house cleaning, roofing, or plumbing" data-service-starter-input data-service-search-input data-track="service-search-input" />
             </div>
-            <div class="service-starter-results" data-service-starter-results></div>
+            <div class="service-starter-results" data-service-starter-results data-service-search-results></div>
+            <div class="service-starter-catalog" hidden aria-hidden="true">$serviceStarterCatalogMarkup</div>
             <p class="service-starter-help">Popular searches: Kitchen Remodeling, House Cleaning, Roofing, Plumbing</p>
           </div>
           <div class="hero-actions">

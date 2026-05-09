@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
   initServiceStarter();
 
   const flow = window.flowConfig;
@@ -424,16 +424,18 @@
   function initServiceStarter() {
     const root = document.querySelector("[data-service-starter]");
     const config = window.serviceStarterConfig;
-    if (!root || !config || !Array.isArray(config.items)) return;
+    if (!root) return;
 
-    const input = root.querySelector("[data-service-starter-input]");
-    const results = root.querySelector("[data-service-starter-results]");
+    const input = root.querySelector("[data-service-search-input], [data-service-starter-input]");
+    const results = root.querySelector("[data-service-search-results], [data-service-starter-results]");
     if (!input || !results) return;
 
-    const items = config.items.map((item) => ({
+    const sourceItems = Array.isArray(config && config.items) ? config.items : [];
+    const items = sourceItems.map((item) => ({
       ...item,
       normalized: normalizeText(`${item.label} ${item.summary || ""} ${(item.keywords || []).join(" ")}`)
     }));
+    if (!items.length) return;
 
     render(items.slice(0, 5));
 
@@ -464,7 +466,7 @@
       }
 
       results.innerHTML = itemsToRender.map((item) => `
-        <a class="service-starter-item" href="${item.href}" data-track="service_selected" data-cta="service-search-result" data-service="${item.key}" data-action="starter-result-click">
+        <a class="service-starter-item" href="${item.href}" data-service-option data-track="service_selected" data-cta="service-search-result" data-service="${item.key}" data-action="starter-result-click">
           <strong>${escapeHtml(item.label)}</strong>
           <span>${escapeHtml(item.cta)} · ${escapeHtml(item.summary || "")}</span>
         </a>
@@ -493,3 +495,4 @@
     return String(value).replace(/"/g, '\\"');
   }
 })();
+
