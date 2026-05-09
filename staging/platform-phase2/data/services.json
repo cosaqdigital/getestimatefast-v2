@@ -6,7 +6,7 @@
     "status": "active",
     "requestFlow": "premium",
     "categoryKey": "remodeling-construction",
-    "image": "../assets/images/kitchen-remodeling.svg",
+    "image": "assets/images/kitchen-remodeling.svg",
     "shortText": "Cabinets, countertops, flooring, backsplash, lighting, layouts, and full kitchen renovation projects.",
     "metaTitle": "Kitchen Remodeling Quotes Near Riverview, FL | GetEstimateFast",
     "metaDescription": "Get up to 3 free kitchen remodeling quotes from local professionals near Riverview, FL for cabinets, countertops, backsplashes, flooring, lighting, and more.",
@@ -51,7 +51,7 @@
     "status": "active",
     "requestFlow": "premium",
     "categoryKey": "cleaning-services",
-    "image": "../assets/images/house-cleaning.svg",
+    "image": "assets/images/house-cleaning.svg",
     "shortText": "Recurring cleanings, deep cleaning, move-in and move-out cleaning, and more."
   },
   {
@@ -61,7 +61,7 @@
     "status": "active",
     "requestFlow": "standard",
     "categoryKey": "roofing-exterior",
-    "image": "../assets/images/standard-service.svg",
+    "image": "assets/images/standard-service.svg",
     "shortText": "Roof repairs, replacements, leaks, flashing, shingles, and general roofing projects."
   },
   {
@@ -71,7 +71,7 @@
     "status": "active",
     "requestFlow": "standard",
     "categoryKey": "plumbing",
-    "image": "../assets/images/standard-service.svg",
+    "image": "assets/images/standard-service.svg",
     "shortText": "Leaks, drains, faucets, toilets, water heaters, and general plumbing work."
   },
   {
@@ -81,7 +81,7 @@
     "status": "active",
     "requestFlow": "standard",
     "categoryKey": "electrical",
-    "image": "../assets/images/standard-service.svg",
+    "image": "assets/images/standard-service.svg",
     "shortText": "Panels, outlets, fans, lighting, EV chargers, and electrical repairs."
   },
   {
@@ -91,7 +91,7 @@
     "status": "active",
     "requestFlow": "standard",
     "categoryKey": "hvac",
-    "image": "../assets/images/standard-service.svg",
+    "image": "assets/images/standard-service.svg",
     "shortText": "AC repair, installations, replacements, ductwork, and indoor comfort services."
   },
   {
@@ -101,7 +101,7 @@
     "status": "active",
     "requestFlow": "standard",
     "categoryKey": "general-home-services",
-    "image": "../assets/images/standard-service.svg",
+    "image": "assets/images/standard-service.svg",
     "shortText": "Small repairs, mounting, assembly, patching, fixtures, and general home help."
   },
   {
@@ -111,7 +111,7 @@
     "status": "active",
     "requestFlow": "standard",
     "categoryKey": "outdoor-landscaping",
-    "image": "../assets/images/standard-service.svg",
+    "image": "assets/images/standard-service.svg",
     "shortText": "Landscape cleanup, planting, yard upgrades, and outdoor project help."
   },
   {
@@ -121,7 +121,7 @@
     "status": "active",
     "requestFlow": "standard",
     "categoryKey": "flooring-interior",
-    "image": "../assets/images/standard-service.svg",
+    "image": "assets/images/standard-service.svg",
     "shortText": "Vinyl, laminate, hardwood, tile, floor replacement, and floor updates."
   },
   {
@@ -131,7 +131,7 @@
     "status": "active",
     "requestFlow": "standard",
     "categoryKey": "flooring-interior",
-    "image": "../assets/images/standard-service.svg",
+    "image": "assets/images/standard-service.svg",
     "shortText": "Interior painting, exterior painting, touch-ups, and paint-related updates."
   },
   {
@@ -141,7 +141,7 @@
     "status": "active",
     "requestFlow": "standard",
     "categoryKey": "outdoor-landscaping",
-    "image": "../assets/images/standard-service.svg",
+    "image": "assets/images/standard-service.svg",
     "shortText": "Driveways, patios, siding, fences, and outdoor surface cleaning."
   },
   {
@@ -151,7 +151,7 @@
     "status": "active",
     "requestFlow": "standard",
     "categoryKey": "remodeling-construction",
-    "image": "../assets/images/remodeling-category.svg",
+    "image": "assets/images/remodeling-category.svg",
     "shortText": "General remodeling help for broader renovation projects that are still taking shape."
   },
   {
@@ -161,7 +161,7 @@
     "status": "planned",
     "requestFlow": "planned",
     "categoryKey": "remodeling-construction",
-    "image": "../assets/images/remodeling-category.svg",
+    "image": "assets/images/remodeling-category.svg",
     "shortText": "Showers, tubs, vanities, tile, fixtures, waterproofing, and full bathroom remodel projects."
   },
   {
@@ -171,7 +171,7 @@
     "status": "planned",
     "requestFlow": "planned",
     "categoryKey": "remodeling-construction",
-    "image": "../assets/images/remodeling-category.svg",
+    "image": "assets/images/remodeling-category.svg",
     "shortText": "Whole-home updates, layout changes, multi-room renovations, and contractor-led remodels."
   },
   {
@@ -181,7 +181,7 @@
     "status": "planned",
     "requestFlow": "planned",
     "categoryKey": "remodeling-construction",
-    "image": "../assets/images/remodeling-category.svg",
+    "image": "assets/images/remodeling-category.svg",
     "shortText": "Bedroom additions, office additions, enclosed spaces, and larger expansion projects."
   },
   {
@@ -191,7 +191,7 @@
     "status": "planned",
     "requestFlow": "planned",
     "categoryKey": "remodeling-construction",
-    "image": "../assets/images/remodeling-category.svg",
+    "image": "assets/images/remodeling-category.svg",
     "shortText": "Projects requiring planning, multiple trades, coordination, and contractor-level oversight."
   }
 ]
