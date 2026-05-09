@@ -1,0 +1,47 @@
+{
+  "home": [
+    {
+      "title": "Share your project once",
+      "text": "Instead of calling several companies one by one, you can describe the job once and help the right local professionals understand it faster."
+    },
+    {
+      "title": "Clear expectations before you submit",
+      "text": "You can see what happens next, why details are helpful, and how your contact preferences work before sharing personal information."
+    },
+    {
+      "title": "Focused on Tampa Bay",
+      "text": "We focus on local professionals serving Riverview and the greater Tampa Bay area so the experience feels more relevant and less generic."
+    }
+  ],
+  "service-kitchen-remodeling": [
+    {
+      "title": "Built for larger projects without feeling chaotic",
+      "text": "Kitchen remodeling requests need more detail than simple service calls, so the flow is structured to gather scope, planning stage, and timeline in guided steps."
+    },
+    {
+      "title": "Explain the project once",
+      "text": "Instead of repeating the same project details to multiple companies, users can submit one organized request that gives local professionals a clearer starting point."
+    },
+    {
+      "title": "You stay in control",
+      "text": "You choose your preferred contact method and the request is meant for relevant local professionals, not a broad spam blast."
+    }
+  ],
+  "flows": {
+    "kitchen": [
+      "Your request is intended only for relevant local professionals for this project.",
+      "Detailed submissions help reduce repetitive follow-up calls and basic clarification texts.",
+      "Photos help when available, but they are always optional and never required to submit."
+    ],
+    "cleaning": [
+      "This shorter flow is designed for faster service requests without turning into a generic lead form.",
+      "You can keep the request simple while still giving providers enough context to respond usefully.",
+      "You choose how local professionals contact you and stay in control of the request."
+    ],
+    "standard": [
+      "Your request is only meant to help relevant local professionals understand the basics before contacting you.",
+      "You stay in control of how and when professionals follow up.",
+      "A few useful details now can reduce repetitive back-and-forth later."
+    ]
+  }
+}

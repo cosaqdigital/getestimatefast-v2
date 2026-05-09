@@ -1,0 +1,26 @@
+[
+  {
+    "key": "riverview-fl",
+    "label": "Riverview, FL",
+    "city": "Riverview",
+    "state": "FL",
+    "neighborhoods": [
+      "South Fork",
+      "Boyette",
+      "Panther Trace",
+      "Summerfield",
+      "Bloomingdale East"
+    ],
+    "localContext": [
+      "Many Riverview homeowners plan kitchen updates to improve dated layouts, refresh cabinets and countertops, add better lighting, or open kitchens into adjacent living areas.",
+      "Projects in Riverview often range from simple cosmetic updates in communities like South Fork, Summerfield, and Panther Trace to more involved kitchen reconfigurations where storage, lighting, and layout need improvement.",
+      "Because Riverview sits close to Brandon, Valrico, Gibsonton, Apollo Beach, and Wimauma, contractor coverage often overlaps across the area, especially for larger remodeling projects that require multiple trades.",
+      "This page speaks to homeowners near U.S. 301, Boyette Road, and the wider Riverview area in a way that feels specific to local projects and neighborhoods."
+    ]
+  },
+  { "key": "brandon-fl", "label": "Brandon, FL", "city": "Brandon", "state": "FL" },
+  { "key": "valrico-fl", "label": "Valrico, FL", "city": "Valrico", "state": "FL" },
+  { "key": "apollo-beach-fl", "label": "Apollo Beach, FL", "city": "Apollo Beach", "state": "FL" },
+  { "key": "gibsonton-fl", "label": "Gibsonton, FL", "city": "Gibsonton", "state": "FL" },
+  { "key": "tampa-fl", "label": "Tampa, FL", "city": "Tampa", "state": "FL" }
+]
