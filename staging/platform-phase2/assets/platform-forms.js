@@ -1,5 +1,8 @@
 (function () {
   const flow = window.flowConfig;
+
+  initServiceStarter();
+
   if (!flow) return;
 
   const form = document.querySelector("[data-quote-flow-form]");
@@ -16,6 +19,57 @@
   bindInteractive();
   bindNavigation();
   showStep(getInitialStepIndex());
+
+  function initServiceStarter() {
+    const starter = document.querySelector("[data-service-starter]");
+    if (!starter) return;
+
+    const input = starter.querySelector("[data-service-search-input]");
+    const results = starter.querySelector("[data-service-search-results]");
+    const noResults = starter.querySelector("[data-service-search-empty]");
+    const clearButton = starter.querySelector("[data-service-search-clear]");
+    const options = Array.from(starter.querySelectorAll("[data-service-option]"));
+
+    if (!input || !results || !options.length) return;
+
+    const normalize = (value) => String(value || "").toLowerCase().trim();
+
+    const render = () => {
+      const query = normalize(input.value);
+      let visibleCount = 0;
+
+      options.forEach((option) => {
+        const haystack = normalize(`${option.dataset.serviceName || ""} ${option.dataset.serviceKeywords || ""}`);
+        const isVisible = !query || haystack.includes(query);
+        option.hidden = !isVisible;
+        if (isVisible) visibleCount += 1;
+      });
+
+      results.hidden = false;
+      if (noResults) noResults.hidden = visibleCount > 0;
+      if (clearButton) clearButton.hidden = !query;
+    };
+
+    input.addEventListener("input", render);
+    input.addEventListener("focus", render);
+
+    if (clearButton) {
+      clearButton.addEventListener("click", () => {
+        input.value = "";
+        input.focus();
+        render();
+      });
+    }
+
+    starter.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter") return;
+      const firstVisible = options.find((option) => !option.hidden);
+      if (firstVisible) {
+        event.preventDefault();
+        window.location.href = firstVisible.getAttribute("href");
+      }
+    });
+  }
 
   function prepareDynamicService() {
     if (flow.type !== "standard") return;
