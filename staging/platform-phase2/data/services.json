@@ -6,7 +6,7 @@
     "status": "active",
     "requestFlow": "premium",
     "categoryKey": "remodeling-construction",
-    "image": "assets/images/service-kitchen-optimized.jpg",
+    "image": "assets/images/kitchen-remodel-real.jpeg",
     "shortText": "Cabinets, countertops, flooring, backsplash, lighting, layouts, and full kitchen renovation projects.",
     "searchKeywords": [
       "kitchen",
@@ -22,7 +22,7 @@
     "heroText": "Request kitchen remodeling estimates from trusted local professionals for cabinets, countertops, flooring, backsplashes, lighting, layouts, and full kitchen renovation projects.",
     "benefits": [
       "Tell us once instead of calling several companies individually.",
-      "Give local professionals the details they need before they contact you.",
+      "Give local professionals the details they need before you contact them.",
       "Compare local options with a request built for real kitchen projects."
     ],
     "included": [
@@ -61,390 +61,29 @@
     "categoryKey": "remodeling-construction",
     "image": "assets/images/remodeling-category.svg",
     "shortText": "Showers, tubs, vanities, tile, fixtures, waterproofing, and full bathroom remodel projects.",
-    "searchKeywords": [
-      "bathroom",
-      "bath remodel",
-      "bathroom remodeling",
-      "shower remodel",
-      "tub to shower"
-    ]
+    "searchKeywords": ["bathroom", "bath remodel", "bathroom remodeling", "shower remodel", "tub to shower"]
   },
-  {
-    "key": "home-remodeling",
-    "label": "Home Remodeling",
-    "slug": "home-remodeling",
-    "status": "active",
-    "requestFlow": "standard",
-    "categoryKey": "remodeling-construction",
-    "image": "assets/images/remodeling-category.svg",
-    "shortText": "Whole-home updates, layout changes, multi-room renovations, and contractor-led remodels.",
-    "searchKeywords": [
-      "home remodeling",
-      "whole home remodel",
-      "renovation",
-      "house remodel"
-    ]
-  },
-  {
-    "key": "house-cleaning",
-    "label": "House Cleaning",
-    "slug": "house-cleaning",
-    "status": "active",
-    "requestFlow": "premium",
-    "categoryKey": "cleaning-services",
-    "image": "assets/images/house-cleaning.svg",
-    "shortText": "Recurring cleanings, deep cleaning, move-in and move-out cleaning, and more.",
-    "searchKeywords": [
-      "clean",
-      "cleaning",
-      "house cleaning",
-      "deep cleaning",
-      "move in cleaning",
-      "move out cleaning"
-    ]
-  },
-  {
-    "key": "office-cleaning",
-    "label": "Office Cleaning",
-    "slug": "office-cleaning",
-    "status": "active",
-    "requestFlow": "standard",
-    "categoryKey": "cleaning-services",
-    "image": "assets/images/standard-service.svg",
-    "shortText": "Office cleaning, recurring janitorial help, shared spaces, and workplace cleaning requests.",
-    "searchKeywords": [
-      "office",
-      "office cleaning",
-      "janitorial",
-      "workspace cleaning"
-    ]
-  },
-  {
-    "key": "commercial-cleaning",
-    "label": "Commercial Cleaning",
-    "slug": "commercial-cleaning",
-    "status": "active",
-    "requestFlow": "standard",
-    "categoryKey": "cleaning-services",
-    "image": "assets/images/standard-service.svg",
-    "shortText": "Commercial cleaning for storefronts, facilities, offices, and business properties.",
-    "searchKeywords": [
-      "commercial cleaning",
-      "business cleaning",
-      "facility cleaning",
-      "store cleaning"
-    ]
-  },
-  {
-    "key": "roofing",
-    "label": "Roofing",
-    "slug": "roofing",
-    "status": "active",
-    "requestFlow": "standard",
-    "categoryKey": "roofing-exterior",
-    "image": "assets/images/standard-service.svg",
-    "shortText": "Roof repairs, replacements, leaks, flashing, shingles, and general roofing projects.",
-    "searchKeywords": [
-      "roof",
-      "roofing",
-      "roof repair",
-      "roof replacement",
-      "shingles"
-    ]
-  },
-  {
-    "key": "plumbing",
-    "label": "Plumbing",
-    "slug": "plumbing",
-    "status": "active",
-    "requestFlow": "standard",
-    "categoryKey": "plumbing",
-    "image": "assets/images/standard-service.svg",
-    "shortText": "Leaks, drains, faucets, toilets, water heaters, and general plumbing work.",
-    "searchKeywords": [
-      "plumbing",
-      "plumber",
-      "leak",
-      "drain",
-      "water heater"
-    ]
-  },
-  {
-    "key": "electrical",
-    "label": "Electrical",
-    "slug": "electrical",
-    "status": "active",
-    "requestFlow": "standard",
-    "categoryKey": "electrical",
-    "image": "assets/images/standard-service.svg",
-    "shortText": "Panels, outlets, fans, lighting, EV chargers, and electrical repairs.",
-    "searchKeywords": [
-      "electrical",
-      "electrician",
-      "panel",
-      "outlet",
-      "lighting"
-    ]
-  },
-  {
-    "key": "hvac",
-    "label": "HVAC",
-    "slug": "hvac",
-    "status": "active",
-    "requestFlow": "standard",
-    "categoryKey": "hvac",
-    "image": "assets/images/standard-service.svg",
-    "shortText": "AC repair, installations, replacements, ductwork, and indoor comfort services.",
-    "searchKeywords": [
-      "hvac",
-      "ac",
-      "air conditioning",
-      "heating",
-      "ductwork"
-    ]
-  },
-  {
-    "key": "drywall",
-    "label": "Drywall",
-    "slug": "drywall",
-    "status": "active",
-    "requestFlow": "standard",
-    "categoryKey": "flooring-interior",
-    "image": "assets/images/standard-service.svg",
-    "shortText": "Drywall repair, patching, installation, ceiling fixes, and texture matching.",
-    "searchKeywords": [
-      "drywall",
-      "drywall repair",
-      "sheetrock",
-      "wall patch"
-    ]
-  },
-  {
-    "key": "painting",
-    "label": "Painting",
-    "slug": "painting",
-    "status": "active",
-    "requestFlow": "standard",
-    "categoryKey": "flooring-interior",
-    "image": "assets/images/standard-service.svg",
-    "shortText": "Interior painting, exterior painting, touch-ups, and paint-related updates.",
-    "searchKeywords": [
-      "painting",
-      "paint",
-      "interior painting",
-      "exterior painting"
-    ]
-  },
-  {
-    "key": "flooring",
-    "label": "Flooring",
-    "slug": "flooring",
-    "status": "active",
-    "requestFlow": "standard",
-    "categoryKey": "flooring-interior",
-    "image": "assets/images/standard-service.svg",
-    "shortText": "Vinyl, laminate, hardwood, tile, floor replacement, and flooring updates.",
-    "searchKeywords": [
-      "flooring",
-      "floor",
-      "tile",
-      "vinyl",
-      "laminate",
-      "hardwood"
-    ]
-  },
-  {
-    "key": "handyman",
-    "label": "Handyman",
-    "slug": "handyman",
-    "status": "active",
-    "requestFlow": "standard",
-    "categoryKey": "general-home-services",
-    "image": "assets/images/standard-service.svg",
-    "shortText": "Small repairs, mounting, assembly, patching, fixtures, and general home help.",
-    "searchKeywords": [
-      "handyman",
-      "repair",
-      "mounting",
-      "assembly",
-      "fixtures"
-    ]
-  },
-  {
-    "key": "landscaping",
-    "label": "Landscaping",
-    "slug": "landscaping",
-    "status": "active",
-    "requestFlow": "standard",
-    "categoryKey": "outdoor-landscaping",
-    "image": "assets/images/standard-service.svg",
-    "shortText": "Landscape cleanup, planting, yard upgrades, and outdoor project help.",
-    "searchKeywords": [
-      "landscaping",
-      "landscape",
-      "yard",
-      "lawn",
-      "outdoor"
-    ]
-  },
-  {
-    "key": "pressure-washing",
-    "label": "Pressure Washing",
-    "slug": "pressure-washing",
-    "status": "active",
-    "requestFlow": "standard",
-    "categoryKey": "outdoor-landscaping",
-    "image": "assets/images/standard-service.svg",
-    "shortText": "Driveways, patios, siding, fences, and outdoor surface cleaning.",
-    "searchKeywords": [
-      "pressure washing",
-      "power washing",
-      "driveway cleaning",
-      "house wash"
-    ]
-  },
-  {
-    "key": "fence-installation",
-    "label": "Fence Installation",
-    "slug": "fence-installation",
-    "status": "active",
-    "requestFlow": "standard",
-    "categoryKey": "roofing-exterior",
-    "image": "assets/images/standard-service.svg",
-    "shortText": "Fence installation, replacement, repairs, and backyard boundary projects.",
-    "searchKeywords": [
-      "fence",
-      "fence installation",
-      "fence repair"
-    ]
-  },
-  {
-    "key": "paver-installation",
-    "label": "Paver Installation",
-    "slug": "paver-installation",
-    "status": "active",
-    "requestFlow": "standard",
-    "categoryKey": "roofing-exterior",
-    "image": "assets/images/standard-service.svg",
-    "shortText": "Patio pavers, driveway pavers, walkways, and outdoor hardscape projects.",
-    "searchKeywords": [
-      "paver",
-      "pavers",
-      "paver installation",
-      "patio pavers"
-    ]
-  },
-  {
-    "key": "gutter-services",
-    "label": "Gutter Services",
-    "slug": "gutter-services",
-    "status": "active",
-    "requestFlow": "standard",
-    "categoryKey": "roofing-exterior",
-    "image": "assets/images/standard-service.svg",
-    "shortText": "Gutter installation, gutter replacement, gutter repair, and drainage updates.",
-    "searchKeywords": [
-      "gutter",
-      "gutters",
-      "gutter repair",
-      "gutter installation"
-    ]
-  },
-  {
-    "key": "junk-removal",
-    "label": "Junk Removal",
-    "slug": "junk-removal",
-    "status": "active",
-    "requestFlow": "standard",
-    "categoryKey": "general-home-services",
-    "image": "assets/images/standard-service.svg",
-    "shortText": "Junk hauling, furniture removal, cleanup help, and general removal projects.",
-    "searchKeywords": [
-      "junk",
-      "junk removal",
-      "haul away",
-      "trash removal"
-    ]
-  },
-  {
-    "key": "pest-control",
-    "label": "Pest Control",
-    "slug": "pest-control",
-    "status": "active",
-    "requestFlow": "standard",
-    "categoryKey": "general-home-services",
-    "image": "assets/images/standard-service.svg",
-    "shortText": "Pest inspections, treatment, prevention, and recurring pest control needs.",
-    "searchKeywords": [
-      "pest",
-      "pest control",
-      "bugs",
-      "ants",
-      "roaches"
-    ]
-  },
-  {
-    "key": "pool-services",
-    "label": "Pool Services",
-    "slug": "pool-services",
-    "status": "active",
-    "requestFlow": "standard",
-    "categoryKey": "general-home-services",
-    "image": "assets/images/standard-service.svg",
-    "shortText": "Pool cleaning, maintenance, repairs, and ongoing pool service requests.",
-    "searchKeywords": [
-      "pool",
-      "pool services",
-      "pool cleaning",
-      "pool maintenance"
-    ]
-  },
-  {
-    "key": "remodeling-services",
-    "label": "Remodeling Services",
-    "slug": "remodeling-services",
-    "status": "active",
-    "requestFlow": "standard",
-    "categoryKey": "remodeling-construction",
-    "image": "assets/images/remodeling-category.svg",
-    "shortText": "General remodeling help for broader renovation projects that are still taking shape.",
-    "searchKeywords": [
-      "remodeling",
-      "renovation",
-      "general remodel",
-      "construction"
-    ]
-  },
-  {
-    "key": "room-additions",
-    "label": "Room Additions",
-    "slug": "room-additions",
-    "status": "active",
-    "requestFlow": "standard",
-    "categoryKey": "remodeling-construction",
-    "image": "assets/images/remodeling-category.svg",
-    "shortText": "Bedroom additions, office additions, enclosed spaces, and larger expansion projects.",
-    "searchKeywords": [
-      "room addition",
-      "addition",
-      "home addition",
-      "garage conversion"
-    ]
-  },
-  {
-    "key": "general-contractors",
-    "label": "General Contractors",
-    "slug": "general-contractors",
-    "status": "active",
-    "requestFlow": "standard",
-    "categoryKey": "remodeling-construction",
-    "image": "assets/images/remodeling-category.svg",
-    "shortText": "Projects requiring planning, multiple trades, coordination, and contractor-level oversight.",
-    "searchKeywords": [
-      "general contractor",
-      "contractor",
-      "builder",
-      "project manager"
-    ]
-  }
+  {"key":"home-remodeling","label":"Home Remodeling","slug":"home-remodeling","status":"active","requestFlow":"standard","categoryKey":"remodeling-construction","image":"assets/images/remodeling-category.svg","shortText":"Whole-home updates, layout changes, multi-room renovations, and contractor-led remodels.","searchKeywords":["home remodeling","whole home remodel","renovation","house remodel"]},
+  {"key":"house-cleaning","label":"House Cleaning","slug":"house-cleaning","status":"active","requestFlow":"premium","categoryKey":"cleaning-services","image":"assets/images/house-cleaning.svg","shortText":"Recurring cleanings, deep cleaning, move-in and move-out cleaning, and more.","searchKeywords":["clean","cleaning","house cleaning","deep cleaning","move in cleaning","move out cleaning"]},
+  {"key":"office-cleaning","label":"Office Cleaning","slug":"office-cleaning","status":"active","requestFlow":"standard","categoryKey":"cleaning-services","image":"assets/images/standard-service.svg","shortText":"Office cleaning, recurring janitorial help, shared spaces, and workplace cleaning requests.","searchKeywords":["office","office cleaning","janitorial","workspace cleaning"]},
+  {"key":"commercial-cleaning","label":"Commercial Cleaning","slug":"commercial-cleaning","status":"active","requestFlow":"standard","categoryKey":"cleaning-services","image":"assets/images/standard-service.svg","shortText":"Commercial cleaning for storefronts, facilities, offices, and business properties.","searchKeywords":["commercial cleaning","business cleaning","facility cleaning","store cleaning"]},
+  {"key":"roofing","label":"Roofing","slug":"roofing","status":"active","requestFlow":"standard","categoryKey":"roofing-exterior","image":"assets/images/standard-service.svg","shortText":"Roof repairs, replacements, leaks, flashing, shingles, and general roofing projects.","searchKeywords":["roof","roofing","roof repair","roof replacement","shingles"]},
+  {"key":"plumbing","label":"Plumbing","slug":"plumbing","status":"active","requestFlow":"standard","categoryKey":"plumbing","image":"assets/images/standard-service.svg","shortText":"Leaks, drains, faucets, toilets, water heaters, and general plumbing work.","searchKeywords":["plumbing","plumber","leak","drain","water heater"]},
+  {"key":"electrical","label":"Electrical","slug":"electrical","status":"active","requestFlow":"standard","categoryKey":"electrical","image":"assets/images/standard-service.svg","shortText":"Panels, outlets, fans, lighting, EV chargers, and electrical repairs.","searchKeywords":["electrical","electrician","panel","outlet","lighting"]},
+  {"key":"hvac","label":"HVAC","slug":"hvac","status":"active","requestFlow":"standard","categoryKey":"hvac","image":"assets/images/standard-service.svg","shortText":"AC repair, installations, replacements, ductwork, and indoor comfort services.","searchKeywords":["hvac","ac","air conditioning","heating","ductwork"]},
+  {"key":"drywall","label":"Drywall","slug":"drywall","status":"active","requestFlow":"standard","categoryKey":"flooring-interior","image":"assets/images/standard-service.svg","shortText":"Drywall repair, patching, installation, ceiling fixes, and texture matching.","searchKeywords":["drywall","drywall repair","sheetrock","wall patch"]},
+  {"key":"painting","label":"Painting","slug":"painting","status":"active","requestFlow":"standard","categoryKey":"flooring-interior","image":"assets/images/standard-service.svg","shortText":"Interior painting, exterior painting, touch-ups, and paint-related updates.","searchKeywords":["painting","paint","interior painting","exterior painting"]},
+  {"key":"flooring","label":"Flooring","slug":"flooring","status":"active","requestFlow":"standard","categoryKey":"flooring-interior","image":"assets/images/standard-service.svg","shortText":"Vinyl, laminate, hardwood, tile, floor replacement, and flooring updates.","searchKeywords":["flooring","floor","tile","vinyl","laminate","hardwood"]},
+  {"key":"handyman","label":"Handyman","slug":"handyman","status":"active","requestFlow":"standard","categoryKey":"general-home-services","image":"assets/images/standard-service.svg","shortText":"Small repairs, mounting, assembly, patching, fixtures, and general home help.","searchKeywords":["handyman","repair","mounting","assembly","fixtures"]},
+  {"key":"landscaping","label":"Landscaping","slug":"landscaping","status":"active","requestFlow":"standard","categoryKey":"outdoor-landscaping","image":"assets/images/standard-service.svg","shortText":"Landscape cleanup, planting, yard upgrades, and outdoor project help.","searchKeywords":["landscaping","landscape","yard","lawn","outdoor"]},
+  {"key":"pressure-washing","label":"Pressure Washing","slug":"pressure-washing","status":"active","requestFlow":"standard","categoryKey":"outdoor-landscaping","image":"assets/images/standard-service.svg","shortText":"Driveways, patios, siding, fences, and outdoor surface cleaning.","searchKeywords":["pressure washing","power washing","driveway cleaning","house wash"]},
+  {"key":"fence-installation","label":"Fence Installation","slug":"fence-installation","status":"active","requestFlow":"standard","categoryKey":"roofing-exterior","image":"assets/images/standard-service.svg","shortText":"Fence installation, replacement, repairs, and backyard boundary projects.","searchKeywords":["fence","fence installation","fence repair"]},
+  {"key":"paver-installation","label":"Paver Installation","slug":"paver-installation","status":"active","requestFlow":"standard","categoryKey":"roofing-exterior","image":"assets/images/standard-service.svg","shortText":"Patio pavers, driveway pavers, walkways, and outdoor hardscape projects.","searchKeywords":["paver","pavers","paver installation","patio pavers"]},
+  {"key":"gutter-services","label":"Gutter Services","slug":"gutter-services","status":"active","requestFlow":"standard","categoryKey":"roofing-exterior","image":"assets/images/standard-service.svg","shortText":"Gutter installation, gutter replacement, gutter repair, and drainage updates.","searchKeywords":["gutter","gutters","gutter repair","gutter installation"]},
+  {"key":"junk-removal","label":"Junk Removal","slug":"junk-removal","status":"active","requestFlow":"standard","categoryKey":"general-home-services","image":"assets/images/standard-service.svg","shortText":"Junk hauling, furniture removal, cleanup help, and general removal projects.","searchKeywords":["junk","junk removal","haul away","trash removal"]},
+  {"key":"pest-control","label":"Pest Control","slug":"pest-control","status":"active","requestFlow":"standard","categoryKey":"general-home-services","image":"assets/images/standard-service.svg","shortText":"Pest inspections, treatment, prevention, and recurring pest control needs.","searchKeywords":["pest","pest control","bugs","ants","roaches"]},
+  {"key":"pool-services","label":"Pool Services","slug":"pool-services","status":"active","requestFlow":"standard","categoryKey":"general-home-services","image":"assets/images/standard-service.svg","shortText":"Pool cleaning, maintenance, repairs, and ongoing pool service requests.","searchKeywords":["pool","pool services","pool cleaning","pool maintenance"]},
+  {"key":"remodeling-services","label":"Remodeling Services","slug":"remodeling-services","status":"active","requestFlow":"standard","categoryKey":"remodeling-construction","image":"assets/images/remodeling-category.svg","shortText":"General remodeling help for broader renovation projects that are still taking shape.","searchKeywords":["remodeling","renovation","general remodel","construction"]},
+  {"key":"room-additions","label":"Room Additions","slug":"room-additions","status":"active","requestFlow":"standard","categoryKey":"remodeling-construction","image":"assets/images/remodeling-category.svg","shortText":"Bedroom additions, office additions, enclosed spaces, and larger expansion projects.","searchKeywords":["room addition","addition","home addition","garage conversion"]},
+  {"key":"general-contractors","label":"General Contractors","slug":"general-contractors","status":"active","requestFlow":"standard","categoryKey":"remodeling-construction","image":"assets/images/remodeling-category.svg","shortText":"Projects requiring planning, multiple trades, coordination, and contractor-level oversight.","searchKeywords":["general contractor","contractor","builder","project manager"]}
 ]
