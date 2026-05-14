@@ -48,12 +48,17 @@
   - timeline step
   - location validation
   - contact validation
-- Subject line format:
-  - `Customer Name - Service Type - ZIP Code - Timeline`
-- Hidden FormSubmit fields:
-  - `_next`
-  - `_captcha`
-  - `_template`
+- Endpoint:
+  - `action="/api/lead"`
+  - `method="POST"`
+  - `enctype="multipart/form-data"`
+- Subject line behavior:
+  - Kitchen and standard flows: `Customer Name - Service Type - ZIP Code - Timeline`
+  - House cleaning flow: `Customer Name - House Cleaning - ZIP Code - Cleaning Type/Frequency`
+- Serverless lead handling:
+  - successful submit returns `303` to `/thank-you.html`
+  - invalid input returns friendly error page
+  - honeypot field remains empty on real submissions
 
 ## SEO QA
 - Check `title` and `meta description` per page

@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Start a Service Request | GetEstimateFast</title>
   <meta name="description" content="Start a guided service request and connect with relevant local professionals in the Tampa Bay area." />
-    <link rel="canonical" href="https://www.getestimatefast.com/request/" />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://www.getestimatefast.com/request/" />
   <meta property="og:title" content="Start a Service Request | GetEstimateFast" />
   <meta property="og:description" content="Start a guided service request and connect with relevant local professionals in the Tampa Bay area." />
   <meta property="og:type" content="website" />
@@ -52,12 +53,11 @@
         </div>
       </aside>
       <div class="panel quote-form-panel">
-        <form data-quote-flow-form data-track="quote-flow-form" data-service="general-home-service" action="https://formsubmit.co/getestimatefast@gmail.com" method="POST" enctype="multipart/form-data">
-          <input type="hidden" name="_next" value="https://www.getestimatefast.com/thank-you.html" />
-          <input type="hidden" name="_captcha" value="false" />
-          <input type="hidden" name="_template" value="table" />
-          <input type="hidden" name="_subject" id="emailSubject" value="General Home Service Lead" />
-          <input type="hidden" name="_replyto" id="replyToEmail" />
+        <form data-quote-flow-form data-track="quote-flow-form" data-service="general-home-service" action="/api/lead" method="POST" enctype="multipart/form-data">
+          <div style="position:absolute;left:-5000px;top:auto;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
+            <label for="companyTrap">Leave this field empty</label>
+            <input id="companyTrap" type="text" name="company" tabindex="-1" autocomplete="off" />
+          </div>
           
           <input type="hidden" name="Landing Page" value="quote-flow-standard.html" />
           <input type="hidden" name="Landing Page URL" value="https://www.getestimatefast.com/request/" />

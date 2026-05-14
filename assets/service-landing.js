@@ -922,14 +922,8 @@ function prevStep() {
 }
 
 function setDynamicSubject() {
-  const fullName = document.getElementById("fullName").value.trim() || "Customer";
-  const zipCode = document.getElementById("zipCode").value.trim() || "ZIP";
-  const timeline = getHiddenValue("timelineInput") || "Timeline";
   const landingPage = window.location.pathname.split("/").pop() || "";
-  const emailAddress = document.getElementById("emailAddress").value.trim();
 
-  document.getElementById("emailSubject").value = `${fullName} - ${serviceConfig.label} - ${zipCode} - ${timeline}`;
-  document.getElementById("replyToEmail").value = emailAddress;
   document.getElementById("serviceTypeInput").value = serviceConfig.label;
   document.getElementById("landingPageInput").value = landingPage;
   document.getElementById("pageSourceInput").value = window.location.href;

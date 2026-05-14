@@ -35,12 +35,7 @@
         </aside>
 
         <div class="panel">
-          <form id="requestForm" action="https://formsubmit.co/${data.site.email}" method="POST" enctype="multipart/form-data">
-            <input type="hidden" name="_next" value="https://www.getestimatefast.com/thank-you.html" />
-            <input type="hidden" name="_captcha" value="false" />
-            <input type="hidden" name="_template" value="table" />
-            <input type="hidden" name="_subject" id="emailSubject" value="${flow.serviceLabel} Lead" />
-            <input type="hidden" name="_replyto" id="replyToEmail" />
+          <form id="requestForm" action="/api/lead" method="POST" enctype="multipart/form-data">
             <input type="hidden" name="Service Type" value="${flow.serviceLabel}" />
             <input type="hidden" name="Landing Page" value="${window.location.pathname.split("/").pop()}" />
             <input type="hidden" name="Landing Page URL" value="${window.location.href}" />
@@ -289,15 +284,7 @@
     form.addEventListener("submit", (event) => {
       if (!validateStep(state.currentStep)) {
         event.preventDefault();
-        return;
       }
-      const fullName = (document.getElementById("fullName") || {}).value || "Customer";
-      const zip = (document.getElementById("zip") || {}).value || "ZIP";
-      const email = (document.getElementById("email") || {}).value || "";
-      const timelineField = Array.from(form.querySelectorAll('input[name="Timeline"]')).find((input) => input.value);
-      const timeline = timelineField ? timelineField.value : "Timeline";
-      document.getElementById("emailSubject").value = `${fullName} - ${flow.serviceLabel} - ${zip} - ${timeline}`;
-      document.getElementById("replyToEmail").value = email;
     });
   }
 

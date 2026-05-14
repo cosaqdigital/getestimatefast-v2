@@ -782,12 +782,11 @@ $(Render-FlowHeader)
         </div>
       </aside>
       <div class="panel quote-form-panel">
-        <form data-quote-flow-form data-track="quote-flow-form" data-service="$(To-Slug $flow.serviceLabel)" action="https://formsubmit.co/getestimatefast@gmail.com" method="POST" enctype="multipart/form-data">
-          <input type="hidden" name="_next" value="https://www.getestimatefast.com/thank-you.html" />
-          <input type="hidden" name="_captcha" value="false" />
-          <input type="hidden" name="_template" value="table" />
-          <input type="hidden" name="_subject" id="emailSubject" value="$($flow.serviceLabel) Lead" />
-          <input type="hidden" name="_replyto" id="replyToEmail" />
+        <form data-quote-flow-form data-track="quote-flow-form" data-service="$(To-Slug $flow.serviceLabel)" action="/api/lead" method="POST" enctype="multipart/form-data">
+          <div style="position:absolute;left:-5000px;top:auto;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
+            <label for="companyTrap">Leave this field empty</label>
+            <input id="companyTrap" type="text" name="company" tabindex="-1" autocomplete="off" />
+          </div>
           $hiddenServiceType
           <input type="hidden" name="Landing Page" value="$landingPageName" />
           <input type="hidden" name="Landing Page URL" value="$flowCanonical" />
