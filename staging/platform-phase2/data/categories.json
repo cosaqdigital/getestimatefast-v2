@@ -3,7 +3,7 @@
     "key": "remodeling-construction",
     "label": "Remodeling & Construction",
     "slug": "remodeling-construction",
-    "description": "Kitchen remodeling, bathroom remodeling, additions, contractor-led remodels, and larger renovation projects.",
+    "description": "Kitchen remodeling, bathroom remodeling, room additions, whole-home remodeling, contractor-led renovations, and larger projects.",
     "metaTitle": "Remodeling & Construction Quotes Near Riverview, FL | GetEstimateFast",
     "metaDescription": "Compare remodeling and construction estimates near Riverview, FL for kitchens, bathrooms, additions, home remodeling, and contractor-led projects.",
     "heroHeading": "Choose the type of remodeling project you need help with",
@@ -45,14 +45,12 @@
     "key": "roofing-exterior",
     "label": "Roofing & Exterior",
     "slug": "roofing-exterior",
-    "description": "Roofing, roof repair, gutters, fence installation, pavers, and exterior improvement projects.",
+    "description": "Roofing, roof repairs, roof replacement, leaks, shingles, gutters, fences, pavers, and exterior improvement projects.",
     "servicesDisplay": [
       "Roofing",
-      "Roof Repair",
-      "Roof Replacement",
-      "Gutters",
       "Fence Installation",
-      "Pavers"
+      "Paver Installation",
+      "Gutter Services"
     ],
     "hasPage": false
   },
@@ -60,12 +58,9 @@
     "key": "plumbing",
     "label": "Plumbing",
     "slug": "plumbing",
-    "description": "Plumbing repairs, drain work, leak repair, fixture installs, and water heater services.",
+    "description": "Leaks, drain issues, water heaters, faucets, toilets, fixture installs, and general plumbing repairs.",
     "servicesDisplay": [
-      "Plumbing",
-      "Drain Cleaning",
-      "Water Heater Installation",
-      "Leak Repair"
+      "Plumbing"
     ],
     "hasPage": false
   },
@@ -73,12 +68,9 @@
     "key": "electrical",
     "label": "Electrical",
     "slug": "electrical",
-    "description": "Panels, lighting, EV chargers, troubleshooting, inspections, and electrical upgrades.",
+    "description": "Panels, outlets, lighting, EV chargers, troubleshooting, inspections, and electrical upgrades.",
     "servicesDisplay": [
-      "Electrical Services",
-      "EV Charger Installation",
-      "Panel Upgrade",
-      "Lighting Installation"
+      "Electrical"
     ],
     "hasPage": false
   },
@@ -86,12 +78,9 @@
     "key": "hvac",
     "label": "HVAC",
     "slug": "hvac",
-    "description": "AC repair, replacement, installation, duct cleaning, and indoor comfort services.",
+    "description": "AC repair, replacement, installation, ductwork, air duct cleaning, and indoor comfort services.",
     "servicesDisplay": [
-      "HVAC",
-      "AC Repair",
-      "Air Conditioning Replacement",
-      "Air Duct Cleaning"
+      "HVAC"
     ],
     "hasPage": false
   },
@@ -99,13 +88,11 @@
     "key": "flooring-interior",
     "label": "Flooring & Interior",
     "slug": "flooring-interior",
-    "description": "Flooring, drywall, tile, and painting projects for interiors and other living spaces.",
+    "description": "Flooring, drywall, tile, interior painting, exterior painting, repairs, and interior updates.",
     "servicesDisplay": [
-      "Flooring Installation",
-      "Painting Services",
-      "Drywall Repair",
-      "Interior Painting",
-      "Exterior Painting"
+      "Flooring",
+      "Painting",
+      "Drywall"
     ],
     "hasPage": false
   },
@@ -113,13 +100,10 @@
     "key": "outdoor-landscaping",
     "label": "Outdoor & Landscaping",
     "slug": "outdoor-landscaping",
-    "description": "Landscaping, lawn care, irrigation, pressure washing, and outdoor improvement projects.",
+    "description": "Landscaping, yard cleanup, lawn help, irrigation, pressure washing, and outdoor improvement projects.",
     "servicesDisplay": [
       "Landscaping",
-      "Lawn Care",
-      "Pressure Washing",
-      "Irrigation Systems",
-      "Tree Removal"
+      "Pressure Washing"
     ],
     "hasPage": false
   },
@@ -127,12 +111,9 @@
     "key": "cleaning-services",
     "label": "Cleaning Services",
     "slug": "cleaning-services",
-    "description": "House cleaning, deep cleaning, office cleaning, move-in and move-out cleaning, and recurring cleanings.",
+    "description": "House cleaning, deep cleaning, office cleaning, commercial cleaning, move-in cleaning, move-out cleaning, and recurring cleaning.",
     "servicesDisplay": [
       "House Cleaning",
-      "Deep Cleaning",
-      "Move-In Cleaning",
-      "Move-Out Cleaning",
       "Office Cleaning",
       "Commercial Cleaning"
     ],
@@ -142,7 +123,7 @@
     "key": "general-home-services",
     "label": "General Home Services",
     "slug": "general-home-services",
-    "description": "Handyman work, junk removal, pool services, pest control, and general maintenance help.",
+    "description": "Handyman work, junk removal, pool maintenance, pest control, and general home maintenance help.",
     "servicesDisplay": [
       "Handyman",
       "Junk Removal",
