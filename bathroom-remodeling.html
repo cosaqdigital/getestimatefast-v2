@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <!-- Google tag (gtag.js) -->
@@ -26,7 +26,7 @@
   <div class="container">
     <div class="hero">
       <a class="top-link" href="index.html">Back to Home</a>
-      <div class="badge">Bathroom Remodeling • Riverview Area</div>
+      <div class="badge">Bathroom Remodeling â€¢ Riverview Area</div>
       <h1>Get Up to 3 Free Bathroom Remodeling Quotes Near You</h1>
       <p class="sub">Tell us about your bathroom project and we will help connect you with trusted local professionals near Riverview, FL and nearby areas.</p>
     </div>
@@ -40,14 +40,12 @@
         <div class="progress-bar">
           <div class="progress-fill" id="progressFill"></div>
         </div>
-      </div>
-
-      <form id="serviceForm" action="https://formsubmit.co/getestimatefast@gmail.com" method="POST" enctype="multipart/form-data">
-        <input type="hidden" name="_next" value="https://www.getestimatefast.com/thank-you.html" />
-        <input type="hidden" name="_subject" id="emailSubject" value="Bathroom Remodeling Lead" />
-        <input type="hidden" name="_replyto" id="replyToEmail" />
-        <input type="hidden" name="_captcha" value="false" />
-        <input type="hidden" name="_template" value="table" />
+      
+            <form id="serviceForm" action="/api/lead" method="POST" enctype="multipart/form-data">
+        <div style="position:absolute;left:-5000px;top:auto;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
+          <label for="companyTrap">Leave this field empty</label>
+          <input id="companyTrap" type="text" name="company" tabindex="-1" autocomplete="off" />
+        </div>
         <input type="hidden" name="Service Type" id="serviceTypeInput" value="Bathroom Remodeling" />
         <input type="hidden" name="Landing Page" id="landingPageInput" value="bathroom-remodeling.html" />
         <input type="hidden" name="Landing Page URL" id="pageSourceInput" />
@@ -198,7 +196,7 @@
             <button type="button" class="nav-btn secondary" data-back>Back</button>
             <button type="submit" class="submit-btn" id="submitButton">Get My Free Quotes</button>
           </div>
-          <div class="microcopy">Free • No obligation • Takes less than 60 seconds</div>
+          <div class="microcopy">Free â€¢ No obligation â€¢ Takes less than 60 seconds</div>
         </section>
       </form>
     </div>
@@ -206,3 +204,6 @@
   <script src="assets/service-landing.js" defer></script>
 </body>
 </html>
+
+
+

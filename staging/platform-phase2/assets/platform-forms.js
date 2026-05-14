@@ -13,7 +13,7 @@
   const stepMiniTitle = document.getElementById("stepMiniTitle");
   const state = { currentStep: 0, lockedService: false };
 
-  ensureFormSubmitDefaults();
+  ensureLeadEndpointDefaults();
   prepareDynamicService();
   annotateFlow();
   bindInteractive();
@@ -169,18 +169,7 @@
     form.addEventListener("submit", (event) => {
       if (!validateStep(state.currentStep)) {
         event.preventDefault();
-        return;
       }
-
-      const fullName = getValue("fullName") || "Customer";
-      const zip = getValue("zip") || "ZIP";
-      const email = getValue("email");
-      const serviceTypeField = form.querySelector('input[name="Service Type"]');
-      const serviceLabel = serviceTypeField && serviceTypeField.value ? serviceTypeField.value : flow.serviceLabel;
-      const timeline = getTimelineValue();
-
-      document.getElementById("emailSubject").value = buildEmailSubject(fullName, serviceLabel, zip, timeline);
-      document.getElementById("replyToEmail").value = email;
     });
   }
 
@@ -414,48 +403,10 @@
     });
   }
 
-  function ensureFormSubmitDefaults() {
-    form.action = "https://formsubmit.co/getestimatefast@gmail.com";
-    setOrCreateHiddenField("_next", "https://www.getestimatefast.com/thank-you.html");
-    setOrCreateHiddenField("_captcha", "false");
-    setOrCreateHiddenField("_template", "table");
-  }
-
-  function setOrCreateHiddenField(name, value) {
-    let field = form.querySelector(`input[name="${cssEscape(name)}"]`);
-    if (!field) {
-      field = document.createElement("input");
-      field.type = "hidden";
-      field.name = name;
-      form.appendChild(field);
-    }
-    field.value = value;
-  }
-
-  function buildEmailSubject(fullName, serviceLabel, zip, timeline) {
-    if (flow.type === "fast" || slugify(serviceLabel) === "house-cleaning") {
-      const cleaningDetail = getCleaningSubjectDetail() || "House Cleaning Request";
-      return `${fullName} - ${serviceLabel} - ${zip} - ${cleaningDetail}`;
-    }
-
-    return `${fullName} - ${serviceLabel} - ${zip} - ${timeline}`;
-  }
-
-  function getCleaningSubjectDetail() {
-    return getNamedFieldValue("Cleaning Type")
-      || getNamedFieldValue("Cleaning Frequency")
-      || getTimelineValue()
-      || "";
-  }
-
-  function getTimelineValue() {
-    return getNamedFieldValue("Timeline") || "Timeline";
-  }
-
-  function getNamedFieldValue(name) {
-    const fields = Array.from(form.querySelectorAll(`[name="${cssEscape(name)}"]`));
-    const filledField = fields.find((field) => String(field.value || "").trim());
-    return filledField ? String(filledField.value).trim() : "";
+  function ensureLeadEndpointDefaults() {
+    form.action = "/api/lead";
+    form.method = "POST";
+    form.enctype = "multipart/form-data";
   }
 
   function slugify(value) {
