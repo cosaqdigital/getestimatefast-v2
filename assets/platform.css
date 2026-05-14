@@ -90,7 +90,12 @@ h3 { margin: 0 0 10px; font-size: 22px; line-height: 1.2; letter-spacing: -0.03e
 .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .grid-3, .review-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .grid-4, .cards { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.home-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.home-cards { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+.home-cards .card { padding: 14px; border-radius: 18px; min-height: 112px; display: grid; align-content: start; gap: 4px; }
+.home-cards .card img { display: none; }
+.home-cards .card h3 { margin: 0; font-size: 16px; letter-spacing: -0.02em; }
+.home-cards .card p { font-size: 12px; line-height: 1.4; }
+.home-cards .card .btn { min-height: auto; width: auto; justify-content: flex-start; padding: 0; margin-top: 6px; border: 0; background: transparent; box-shadow: none; color: var(--accent); font-size: 13px; }
 .card, .faq-item, .review-card, .flow-card, .detail-card { background: var(--surface-strong); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 18px; }
 .card img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 16px; margin-bottom: 14px; }
 .card .btn { width: 100%; margin-top: 14px; }
@@ -188,7 +193,7 @@ textarea { min-height: 150px; resize: vertical; }
 @media (max-width: 1120px) {
   .hero-shell, .cards, .grid-4, .quote-layout { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .hero-shell, .quote-layout { grid-template-columns: 1fr; }
-  .home-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .home-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .category-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .quote-sidebar { position: static; }
   .callout-row { grid-template-columns: 1fr; }
@@ -201,6 +206,7 @@ textarea { min-height: 150px; resize: vertical; }
 @media (max-width: 640px) {
   .panel { padding: 20px; border-radius: 22px; }
   .cards, .home-cards, .grid-4, .category-grid, .option-grid.two-col, .option-grid.three-col, .field-grid.two-col, .photo-grid { grid-template-columns: 1fr; }
+  .home-cards .card { min-height: auto; }
   .hero-search { flex-direction: column; align-items: stretch; }
   .hero-search .btn, .btn, .nav-btn, .submit-btn { width: 100%; }
   .hero-media { min-height: 260px; }
