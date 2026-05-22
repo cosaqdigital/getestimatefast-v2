@@ -8,12 +8,13 @@ $generatedDir = Join-Path $root "generated-pages"
 if (!(Test-Path $generatedDir)) {
   New-Item -ItemType Directory -Path $generatedDir | Out-Null
 } else {
-Get-ChildItem -Path $generatedDir -Force -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force
+  Get-ChildItem -Path $generatedDir -Force -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force
+}
+
 New-Item -ItemType Directory -Path (Join-Path $generatedDir "assets\\images") -Force | Out-Null
 Copy-Item -Path (Join-Path $root "assets\\platform.css") -Destination (Join-Path $generatedDir "assets\\platform.css") -Force
 Copy-Item -Path (Join-Path $root "assets\\platform-forms.js") -Destination (Join-Path $generatedDir "assets\\platform-forms.js") -Force
 Copy-Item -Path (Join-Path $root "assets\\images\\*") -Destination (Join-Path $generatedDir "assets\\images") -Recurse -Force
-}
 
 function Load-JsonFile {
   param([string]$Name)
@@ -120,6 +121,32 @@ function New-FaqSchema {
     })
 }
 
+function New-WebPageSchema {
+  param(
+    [string]$Name,
+    [string]$Description,
+    [string]$Canonical
+  )
+
+  return New-JsonLdScript ([pscustomobject]@{
+      "@context"    = "https://schema.org"
+      "@type"       = "WebPage"
+      name          = $Name
+      description   = $Description
+      url           = $Canonical
+      isPartOf      = [pscustomobject]@{
+        "@type" = "WebSite"
+        name    = $site.name
+        url     = "$($site.baseUrl)/"
+      }
+      publisher     = [pscustomobject]@{
+        "@type" = "Organization"
+        name    = $site.name
+        url     = "$($site.baseUrl)/"
+      }
+    })
+}
+
 function Render-BasePage {
   param(
     [string]$Title,
@@ -192,8 +219,8 @@ function Render-HomeHeader {
       <a class="brand" href="index.html">$($site.name)</a>
       <nav class="nav">
         <a class="nav-link" href="services.html" data-track="nav-link" data-cta="services-nav">Services</a>
-        <a class="nav-link" href="#how-it-works" data-track="nav-link" data-cta="how-it-works-nav">How it Works</a>
-        <a class="nav-link" href="#areas" data-track="nav-link" data-cta="areas-nav">Areas</a>
+        <a class="nav-link" href="how-it-works.html" data-track="nav-link" data-cta="how-it-works-nav">How it Works</a>
+        <a class="nav-link" href="areas-we-serve.html" data-track="nav-link" data-cta="areas-nav">Areas</a>
         <a class="btn btn-header" href="services.html" data-track="header-cta" data-cta="start-my-request">Start My Request</a>
       </nav>
     </div>
@@ -223,7 +250,15 @@ function Render-Footer {
 <footer class="footer">
   <div class="container">
     <div class="panel">
-      <div class="footer-note">$($site.name) helps homeowners and businesses connect with local professionals across $($site.region).</div>
+      <div class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="services.html">Services</a>
+        <a href="category-remodeling-construction.html">Remodeling &amp; Construction</a>
+        <a href="service-kitchen-remodeling.html">Kitchen Remodeling</a>
+        <a href="areas-we-serve.html">Areas We Serve</a>
+        <a href="how-it-works.html">How It Works</a>
+      </div>
+      <div class="footer-note">$($site.name) helps homeowners and businesses connect with local professionals across $($site.region). We do not perform the services directly. Availability, pricing, and response times may vary by provider, project type, and service area.</div>
     </div>
   </div>
 </footer>
@@ -954,6 +989,9 @@ $(Render-HomeHeader)
           <p>Simple steps, clear expectations, and no need to call companies one by one.</p>
         </div>
         $(Render-HomeHowItWorksCards)
+        <div class="hero-actions" style="margin-top:18px;">
+          <a class="btn btn-secondary" href="how-it-works.html" data-track="home-link" data-cta="learn-more-how-it-works">Learn more about how it works</a>
+        </div>
       </div>
     </div>
   </section>
@@ -980,6 +1018,9 @@ $(Render-HomeHeader)
           <p>GetEstimateFast is focused on local professionals serving Riverview, Tampa, Brandon, Valrico, Apollo Beach, and nearby communities.</p>
         </div>
         <div class="areas-list">$(Render-Pills $site.homeAreas "area-pill")</div>
+        <div class="hero-actions" style="margin-top:18px;">
+          <a class="btn btn-secondary" href="areas-we-serve.html" data-track="home-link" data-cta="view-all-service-areas">View all service areas</a>
+        </div>
       </div>
     </div>
   </section>
@@ -1074,14 +1115,14 @@ $(Render-Footer)
 
 $servicesSchemas = @(
   $organizationSchema
-  (New-CollectionPageSchema -Name "Services | $($site.name)" -Description "Browse service categories and quote request options for homeowners and businesses across the Tampa Bay area." -Canonical "$($site.baseUrl)/services/")
+  (New-CollectionPageSchema -Name "Services | $($site.name)" -Description "Browse service categories and quote request options for homeowners and businesses across the Tampa Bay area." -Canonical "$($site.baseUrl)/services.html")
   (New-BreadcrumbSchema @(
     @{ name = "Home"; url = "$($site.baseUrl)/" },
-    @{ name = "Services"; url = "$($site.baseUrl)/services/" }
+    @{ name = "Services"; url = "$($site.baseUrl)/services.html" }
   ))
 ) -join "`n"
 
-Write-GeneratedFile -FileName "services.html" -Content (Render-BasePage -Title "Services | GetEstimateFast" -MetaDescription "Browse home and property services across Tampa Bay and move into the right quote request flow for your project." -Canonical "$($site.baseUrl)/services/" -Robots $robots -Schema $servicesSchemas -Body $servicesBody)
+Write-GeneratedFile -FileName "services.html" -Content (Render-BasePage -Title "Services | GetEstimateFast" -MetaDescription "Browse home and property services across Tampa Bay and move into the right quote request flow for your project." -Canonical "$($site.baseUrl)/services.html" -Robots $robots -Schema $servicesSchemas -Body $servicesBody)
 
 $category = $categoryMap["remodeling-construction"]
 $categoryFaqs = Get-DataValue $faqs "category-remodeling-construction"
@@ -1178,16 +1219,16 @@ $(Render-Footer)
 
 $categorySchemas = @(
   $organizationSchema
-  (New-CollectionPageSchema -Name $category.label -Description $category.metaDescription -Canonical "$($site.baseUrl)/services/$($category.slug)/")
+  (New-CollectionPageSchema -Name $category.label -Description $category.metaDescription -Canonical "$($site.baseUrl)/category-remodeling-construction.html")
   (New-BreadcrumbSchema @(
     @{ name = "Home"; url = "$($site.baseUrl)/" },
-    @{ name = "Services"; url = "$($site.baseUrl)/services/" },
-    @{ name = $category.label; url = "$($site.baseUrl)/services/$($category.slug)/" }
+    @{ name = "Services"; url = "$($site.baseUrl)/services.html" },
+    @{ name = $category.label; url = "$($site.baseUrl)/category-remodeling-construction.html" }
   ))
   (New-FaqSchema $categoryFaqs)
 ) -join "`n"
 
-Write-GeneratedFile -FileName "category-remodeling-construction.html" -Content (Render-BasePage -Title $category.metaTitle -MetaDescription $category.metaDescription -Canonical "$($site.baseUrl)/services/$($category.slug)/" -Robots $robots -Schema $categorySchemas -Body $categoryBody)
+Write-GeneratedFile -FileName "category-remodeling-construction.html" -Content (Render-BasePage -Title $category.metaTitle -MetaDescription $category.metaDescription -Canonical "$($site.baseUrl)/category-remodeling-construction.html" -Robots $robots -Schema $categorySchemas -Body $categoryBody)
 
 $service = $serviceMap["kitchen-remodeling"]
 $serviceFaqs = Get-DataValue $faqs "service-kitchen-remodeling"
@@ -1291,17 +1332,17 @@ $(Render-Footer)
 
 $serviceSchemas = @(
   $organizationSchema
-  (New-ServiceSchema -Service $service -Canonical "$($site.baseUrl)/$($service.slug)/" -AreaLabel $site.region)
+  (New-ServiceSchema -Service $service -Canonical "$($site.baseUrl)/service-kitchen-remodeling.html" -AreaLabel $site.region)
   (New-BreadcrumbSchema @(
     @{ name = "Home"; url = "$($site.baseUrl)/" },
-    @{ name = "Services"; url = "$($site.baseUrl)/services/" },
-    @{ name = $category.label; url = "$($site.baseUrl)/services/$($category.slug)/" },
-    @{ name = $service.label; url = "$($site.baseUrl)/$($service.slug)/" }
+    @{ name = "Services"; url = "$($site.baseUrl)/services.html" },
+    @{ name = $category.label; url = "$($site.baseUrl)/category-remodeling-construction.html" },
+    @{ name = $service.label; url = "$($site.baseUrl)/service-kitchen-remodeling.html" }
   ))
   (New-FaqSchema $serviceFaqs)
 ) -join "`n"
 
-Write-GeneratedFile -FileName "service-kitchen-remodeling.html" -Content (Render-BasePage -Title $service.metaTitle -MetaDescription $service.metaDescription -Canonical "$($site.baseUrl)/$($service.slug)/" -Robots $robots -Schema $serviceSchemas -Body $serviceBody)
+Write-GeneratedFile -FileName "service-kitchen-remodeling.html" -Content (Render-BasePage -Title $service.metaTitle -MetaDescription $service.metaDescription -Canonical "$($site.baseUrl)/service-kitchen-remodeling.html" -Robots $robots -Schema $serviceSchemas -Body $serviceBody)
 
 $city = $cityMap["riverview-fl"]
 $locationFaqs = Get-DataValue $faqs "location-kitchen-remodeling-riverview-fl"
@@ -1387,17 +1428,208 @@ $(Render-Footer)
 
 $locationSchemas = @(
   $organizationSchema
-  (New-ServiceSchema -Service $service -Canonical "$($site.baseUrl)/$($service.slug)/$($city.key)/" -AreaLabel $city.label)
+  (New-ServiceSchema -Service $service -Canonical "$($site.baseUrl)/location-kitchen-remodeling-riverview-fl.html" -AreaLabel $city.label)
   (New-BreadcrumbSchema @(
     @{ name = "Home"; url = "$($site.baseUrl)/" },
-    @{ name = "Services"; url = "$($site.baseUrl)/services/" },
-    @{ name = $service.label; url = "$($site.baseUrl)/$($service.slug)/" },
-    @{ name = $city.label; url = "$($site.baseUrl)/$($service.slug)/$($city.key)/" }
+    @{ name = "Services"; url = "$($site.baseUrl)/services.html" },
+    @{ name = $service.label; url = "$($site.baseUrl)/service-kitchen-remodeling.html" },
+    @{ name = $city.label; url = "$($site.baseUrl)/location-kitchen-remodeling-riverview-fl.html" }
   ))
   (New-FaqSchema $locationFaqs)
 ) -join "`n"
 
-Write-GeneratedFile -FileName "location-kitchen-remodeling-riverview-fl.html" -Content (Render-BasePage -Title "Kitchen Remodeling in $($city.label) | $($site.name)" -MetaDescription "Request kitchen remodeling quotes in $($city.label) and compare local professionals for cabinets, countertops, lighting, backsplashes, flooring, and more." -Canonical "$($site.baseUrl)/$($service.slug)/$($city.key)/" -Robots $robots -Schema $locationSchemas -Body $locationBody)
+Write-GeneratedFile -FileName "location-kitchen-remodeling-riverview-fl.html" -Content (Render-BasePage -Title "Kitchen Remodeling in $($city.label) | $($site.name)" -MetaDescription "Request kitchen remodeling quotes in $($city.label) and compare local professionals for cabinets, countertops, lighting, backsplashes, flooring, and more." -Canonical "$($site.baseUrl)/location-kitchen-remodeling-riverview-fl.html" -Robots $robots -Schema $locationSchemas -Body $locationBody)
+
+$areasPageEntries = @(
+  @{ label = "Riverview, FL"; text = "Homeowners in Riverview can request estimates for remodeling, flooring, painting, drywall, plumbing, and other local home improvement projects." },
+  @{ label = "Tampa, FL"; text = "Property owners in Tampa often use GetEstimateFast to compare local estimates for renovations, repairs, cleaning, and contractor-led upgrades." },
+  @{ label = "Brandon, FL"; text = "Brandon homeowners can request local estimates for kitchen updates, bathroom projects, flooring, painting, and general home services." },
+  @{ label = "Valrico, FL"; text = "Valrico projects often include remodeling, drywall, painting, plumbing, and other home improvement requests that benefit from clearer project details." },
+  @{ label = "Apollo Beach, FL"; text = "Apollo Beach residents can request estimates for home upgrades, exterior work, cleaning, and maintenance projects from local professionals." },
+  @{ label = "Ruskin, FL"; text = "Ruskin homeowners can use GetEstimateFast to start remodeling, painting, flooring, plumbing, and general property improvement requests." },
+  @{ label = "Wimauma, FL"; text = "Wimauma service requests often focus on remodeling, flooring, drywall, outdoor work, and broader home improvement projects." },
+  @{ label = "Gibsonton, FL"; text = "Gibsonton homeowners can request local estimates for repairs, renovations, painting, flooring, and other projects that need trusted pros nearby." },
+  @{ label = "Seffner, FL"; text = "Seffner projects often include interior updates, drywall work, painting, plumbing, and contractor-led remodeling requests." },
+  @{ label = "Plant City, FL"; text = "Plant City homeowners can request estimates for remodeling, flooring, painting, cleaning, and general home service projects." },
+  @{ label = "Wesley Chapel, FL"; text = "Wesley Chapel requests often involve kitchen upgrades, bathroom updates, flooring installations, and other home improvement work." },
+  @{ label = "Clearwater, FL"; text = "Clearwater property owners can compare local estimates for remodeling, cleaning, painting, drywall, and additional improvement services." },
+  @{ label = "St. Petersburg, FL"; text = "St. Petersburg homeowners can request local estimates for kitchen projects, painting, flooring, plumbing, and property updates." },
+  @{ label = "Lakeland, FL"; text = "Lakeland requests often include remodeling, drywall, painting, cleaning, and broader residential improvement projects." },
+  @{ label = "Bradenton, FL"; text = "Bradenton homeowners can use GetEstimateFast to compare local estimates for remodeling, flooring, painting, and general home services." }
+)
+
+$areasPageBody = @"
+$(Render-Header "services.html")
+<main class="section">
+  <div class="container">
+    <div class="panel hero-shell">
+      <div>
+        $(Render-BreadcrumbsHtml @(
+          @{ label = "Home"; href = "index.html" },
+          @{ label = "Areas We Serve"; href = $null }
+        ))
+        <div class="eyebrow">Local coverage</div>
+        <h1>Areas We Serve Across Tampa Bay</h1>
+        <p class="lead">GetEstimateFast helps homeowners and businesses connect with local professionals for remodeling, flooring, painting, drywall, plumbing, roofing, cleaning, and other home improvement services.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="services.html" data-track="areas-page-cta" data-cta="start-request-from-areas">Start My Request</a>
+        </div>
+      </div>
+      <div class="detail-card">
+        <h3>Focused on local coverage</h3>
+        <p>We focus on Tampa Bay communities where homeowners and businesses often need remodeling, repair, cleaning, and general property service estimates.</p>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:18px;">
+      <div class="section-head">
+        <h2>Primary service areas</h2>
+      </div>
+      <div class="grid-3">
+        $(($areasPageEntries | ForEach-Object {
+@"
+<div class="detail-card">
+  <h3>$(Html-Escape $_.label)</h3>
+  <p>$(Html-Escape $_.text)</p>
+</div>
+"@
+        }) -join "")
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:18px;">
+      <div class="section-head">
+        <h2>Popular services by area</h2>
+        <p>Explore the service pages people use most often when comparing local estimates.</p>
+      </div>
+      <div class="service-links">
+        <a class="service-link is-active" href="services.html">All Services</a>
+        <a class="service-link is-active" href="category-remodeling-construction.html">Remodeling &amp; Construction</a>
+        <a class="service-link is-active" href="service-kitchen-remodeling.html">Kitchen Remodeling</a>
+        <a class="service-link is-active" href="bathroom-remodeling.html">Bathroom Remodeling</a>
+        <a class="service-link is-active" href="flooring-installation.html">Flooring Installation</a>
+        <a class="service-link is-active" href="painting.html">Painting</a>
+        <a class="service-link is-active" href="drywall.html">Drywall</a>
+        <a class="service-link is-active" href="plumbing.html">Plumbing</a>
+      </div>
+    </div>
+
+    <div class="panel cta-band" style="margin-top:18px;">
+      <div class="eyebrow" style="background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.18); color: #fff;">Get started</div>
+      <h2>Ready to compare local estimates?</h2>
+      <p class="lead">Start with one request and we will help connect you with local professionals serving your area.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="services.html" data-track="areas-page-cta" data-cta="areas-bottom-start-request">Start My Request</a>
+      </div>
+    </div>
+  </div>
+</main>
+$(Render-Footer)
+"@
+
+$areasPageSchemas = @(
+  $organizationSchema
+  (New-WebPageSchema -Name "Areas We Serve Across Tampa Bay" -Description "GetEstimateFast helps homeowners and businesses connect with local professionals across Riverview, Tampa, Brandon, Valrico, Apollo Beach, Ruskin, Wimauma, and nearby Tampa Bay communities." -Canonical "$($site.baseUrl)/areas-we-serve.html")
+  (New-BreadcrumbSchema @(
+    @{ name = "Home"; url = "$($site.baseUrl)/" },
+    @{ name = "Areas We Serve"; url = "$($site.baseUrl)/areas-we-serve.html" }
+  ))
+) -join "`n"
+
+Write-GeneratedFile -FileName "areas-we-serve.html" -Content (Render-BasePage -Title "Areas We Serve | Home Improvement Estimates in Tampa Bay | GetEstimateFast" -MetaDescription "GetEstimateFast helps homeowners and businesses connect with local professionals across Riverview, Tampa, Brandon, Valrico, Apollo Beach, Ruskin, Wimauma, and nearby Tampa Bay communities." -Canonical "$($site.baseUrl)/areas-we-serve.html" -Robots $robots -Schema $areasPageSchemas -Body $areasPageBody)
+
+$howItWorksFaqs = @(
+  @{ question = "Is GetEstimateFast free to use?"; answer = "Yes. You can submit a request, compare options, and hear from local professionals without paying to use GetEstimateFast." },
+  @{ question = "Do I have to hire someone after submitting a request?"; answer = "No. There is no obligation to hire. You can review your options and choose what works best for your project." },
+  @{ question = "Who will contact me after I submit?"; answer = "If local availability exists, professionals who serve your area and match the service type may contact you using the contact method you selected." },
+  @{ question = "Can I request more than one service?"; answer = "Yes. If you need help with more than one project, you can submit a separate request for each service so the details stay clear." },
+  @{ question = "Why do you ask for project details?"; answer = "Project details help local professionals understand the job before they contact you, which can lead to better first responses." }
+)
+
+$howItWorksBody = @"
+$(Render-Header "services.html")
+<main class="section">
+  <div class="container">
+    <div class="panel hero-shell">
+      <div>
+        $(Render-BreadcrumbsHtml @(
+          @{ label = "Home"; href = "index.html" },
+          @{ label = "How It Works"; href = $null }
+        ))
+        <div class="eyebrow">How it works</div>
+        <h1>How GetEstimateFast Works</h1>
+        <p class="lead">Describe your project once and get connected with local professionals who serve your area.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="services.html" data-track="how-page-cta" data-cta="start-request-from-how">Start My Request</a>
+        </div>
+      </div>
+      <div class="detail-card">
+        <h3>Built for clarity</h3>
+        <p>GetEstimateFast helps you start with the right service, share the right details, and compare your options without unnecessary back-and-forth.</p>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:18px;">
+      <div class="section-head">
+        <h2>The process in six simple steps</h2>
+      </div>
+      <div class="callout-row">
+        <div class="callout-card"><h3>1. Choose your service</h3><p>Start with the service that feels closest to your project.</p></div>
+        <div class="callout-card"><h3>2. Share your project details</h3><p>Answer a few guided questions so professionals have useful context.</p></div>
+        <div class="callout-card"><h3>3. Submit your request</h3><p>Send your project details once instead of calling companies one by one.</p></div>
+        <div class="callout-card"><h3>4. Get contacted by local professionals</h3><p>If local availability exists, relevant professionals may reach out.</p></div>
+        <div class="callout-card"><h3>5. Compare your options</h3><p>Review responses, timing, and fit before deciding what to do next.</p></div>
+        <div class="callout-card"><h3>6. Choose what works best for you</h3><p>You stay in control and decide whether to move forward with any provider.</p></div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:18px;">
+      <div class="section-head">
+        <h2>Why homeowners use GetEstimateFast</h2>
+      </div>
+      <div class="service-links">
+        <span class="service-link">Free to use</span>
+        <span class="service-link">No obligation</span>
+        <span class="service-link">Local professionals</span>
+        <span class="service-link">Better project details</span>
+        <span class="service-link">You stay in control</span>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:18px;">
+      <div class="section-head">
+        <h2>Important note</h2>
+      </div>
+      <div class="copy">
+        <p>GetEstimateFast helps connect users with local professionals. We do not perform the services directly and do not guarantee pricing, availability, or response times.</p>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:18px;">
+      <div class="section-head">
+        <h2>Frequently asked questions</h2>
+      </div>
+      <div class="faq-list">$(Render-FaqList $howItWorksFaqs)</div>
+      <div class="hero-actions" style="margin-top:18px;">
+        <a class="btn btn-primary" href="services.html" data-track="how-page-cta" data-cta="how-bottom-start-request">Start My Request</a>
+      </div>
+    </div>
+  </div>
+</main>
+$(Render-Footer)
+"@
+
+$howItWorksSchemas = @(
+  $organizationSchema
+  (New-WebPageSchema -Name "How GetEstimateFast Works" -Description "Learn how GetEstimateFast helps homeowners and businesses describe a project once, connect with local professionals, and compare estimates with no obligation." -Canonical "$($site.baseUrl)/how-it-works.html")
+  (New-BreadcrumbSchema @(
+    @{ name = "Home"; url = "$($site.baseUrl)/" },
+    @{ name = "How It Works"; url = "$($site.baseUrl)/how-it-works.html" }
+  ))
+  (New-FaqSchema $howItWorksFaqs)
+) -join "`n"
+
+Write-GeneratedFile -FileName "how-it-works.html" -Content (Render-BasePage -Title "How GetEstimateFast Works | Compare Local Estimates" -MetaDescription "Learn how GetEstimateFast helps homeowners and businesses describe a project once, connect with local professionals, and compare estimates with no obligation." -Canonical "$($site.baseUrl)/how-it-works.html" -Robots $robots -Schema $howItWorksSchemas -Body $howItWorksBody)
 
 $thankYouBody = @"
 $(Render-Header "services.html")
