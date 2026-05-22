@@ -114,7 +114,9 @@ h3 { margin: 0 0 10px; font-size: 22px; line-height: 1.2; letter-spacing: -0.03e
 }
 .breadcrumbs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; color: var(--muted); font-size: 14px; font-weight: 700; }
 .breadcrumbs a { color: var(--navy-soft); }
-.footer-note { text-align: center; color: var(--muted); font-size: 14px; }
+.footer-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px 18px; margin-bottom: 14px; }
+.footer-links a { color: var(--navy-soft); font-size: 14px; font-weight: 800; }
+.footer-note { max-width: 820px; margin: 0 auto; text-align: center; color: var(--muted); font-size: 14px; line-height: 1.7; }
 .spec-list { margin: 0; padding-left: 18px; color: var(--text-soft); }
 .spec-list li + li { margin-top: 8px; }
 .trust-stack { display: grid; gap: 14px; }
