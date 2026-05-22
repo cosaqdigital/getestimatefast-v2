@@ -29,6 +29,7 @@ $faqs = Load-JsonFile "faqs.json"
 $nearbyRelations = Load-JsonFile "nearby-city-relationships.json"
 $trustBlocks = Load-JsonFile "trust-blocks.json"
 $flows = Load-JsonFile "flows.json"
+$localSeoPages = Load-JsonFile "local-seo-pages.json"
 
 $categoryMap = @{}
 $categories | ForEach-Object { $categoryMap[$_.key] = $_ }
@@ -36,6 +37,8 @@ $serviceMap = @{}
 $services | ForEach-Object { $serviceMap[$_.key] = $_ }
 $cityMap = @{}
 $cities | ForEach-Object { $cityMap[$_.key] = $_ }
+$localSeoPageMap = @{}
+$localSeoPages | ForEach-Object { $localSeoPageMap["$($_.serviceKey)|$($_.cityKey)"] = $_ }
 
 $activeServices = @($services | Where-Object { $_.status -eq "active" })
 $activeStandardServices = @($activeServices | Where-Object { $_.requestFlow -eq "standard" })
@@ -66,6 +69,30 @@ function Get-ServiceKeywords {
   $keywords += ($Service.slug -replace "-", " ")
 
   return @($keywords | Where-Object { $_ } | Select-Object -Unique)
+}
+
+function Get-LocalSeoLinkLabel {
+  param($Page)
+
+  if ($Page.title) {
+    return ($Page.title -replace '\s+\|\s+.+$','')
+  }
+
+  return $Page.h1
+}
+
+function Resolve-LocalSeoPage {
+  param(
+    [string]$ServiceKey,
+    [string]$CityKey
+  )
+
+  $lookupKey = "$ServiceKey|$CityKey"
+  if ($localSeoPageMap.ContainsKey($lookupKey)) {
+    return $localSeoPageMap[$lookupKey]
+  }
+
+  return $null
 }
 
 function Html-Escape {
@@ -455,21 +482,23 @@ function New-ServiceSchema {
   param(
     $Service,
     [string]$Canonical,
-    [string]$AreaLabel
+    [string]$AreaLabel,
+    [string]$Description,
+    [string]$NameOverride
   )
 
   $obj = [ordered]@{
     "@context" = "https://schema.org"
     "@type" = "Service"
-    name = $Service.label
-    serviceType = $Service.label
+    name = $(if ($NameOverride) { $NameOverride } else { $Service.label })
+    serviceType = $(if ($NameOverride) { $NameOverride } else { $Service.label })
     provider = [pscustomobject]@{
       "@type" = "Organization"
       name = $site.name
       url = "$($site.baseUrl)/"
     }
     url = $Canonical
-    description = $Service.metaDescription
+    description = $(if ($Description) { $Description } else { $Service.metaDescription })
   }
 
   if ($AreaLabel) {
@@ -1441,9 +1470,9 @@ $locationSchemas = @(
 Write-GeneratedFile -FileName "location-kitchen-remodeling-riverview-fl.html" -Content (Render-BasePage -Title "Kitchen Remodeling in $($city.label) | $($site.name)" -MetaDescription "Request kitchen remodeling quotes in $($city.label) and compare local professionals for cabinets, countertops, lighting, backsplashes, flooring, and more." -Canonical "$($site.baseUrl)/location-kitchen-remodeling-riverview-fl.html" -Robots $robots -Schema $locationSchemas -Body $locationBody)
 
 $areasPageEntries = @(
-  @{ label = "Riverview, FL"; text = "Homeowners in Riverview can request estimates for remodeling, flooring, painting, drywall, plumbing, and other local home improvement projects." },
+  @{ key = "riverview-fl"; label = "Riverview, FL"; text = "Homeowners in Riverview can request estimates for remodeling, flooring, painting, drywall, plumbing, and other local home improvement projects." },
   @{ label = "Tampa, FL"; text = "Property owners in Tampa often use GetEstimateFast to compare local estimates for renovations, repairs, cleaning, and contractor-led upgrades." },
-  @{ label = "Brandon, FL"; text = "Brandon homeowners can request local estimates for kitchen updates, bathroom projects, flooring, painting, and general home services." },
+  @{ key = "brandon-fl"; label = "Brandon, FL"; text = "Brandon homeowners can request local estimates for kitchen updates, bathroom projects, flooring, painting, and general home services." },
   @{ label = "Valrico, FL"; text = "Valrico projects often include remodeling, drywall, painting, plumbing, and other home improvement requests that benefit from clearer project details." },
   @{ label = "Apollo Beach, FL"; text = "Apollo Beach residents can request estimates for home upgrades, exterior work, cleaning, and maintenance projects from local professionals." },
   @{ label = "Ruskin, FL"; text = "Ruskin homeowners can use GetEstimateFast to start remodeling, painting, flooring, plumbing, and general property improvement requests." },
@@ -1457,6 +1486,164 @@ $areasPageEntries = @(
   @{ label = "Lakeland, FL"; text = "Lakeland requests often include remodeling, drywall, painting, cleaning, and broader residential improvement projects." },
   @{ label = "Bradenton, FL"; text = "Bradenton homeowners can use GetEstimateFast to compare local estimates for remodeling, flooring, painting, and general home services." }
 )
+
+foreach ($localPage in $localSeoPages) {
+  $localService = $serviceMap[$localPage.serviceKey]
+  $localCity = $cityMap[$localPage.cityKey]
+  $relatedLocalPages = @($localSeoPages | Where-Object { $_.cityKey -eq $localPage.cityKey -and $_.fileName -ne $localPage.fileName })
+  $relatedServiceLinksMarkup = ($relatedLocalPages | ForEach-Object {
+    "<a class=""service-link is-active"" href=""$($_.fileName)"">$(Html-Escape (Get-LocalSeoLinkLabel $_))</a>"
+  }) -join ""
+  $nearbyAreaMarkup = ($localPage.nearbyAreas | ForEach-Object { "<span class=""service-link is-coming-soon"" aria-disabled=""true"">$(Html-Escape $_)<span class=""service-status"">Nearby area</span></span>" }) -join ""
+  $localFaqs = @($localPage.faqs)
+
+  switch ($localPage.serviceKey) {
+    "bathroom-remodeling" {
+      $secondaryHref = "category-remodeling-construction.html"
+      $secondaryLabel = "Browse Remodeling Services"
+      $projectExamplesHeading = "What bathroom remodeling projects can be included"
+      $schemaServiceName = "Bathroom Remodeling"
+    }
+    "flooring" {
+      $secondaryHref = "flooring-installation.html"
+      $secondaryLabel = "View Flooring Installation"
+      $projectExamplesHeading = "What flooring projects can be included"
+      $schemaServiceName = "Flooring Installation"
+    }
+    "painting" {
+      $secondaryHref = "painting.html"
+      $secondaryLabel = "View Painting Services"
+      $projectExamplesHeading = "What painting projects can be included"
+      $schemaServiceName = "Painting Services"
+    }
+    "drywall" {
+      $secondaryHref = "drywall.html"
+      $secondaryLabel = "View Drywall Services"
+      $projectExamplesHeading = "What drywall projects can be included"
+      $schemaServiceName = "Drywall Repair"
+    }
+    default {
+      $secondaryHref = "services.html"
+      $secondaryLabel = "Browse Services"
+      $projectExamplesHeading = "What projects can be included"
+      $schemaServiceName = $localService.label
+    }
+  }
+
+  $localBody = @"
+$(Render-Header "services.html")
+<main class="section">
+  <div class="container">
+    <div class="panel hero-shell">
+      <div>
+        $(Render-BreadcrumbsHtml @(
+          @{ label = "Home"; href = "index.html" },
+          @{ label = "Areas We Serve"; href = "areas-we-serve.html" },
+          @{ label = $localPage.h1; href = $null }
+        ))
+        <div class="eyebrow">$(Html-Escape $localService.label) &bull; $(Html-Escape $localCity.label)</div>
+        <h1>$(Html-Escape $localPage.h1)</h1>
+        <p class="lead">$(Html-Escape $localPage.lead)</p>
+        <div class="trust-row">$(Render-Pills @("Free to use", "No obligation", "Local professionals", "You stay in control") "trust-pill")</div>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="$($localPage.ctaHref)" data-track="local-page-cta" data-cta="primary-local-request" data-service="$($localPage.serviceKey)" data-city="$($localPage.cityKey)">$(Html-Escape $localPage.ctaLabel)</a>
+          <a class="btn" style="background:#fff; color:var(--navy); border:1px solid var(--line);" href="$secondaryHref" data-track="local-page-cta" data-cta="secondary-local-link" data-service="$($localPage.serviceKey)" data-city="$($localPage.cityKey)">$secondaryLabel</a>
+        </div>
+      </div>
+      <div class="detail-card">
+        <h3>About this service in $(Html-Escape $localCity.city)</h3>
+        <p>GetEstimateFast helps homeowners and businesses connect with local professionals serving $(Html-Escape $localCity.city). We do not perform the services directly.</p>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:18px;">
+      <div class="section-head">
+        <h2>About this service in $(Html-Escape $localCity.city)</h2>
+      </div>
+      <div class="copy">$((($localPage.aboutParagraphs | ForEach-Object { "<p>$(Html-Escape $_)</p>" }) -join ""))</div>
+    </div>
+
+    <div class="panel" style="margin-top:18px;">
+      <div class="section-head">
+        <h2>$projectExamplesHeading</h2>
+      </div>
+      <div class="grid-2">
+        <div class="detail-card">
+          <h3>Common project examples</h3>
+          <ul class="spec-list">$(Render-ListItems $localPage.includedItems)</ul>
+        </div>
+        <div class="detail-card">
+          <h3>Helpful details to include</h3>
+          <ul class="spec-list">
+            <li>What part of the project needs the most attention</li>
+            <li>Whether the work is a repair, replacement, or broader update</li>
+            <li>The general timing you have in mind</li>
+            <li>Photos when available to help local professionals understand the scope</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:18px;">
+      <div class="section-head">
+        <h2>How GetEstimateFast works</h2>
+      </div>
+      $(Render-HowItWorksCards)
+    </div>
+
+    <div class="panel" style="margin-top:18px;">
+      <div class="section-head">
+        <h2>Local service coverage and nearby areas</h2>
+      </div>
+      <div class="copy">$((($localPage.coverageParagraphs | ForEach-Object { "<p>$(Html-Escape $_)</p>" }) -join ""))</div>
+      <div class="service-links" style="margin-top:14px;">$nearbyAreaMarkup</div>
+      <div class="hero-actions" style="margin-top:18px;">
+        <a class="btn btn-secondary" href="areas-we-serve.html" data-track="local-page-link" data-cta="view-all-service-areas" data-city="$($localPage.cityKey)">View all service areas</a>
+        <a class="btn btn-secondary" href="how-it-works.html" data-track="local-page-link" data-cta="learn-how-it-works" data-service="$($localPage.serviceKey)">Learn how it works</a>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:18px;">
+      <div class="section-head">
+        <h2>FAQ</h2>
+      </div>
+      <div class="faq-list">$(Render-FaqList $localFaqs)</div>
+    </div>
+
+    <div class="panel" style="margin-top:18px;">
+      <div class="section-head">
+        <h2>Related local services</h2>
+        <p>Explore related services people often compare in $(Html-Escape $localCity.city).</p>
+      </div>
+      <div class="service-links">$relatedServiceLinksMarkup</div>
+    </div>
+
+    <div class="panel cta-band" style="margin-top:18px;">
+      <div class="eyebrow" style="background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.18); color: #fff;">Get started</div>
+      <h2>Ready to compare local estimates in $(Html-Escape $localCity.city)?</h2>
+      <p class="lead">Start one request, share the project details once, and compare your options with no obligation.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="$($localPage.ctaHref)" data-track="local-page-cta" data-cta="bottom-local-request" data-service="$($localPage.serviceKey)" data-city="$($localPage.cityKey)">$(Html-Escape $localPage.ctaLabel)</a>
+      </div>
+    </div>
+  </div>
+</main>
+$(Render-Footer)
+"@
+
+  $localSchemas = @(
+    $organizationSchema
+    (New-ServiceSchema -Service $localService -Canonical "$($site.baseUrl)/$($localPage.fileName)" -AreaLabel $localCity.label -Description $localPage.metaDescription -NameOverride $schemaServiceName)
+    (New-BreadcrumbSchema @(
+      @{ name = "Home"; url = "$($site.baseUrl)/" },
+      @{ name = "Areas We Serve"; url = "$($site.baseUrl)/areas-we-serve.html" },
+      @{ name = $localPage.h1; url = "$($site.baseUrl)/$($localPage.fileName)" }
+    ))
+    (New-FaqSchema $localFaqs)
+  ) -join "`n"
+
+  Write-GeneratedFile -FileName $localPage.fileName -Content (Render-BasePage -Title $localPage.title -MetaDescription $localPage.metaDescription -Canonical "$($site.baseUrl)/$($localPage.fileName)" -Robots $robots -Schema $localSchemas -Body $localBody)
+}
 
 $areasPageBody = @"
 $(Render-Header "services.html")
@@ -1487,10 +1674,23 @@ $(Render-Header "services.html")
       </div>
       <div class="grid-3">
         $(($areasPageEntries | ForEach-Object {
+          $areaEntry = $_
+          $cityLocalPages = @()
+          if ($areaEntry.ContainsKey("key")) {
+            $entryCityKey = $areaEntry.key
+            $cityLocalPages = @($localSeoPages | Where-Object { $_.cityKey -eq $entryCityKey })
+          }
 @"
 <div class="detail-card">
-  <h3>$(Html-Escape $_.label)</h3>
-  <p>$(Html-Escape $_.text)</p>
+  <h3>$(Html-Escape $areaEntry.label)</h3>
+  <p>$(Html-Escape $areaEntry.text)</p>
+  $(if ($cityLocalPages.Count -gt 0) {
+@"
+  <div class="service-links" style="margin-top:12px;">
+    $(($cityLocalPages | ForEach-Object { "<a class=""service-link is-active"" href=""$($_.fileName)"">$(Html-Escape (Get-LocalSeoLinkLabel $_))</a>" }) -join "")
+  </div>
+"@
+  } else { "" })
 </div>
 "@
         }) -join "")
