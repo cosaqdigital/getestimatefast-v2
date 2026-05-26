@@ -29,6 +29,8 @@ $faqs = Load-JsonFile "faqs.json"
 $nearbyRelations = Load-JsonFile "nearby-city-relationships.json"
 $trustBlocks = Load-JsonFile "trust-blocks.json"
 $flows = Load-JsonFile "flows.json"
+$localSeoPages = Load-JsonFile "local-seo-pages.json"
+$blogArticles = Load-JsonFile "blog-articles.json"
 
 $categoryMap = @{}
 $categories | ForEach-Object { $categoryMap[$_.key] = $_ }
@@ -36,6 +38,8 @@ $serviceMap = @{}
 $services | ForEach-Object { $serviceMap[$_.key] = $_ }
 $cityMap = @{}
 $cities | ForEach-Object { $cityMap[$_.key] = $_ }
+$localSeoPageMap = @{}
+$localSeoPages | ForEach-Object { $localSeoPageMap["$($_.serviceKey)|$($_.cityKey)"] = $_ }
 
 $activeServices = @($services | Where-Object { $_.status -eq "active" })
 $activeStandardServices = @($activeServices | Where-Object { $_.requestFlow -eq "standard" })
@@ -66,6 +70,30 @@ function Get-ServiceKeywords {
   $keywords += ($Service.slug -replace "-", " ")
 
   return @($keywords | Where-Object { $_ } | Select-Object -Unique)
+}
+
+function Get-LocalSeoLinkLabel {
+  param($Page)
+
+  if ($Page.title) {
+    return ($Page.title -replace '\s+\|\s+.+$','')
+  }
+
+  return $Page.h1
+}
+
+function Resolve-LocalSeoPage {
+  param(
+    [string]$ServiceKey,
+    [string]$CityKey
+  )
+
+  $lookupKey = "$ServiceKey|$CityKey"
+  if ($localSeoPageMap.ContainsKey($lookupKey)) {
+    return $localSeoPageMap[$lookupKey]
+  }
+
+  return $null
 }
 
 function Html-Escape {
@@ -147,6 +175,37 @@ function New-WebPageSchema {
     })
 }
 
+function New-ArticleSchema {
+  param(
+    [string]$Headline,
+    [string]$Description,
+    [string]$Canonical,
+    [string]$Category
+  )
+
+  return New-JsonLdScript ([pscustomobject]@{
+      "@context"         = "https://schema.org"
+      "@type"            = "Article"
+      headline           = $Headline
+      description        = $Description
+      articleSection     = $Category
+      mainEntityOfPage   = [pscustomobject]@{
+        "@type" = "WebPage"
+        "@id"   = $Canonical
+      }
+      author             = [pscustomobject]@{
+        "@type" = "Organization"
+        name    = $site.name
+      }
+      publisher          = [pscustomobject]@{
+        "@type" = "Organization"
+        name    = $site.name
+        url     = "$($site.baseUrl)/"
+      }
+      url                = $Canonical
+    })
+}
+
 function Render-BasePage {
   param(
     [string]$Title,
@@ -201,6 +260,7 @@ function Render-Header {
       </div>
       <nav class="nav">
         <a class="nav-link" href="services.html" data-track="nav-link" data-cta="services-nav">Services</a>
+        <a class="nav-link" href="blog.html" data-track="nav-link" data-cta="blog-nav">Blog</a>
         <a class="nav-link" href="category-remodeling-construction.html" data-track="nav-link" data-cta="remodeling-nav">Remodeling</a>
         <a class="nav-link" href="service-kitchen-remodeling.html" data-track="nav-link" data-cta="kitchen-nav" data-service="kitchen-remodeling">Kitchen Remodeling</a>
         <a class="btn btn-primary" href="$ctaHref" data-track="header-cta" data-cta="start-my-request">Start My Request</a>
@@ -219,6 +279,7 @@ function Render-HomeHeader {
       <a class="brand" href="index.html">$($site.name)</a>
       <nav class="nav">
         <a class="nav-link" href="services.html" data-track="nav-link" data-cta="services-nav">Services</a>
+        <a class="nav-link" href="blog.html" data-track="nav-link" data-cta="blog-nav">Blog</a>
         <a class="nav-link" href="how-it-works.html" data-track="nav-link" data-cta="how-it-works-nav">How it Works</a>
         <a class="nav-link" href="areas-we-serve.html" data-track="nav-link" data-cta="areas-nav">Areas</a>
         <a class="btn btn-header" href="services.html" data-track="header-cta" data-cta="start-my-request">Start My Request</a>
@@ -253,6 +314,7 @@ function Render-Footer {
       <div class="footer-links">
         <a href="index.html">Home</a>
         <a href="services.html">Services</a>
+        <a href="blog.html">Blog</a>
         <a href="category-remodeling-construction.html">Remodeling &amp; Construction</a>
         <a href="service-kitchen-remodeling.html">Kitchen Remodeling</a>
         <a href="areas-we-serve.html">Areas We Serve</a>
@@ -333,6 +395,20 @@ function Render-TrustCards {
 function Render-ListItems {
   param([array]$Items)
   return ($Items | ForEach-Object { "<li>$(Html-Escape $_)</li>" }) -join ""
+}
+
+function Render-ArticleSections {
+  param([array]$Sections)
+
+  return ($Sections | ForEach-Object {
+    $section = $_
+    $paragraphMarkup = (($section.paragraphs | ForEach-Object { "<p>$(Html-Escape $_)</p>" }) -join "")
+    $listMarkup = ""
+    if ($section.listItems) {
+      $listMarkup = "<ul>" + (Render-ListItems $section.listItems) + "</ul>"
+    }
+    "<section class=""article-section""><h2>$(Html-Escape $section.heading)</h2>$paragraphMarkup$listMarkup</section>"
+  }) -join ""
 }
 
 function Resolve-CategoryHref {
@@ -455,21 +531,23 @@ function New-ServiceSchema {
   param(
     $Service,
     [string]$Canonical,
-    [string]$AreaLabel
+    [string]$AreaLabel,
+    [string]$Description,
+    [string]$NameOverride
   )
 
   $obj = [ordered]@{
     "@context" = "https://schema.org"
     "@type" = "Service"
-    name = $Service.label
-    serviceType = $Service.label
+    name = $(if ($NameOverride) { $NameOverride } else { $Service.label })
+    serviceType = $(if ($NameOverride) { $NameOverride } else { $Service.label })
     provider = [pscustomobject]@{
       "@type" = "Organization"
       name = $site.name
       url = "$($site.baseUrl)/"
     }
     url = $Canonical
-    description = $Service.metaDescription
+    description = $(if ($Description) { $Description } else { $Service.metaDescription })
   }
 
   if ($AreaLabel) {
@@ -1441,9 +1519,9 @@ $locationSchemas = @(
 Write-GeneratedFile -FileName "location-kitchen-remodeling-riverview-fl.html" -Content (Render-BasePage -Title "Kitchen Remodeling in $($city.label) | $($site.name)" -MetaDescription "Request kitchen remodeling quotes in $($city.label) and compare local professionals for cabinets, countertops, lighting, backsplashes, flooring, and more." -Canonical "$($site.baseUrl)/location-kitchen-remodeling-riverview-fl.html" -Robots $robots -Schema $locationSchemas -Body $locationBody)
 
 $areasPageEntries = @(
-  @{ label = "Riverview, FL"; text = "Homeowners in Riverview can request estimates for remodeling, flooring, painting, drywall, plumbing, and other local home improvement projects." },
+  @{ key = "riverview-fl"; label = "Riverview, FL"; text = "Homeowners in Riverview can request estimates for remodeling, flooring, painting, drywall, plumbing, and other local home improvement projects." },
   @{ label = "Tampa, FL"; text = "Property owners in Tampa often use GetEstimateFast to compare local estimates for renovations, repairs, cleaning, and contractor-led upgrades." },
-  @{ label = "Brandon, FL"; text = "Brandon homeowners can request local estimates for kitchen updates, bathroom projects, flooring, painting, and general home services." },
+  @{ key = "brandon-fl"; label = "Brandon, FL"; text = "Brandon homeowners can request local estimates for kitchen updates, bathroom projects, flooring, painting, and general home services." },
   @{ label = "Valrico, FL"; text = "Valrico projects often include remodeling, drywall, painting, plumbing, and other home improvement requests that benefit from clearer project details." },
   @{ label = "Apollo Beach, FL"; text = "Apollo Beach residents can request estimates for home upgrades, exterior work, cleaning, and maintenance projects from local professionals." },
   @{ label = "Ruskin, FL"; text = "Ruskin homeowners can use GetEstimateFast to start remodeling, painting, flooring, plumbing, and general property improvement requests." },
@@ -1457,6 +1535,164 @@ $areasPageEntries = @(
   @{ label = "Lakeland, FL"; text = "Lakeland requests often include remodeling, drywall, painting, cleaning, and broader residential improvement projects." },
   @{ label = "Bradenton, FL"; text = "Bradenton homeowners can use GetEstimateFast to compare local estimates for remodeling, flooring, painting, and general home services." }
 )
+
+foreach ($localPage in $localSeoPages) {
+  $localService = $serviceMap[$localPage.serviceKey]
+  $localCity = $cityMap[$localPage.cityKey]
+  $relatedLocalPages = @($localSeoPages | Where-Object { $_.cityKey -eq $localPage.cityKey -and $_.fileName -ne $localPage.fileName })
+  $relatedServiceLinksMarkup = ($relatedLocalPages | ForEach-Object {
+    "<a class=""service-link is-active"" href=""$($_.fileName)"">$(Html-Escape (Get-LocalSeoLinkLabel $_))</a>"
+  }) -join ""
+  $nearbyAreaMarkup = ($localPage.nearbyAreas | ForEach-Object { "<span class=""service-link is-coming-soon"" aria-disabled=""true"">$(Html-Escape $_)<span class=""service-status"">Nearby area</span></span>" }) -join ""
+  $localFaqs = @($localPage.faqs)
+
+  switch ($localPage.serviceKey) {
+    "bathroom-remodeling" {
+      $secondaryHref = "category-remodeling-construction.html"
+      $secondaryLabel = "Browse Remodeling Services"
+      $projectExamplesHeading = "What bathroom remodeling projects can be included"
+      $schemaServiceName = "Bathroom Remodeling"
+    }
+    "flooring" {
+      $secondaryHref = "flooring-installation.html"
+      $secondaryLabel = "View Flooring Installation"
+      $projectExamplesHeading = "What flooring projects can be included"
+      $schemaServiceName = "Flooring Installation"
+    }
+    "painting" {
+      $secondaryHref = "painting.html"
+      $secondaryLabel = "View Painting Services"
+      $projectExamplesHeading = "What painting projects can be included"
+      $schemaServiceName = "Painting Services"
+    }
+    "drywall" {
+      $secondaryHref = "drywall.html"
+      $secondaryLabel = "View Drywall Services"
+      $projectExamplesHeading = "What drywall projects can be included"
+      $schemaServiceName = "Drywall Repair"
+    }
+    default {
+      $secondaryHref = "services.html"
+      $secondaryLabel = "Browse Services"
+      $projectExamplesHeading = "What projects can be included"
+      $schemaServiceName = $localService.label
+    }
+  }
+
+  $localBody = @"
+$(Render-Header "services.html")
+<main class="section">
+  <div class="container">
+    <div class="panel hero-shell">
+      <div>
+        $(Render-BreadcrumbsHtml @(
+          @{ label = "Home"; href = "index.html" },
+          @{ label = "Areas We Serve"; href = "areas-we-serve.html" },
+          @{ label = $localPage.h1; href = $null }
+        ))
+        <div class="eyebrow">$(Html-Escape $localService.label) &bull; $(Html-Escape $localCity.label)</div>
+        <h1>$(Html-Escape $localPage.h1)</h1>
+        <p class="lead">$(Html-Escape $localPage.lead)</p>
+        <div class="trust-row">$(Render-Pills @("Free to use", "No obligation", "Local professionals", "You stay in control") "trust-pill")</div>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="$($localPage.ctaHref)" data-track="local-page-cta" data-cta="primary-local-request" data-service="$($localPage.serviceKey)" data-city="$($localPage.cityKey)">$(Html-Escape $localPage.ctaLabel)</a>
+          <a class="btn" style="background:#fff; color:var(--navy); border:1px solid var(--line);" href="$secondaryHref" data-track="local-page-cta" data-cta="secondary-local-link" data-service="$($localPage.serviceKey)" data-city="$($localPage.cityKey)">$secondaryLabel</a>
+        </div>
+      </div>
+      <div class="detail-card">
+        <h3>About this service in $(Html-Escape $localCity.city)</h3>
+        <p>GetEstimateFast helps homeowners and businesses connect with local professionals serving $(Html-Escape $localCity.city). We do not perform the services directly.</p>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:18px;">
+      <div class="section-head">
+        <h2>About this service in $(Html-Escape $localCity.city)</h2>
+      </div>
+      <div class="copy">$((($localPage.aboutParagraphs | ForEach-Object { "<p>$(Html-Escape $_)</p>" }) -join ""))</div>
+    </div>
+
+    <div class="panel" style="margin-top:18px;">
+      <div class="section-head">
+        <h2>$projectExamplesHeading</h2>
+      </div>
+      <div class="grid-2">
+        <div class="detail-card">
+          <h3>Common project examples</h3>
+          <ul class="spec-list">$(Render-ListItems $localPage.includedItems)</ul>
+        </div>
+        <div class="detail-card">
+          <h3>Helpful details to include</h3>
+          <ul class="spec-list">
+            <li>What part of the project needs the most attention</li>
+            <li>Whether the work is a repair, replacement, or broader update</li>
+            <li>The general timing you have in mind</li>
+            <li>Photos when available to help local professionals understand the scope</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:18px;">
+      <div class="section-head">
+        <h2>How GetEstimateFast works</h2>
+      </div>
+      $(Render-HowItWorksCards)
+    </div>
+
+    <div class="panel" style="margin-top:18px;">
+      <div class="section-head">
+        <h2>Local service coverage and nearby areas</h2>
+      </div>
+      <div class="copy">$((($localPage.coverageParagraphs | ForEach-Object { "<p>$(Html-Escape $_)</p>" }) -join ""))</div>
+      <div class="service-links" style="margin-top:14px;">$nearbyAreaMarkup</div>
+      <div class="hero-actions" style="margin-top:18px;">
+        <a class="btn btn-secondary" href="areas-we-serve.html" data-track="local-page-link" data-cta="view-all-service-areas" data-city="$($localPage.cityKey)">View all service areas</a>
+        <a class="btn btn-secondary" href="how-it-works.html" data-track="local-page-link" data-cta="learn-how-it-works" data-service="$($localPage.serviceKey)">Learn how it works</a>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:18px;">
+      <div class="section-head">
+        <h2>FAQ</h2>
+      </div>
+      <div class="faq-list">$(Render-FaqList $localFaqs)</div>
+    </div>
+
+    <div class="panel" style="margin-top:18px;">
+      <div class="section-head">
+        <h2>Related local services</h2>
+        <p>Explore related services people often compare in $(Html-Escape $localCity.city).</p>
+      </div>
+      <div class="service-links">$relatedServiceLinksMarkup</div>
+    </div>
+
+    <div class="panel cta-band" style="margin-top:18px;">
+      <div class="eyebrow" style="background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.18); color: #fff;">Get started</div>
+      <h2>Ready to compare local estimates in $(Html-Escape $localCity.city)?</h2>
+      <p class="lead">Start one request, share the project details once, and compare your options with no obligation.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="$($localPage.ctaHref)" data-track="local-page-cta" data-cta="bottom-local-request" data-service="$($localPage.serviceKey)" data-city="$($localPage.cityKey)">$(Html-Escape $localPage.ctaLabel)</a>
+      </div>
+    </div>
+  </div>
+</main>
+$(Render-Footer)
+"@
+
+  $localSchemas = @(
+    $organizationSchema
+    (New-ServiceSchema -Service $localService -Canonical "$($site.baseUrl)/$($localPage.fileName)" -AreaLabel $localCity.label -Description $localPage.metaDescription -NameOverride $schemaServiceName)
+    (New-BreadcrumbSchema @(
+      @{ name = "Home"; url = "$($site.baseUrl)/" },
+      @{ name = "Areas We Serve"; url = "$($site.baseUrl)/areas-we-serve.html" },
+      @{ name = $localPage.h1; url = "$($site.baseUrl)/$($localPage.fileName)" }
+    ))
+    (New-FaqSchema $localFaqs)
+  ) -join "`n"
+
+  Write-GeneratedFile -FileName $localPage.fileName -Content (Render-BasePage -Title $localPage.title -MetaDescription $localPage.metaDescription -Canonical "$($site.baseUrl)/$($localPage.fileName)" -Robots $robots -Schema $localSchemas -Body $localBody)
+}
 
 $areasPageBody = @"
 $(Render-Header "services.html")
@@ -1487,10 +1723,23 @@ $(Render-Header "services.html")
       </div>
       <div class="grid-3">
         $(($areasPageEntries | ForEach-Object {
+          $areaEntry = $_
+          $cityLocalPages = @()
+          if ($areaEntry.ContainsKey("key")) {
+            $entryCityKey = $areaEntry.key
+            $cityLocalPages = @($localSeoPages | Where-Object { $_.cityKey -eq $entryCityKey })
+          }
 @"
 <div class="detail-card">
-  <h3>$(Html-Escape $_.label)</h3>
-  <p>$(Html-Escape $_.text)</p>
+  <h3>$(Html-Escape $areaEntry.label)</h3>
+  <p>$(Html-Escape $areaEntry.text)</p>
+  $(if ($cityLocalPages.Count -gt 0) {
+@"
+  <div class="service-links" style="margin-top:12px;">
+    $(($cityLocalPages | ForEach-Object { "<a class=""service-link is-active"" href=""$($_.fileName)"">$(Html-Escape (Get-LocalSeoLinkLabel $_))</a>" }) -join "")
+  </div>
+"@
+  } else { "" })
 </div>
 "@
         }) -join "")
@@ -1630,6 +1879,157 @@ $howItWorksSchemas = @(
 ) -join "`n"
 
 Write-GeneratedFile -FileName "how-it-works.html" -Content (Render-BasePage -Title "How GetEstimateFast Works | Compare Local Estimates" -MetaDescription "Learn how GetEstimateFast helps homeowners and businesses describe a project once, connect with local professionals, and compare estimates with no obligation." -Canonical "$($site.baseUrl)/how-it-works.html" -Robots $robots -Schema $howItWorksSchemas -Body $howItWorksBody)
+
+$blogIndexCards = ($blogArticles | ForEach-Object {
+@"
+<article class="blog-card">
+  <div class="eyebrow">$(Html-Escape $_.category)</div>
+  <h3>$(Html-Escape $_.title)</h3>
+  <p>$(Html-Escape $_.cardDescription)</p>
+  <a class="btn btn-primary" href="$($_.fileName)" data-track="blog-card" data-cta="blog-card-open">Read article</a>
+</article>
+"@
+}) -join ""
+
+$blogIndexBody = @"
+$(Render-Header "services.html")
+<main class="section">
+  <div class="container">
+    <div class="panel hero-shell">
+      <div>
+        $(Render-BreadcrumbsHtml @(
+          @{ label = "Home"; href = "index.html" },
+          @{ label = "Blog"; href = $null }
+        ))
+        <div class="eyebrow">Blog</div>
+        <h1>Home Improvement Tips &amp; Cost Guides</h1>
+        <p class="lead">Helpful guides for homeowners and businesses planning remodeling, flooring, painting, drywall, and other property improvement projects.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="services.html" data-track="blog-index-cta" data-cta="blog-start-request">Start My Request</a>
+        </div>
+      </div>
+      <div class="detail-card">
+        <h3>Plan with better context</h3>
+        <p>Read practical guides before you start a request so local professionals have clearer project details to work from.</p>
+        <div class="service-links">
+          <a class="service-link is-active" href="services.html">Services</a>
+          <a class="service-link is-active" href="areas-we-serve.html">Areas We Serve</a>
+          <a class="service-link is-active" href="how-it-works.html">How It Works</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:18px;">
+      <div class="section-head">
+        <h2>Latest articles</h2>
+        <p>Helpful cost guides and planning resources for common home improvement projects.</p>
+      </div>
+      <div class="blog-grid">$blogIndexCards</div>
+    </div>
+
+    <div class="panel cta-band" style="margin-top:18px;">
+      <div class="eyebrow" style="background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.18); color: #fff;">Get started</div>
+      <h2>Ready to start your project?</h2>
+      <p class="lead">Start one request and compare local options without calling contractors one by one.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="services.html" data-track="blog-index-cta" data-cta="blog-bottom-start-request">Start My Request</a>
+      </div>
+    </div>
+  </div>
+</main>
+$(Render-Footer)
+"@
+
+$blogIndexSchemas = @(
+  $organizationSchema
+  (New-WebPageSchema -Name "Home Improvement Tips & Cost Guides" -Description "Helpful guides for homeowners and businesses planning remodeling, flooring, painting, drywall, and other property improvement projects." -Canonical "$($site.baseUrl)/blog.html")
+  (New-BreadcrumbSchema @(
+    @{ name = "Home"; url = "$($site.baseUrl)/" },
+    @{ name = "Blog"; url = "$($site.baseUrl)/blog.html" }
+  ))
+) -join "`n"
+
+Write-GeneratedFile -FileName "blog.html" -Content (Render-BasePage -Title "Home Improvement Tips & Cost Guides | GetEstimateFast" -MetaDescription "Read home improvement tips, cost guides, and planning resources for remodeling, flooring, painting, drywall, and local contractor estimates." -Canonical "$($site.baseUrl)/blog.html" -Robots $robots -Schema $blogIndexSchemas -Body $blogIndexBody)
+
+foreach ($blogArticle in $blogArticles) {
+  $articleLinksMarkup = (($blogArticle.links | ForEach-Object { "<a class=""service-link is-active"" href=""$($_.href)"">$(Html-Escape $_.label)</a>" }) -join "")
+  $articleBody = @"
+$(Render-Header "services.html")
+<main class="section">
+  <div class="container">
+    <div class="panel hero-shell">
+      <div>
+        $(Render-BreadcrumbsHtml @(
+          @{ label = "Home"; href = "index.html" },
+          @{ label = "Blog"; href = "blog.html" },
+          @{ label = $blogArticle.h1; href = $null }
+        ))
+        <div class="eyebrow">$(Html-Escape $blogArticle.category)</div>
+        <h1>$(Html-Escape $blogArticle.h1)</h1>
+        <p class="lead">$(Html-Escape $blogArticle.lead)</p>
+        <div class="article-meta">
+          <span>By $(Html-Escape $site.name)</span>
+          <span>2026 planning guide</span>
+          <span>No obligation to request estimates</span>
+        </div>
+      </div>
+      <div class="detail-card">
+        <h3>Helpful next step</h3>
+        <p>When you are ready, GetEstimateFast helps connect users with local professionals. We do not perform the services directly.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="$($blogArticle.ctaHref)" data-track="blog-article-cta" data-cta="blog-primary-request">$(Html-Escape $blogArticle.ctaLabel)</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="article-wrap" style="margin-top:18px;">
+      <div class="panel">
+        <div class="article-prose">$(Render-ArticleSections $blogArticle.sections)</div>
+      </div>
+
+      <div class="panel">
+        <div class="section-head">
+          <h2>Related pages</h2>
+          <p>Explore service and trust pages that can help you plan the next step.</p>
+        </div>
+        <div class="article-links">$articleLinksMarkup</div>
+      </div>
+
+      <div class="panel">
+        <div class="section-head">
+          <h2>Frequently asked questions</h2>
+        </div>
+        <div class="faq-list">$(Render-FaqList $blogArticle.faqs)</div>
+      </div>
+
+      <div class="panel cta-band">
+        <div class="eyebrow" style="background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.18); color: #fff;">Get started</div>
+        <h2>Need help comparing local options?</h2>
+        <p class="lead">Describe the project once and compare local professionals with no obligation to hire.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="$($blogArticle.ctaHref)" data-track="blog-article-cta" data-cta="blog-bottom-request">$(Html-Escape $blogArticle.ctaLabel)</a>
+          <a class="btn btn-footer-secondary" href="blog.html" data-track="blog-article-cta" data-cta="back-to-blog">Back to Blog</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+$(Render-Footer)
+"@
+
+  $articleSchemas = @(
+    $organizationSchema
+    (New-ArticleSchema -Headline $blogArticle.h1 -Description $blogArticle.metaDescription -Canonical "$($site.baseUrl)/$($blogArticle.fileName)" -Category $blogArticle.category)
+    (New-BreadcrumbSchema @(
+      @{ name = "Home"; url = "$($site.baseUrl)/" },
+      @{ name = "Blog"; url = "$($site.baseUrl)/blog.html" },
+      @{ name = $blogArticle.h1; url = "$($site.baseUrl)/$($blogArticle.fileName)" }
+    ))
+    (New-FaqSchema $blogArticle.faqs)
+  ) -join "`n"
+
+  Write-GeneratedFile -FileName $blogArticle.fileName -Content (Render-BasePage -Title $blogArticle.title -MetaDescription $blogArticle.metaDescription -Canonical "$($site.baseUrl)/$($blogArticle.fileName)" -Robots $robots -Schema $articleSchemas -Body $articleBody)
+}
 
 $thankYouBody = @"
 $(Render-Header "services.html")
