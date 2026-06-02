@@ -1049,6 +1049,39 @@ $(Render-HomeHeader)
     <div class="container">
       <div class="panel">
         <div class="section-head">
+          <div class="eyebrow">Riverview local service pages</div>
+          <h2>High-demand services for Riverview and Hillsborough County</h2>
+          <p>Explore local landing pages built for homeowners comparing service options in Riverview, Brandon, Valrico, Gibsonton, Apollo Beach, and nearby Tampa Bay areas.</p>
+        </div>
+        <div class="cards home-cards"><a class="card" href="hvac-contractor-riverview-fl.html" data-track="home-link" data-cta="riverview-local-service-card">
+  <img src="assets/images/standard-service.svg" alt="HVAC Contractor in Riverview service image">
+  <h3>HVAC Contractor in Riverview, FL</h3>
+  <p>Cooling, replacement, maintenance, ductwork, and indoor comfort help for Riverview-area properties.</p>
+  <span class="btn btn-primary">View local page</span>
+</a><a class="card" href="general-contractor-riverview-fl.html" data-track="home-link" data-cta="riverview-local-service-card">
+  <img src="assets/images/standard-service.svg" alt="General Contractor in Riverview service image">
+  <h3>General Contractor in Riverview, FL</h3>
+  <p>Renovations, additions, larger projects, and contractor-led work that may involve multiple trades.</p>
+  <span class="btn btn-primary">View local page</span>
+</a><a class="card" href="foundation-repair-riverview-fl.html" data-track="home-link" data-cta="riverview-local-service-card">
+  <img src="assets/images/standard-service.svg" alt="Foundation Repair in Riverview service image">
+  <h3>Foundation Repair in Riverview, FL</h3>
+  <p>Cracks, settling, slab concerns, moisture issues, and foundation warning signs near the home.</p>
+  <span class="btn btn-primary">View local page</span>
+</a><a class="card" href="drainage-contractor-riverview-fl.html" data-track="home-link" data-cta="riverview-local-service-card">
+  <img src="assets/images/standard-service.svg" alt="Drainage Contractor in Riverview service image">
+  <h3>Drainage Contractor in Riverview, FL</h3>
+  <p>Standing water, yard grading, erosion, French drains, and drainage issues around Riverview homes.</p>
+  <span class="btn btn-primary">View local page</span>
+</a></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="panel">
+        <div class="section-head">
           <div class="eyebrow">Categories</div>
           <h2>Find help for the project you need</h2>
           <p>Choose a service category or start with one of the most requested services.</p>
@@ -1167,6 +1200,35 @@ $(Render-Header "services.html")
       <div class="cards">$(Render-Cards $servicesHubCards)</div>
     </div>
 
+    <div class="panel" style="margin-top:18px;">
+      <div class="section-head">
+        <div class="eyebrow">Riverview local service pages</div>
+        <h2>High-priority service pages for Riverview homeowners</h2>
+        <p>Browse local pages for high-demand service types in Riverview and nearby Hillsborough County communities before you start a request.</p>
+      </div>
+      <div class="cards"><a class="card" href="hvac-contractor-riverview-fl.html" data-track="home-link" data-cta="riverview-local-service-card">
+  <img src="assets/images/standard-service.svg" alt="HVAC Contractor in Riverview service image">
+  <h3>HVAC Contractor in Riverview, FL</h3>
+  <p>Cooling issues, system replacement, maintenance, ductwork, and indoor comfort projects.</p>
+  <span class="btn btn-primary">View local page</span>
+</a><a class="card" href="general-contractor-riverview-fl.html" data-track="home-link" data-cta="riverview-local-service-card">
+  <img src="assets/images/standard-service.svg" alt="General Contractor in Riverview service image">
+  <h3>General Contractor in Riverview, FL</h3>
+  <p>Contractor-led renovations, additions, larger project coordination, and broader construction requests.</p>
+  <span class="btn btn-primary">View local page</span>
+</a><a class="card" href="foundation-repair-riverview-fl.html" data-track="home-link" data-cta="riverview-local-service-card">
+  <img src="assets/images/standard-service.svg" alt="Foundation Repair in Riverview service image">
+  <h3>Foundation Repair in Riverview, FL</h3>
+  <p>Structural warning signs, slab cracks, settling, and drainage-related foundation concerns.</p>
+  <span class="btn btn-primary">View local page</span>
+</a><a class="card" href="drainage-contractor-riverview-fl.html" data-track="home-link" data-cta="riverview-local-service-card">
+  <img src="assets/images/standard-service.svg" alt="Drainage Contractor in Riverview service image">
+  <h3>Drainage Contractor in Riverview, FL</h3>
+  <p>Standing water, grading issues, erosion, stormwater movement, and yard drainage improvements.</p>
+  <span class="btn btn-primary">View local page</span>
+</a></div>
+    </div>
+
     <div class="service-list" style="margin-top:18px;">
       $(($categories | ForEach-Object {
         $category = $_
@@ -1180,7 +1242,7 @@ $(Render-Header "services.html")
   <div class="service-links">
     $(($category.servicesDisplay | ForEach-Object {
       Render-ServiceHubChip $_
-    }) -join "")
+    }) -join "")$(if ($category.key -eq "remodeling-construction") { '<a class="service-link is-active" href="general-contractor-riverview-fl.html">General Contractor in Riverview, FL</a>' } elseif ($category.key -eq "roofing-exterior") { '<a class="service-link is-active" href="foundation-repair-riverview-fl.html">Foundation Repair in Riverview, FL</a>' } elseif ($category.key -eq "hvac") { '<a class="service-link is-active" href="hvac-contractor-riverview-fl.html">HVAC Contractor in Riverview, FL</a>' } elseif ($category.key -eq "outdoor-landscaping") { '<a class="service-link is-active" href="drainage-contractor-riverview-fl.html">Drainage Contractor in Riverview, FL</a>' } else { "" })
   </div>
 </section>
 "@
@@ -1519,7 +1581,7 @@ $locationSchemas = @(
 Write-GeneratedFile -FileName "location-kitchen-remodeling-riverview-fl.html" -Content (Render-BasePage -Title "Kitchen Remodeling in $($city.label) | $($site.name)" -MetaDescription "Request kitchen remodeling quotes in $($city.label) and compare local professionals for cabinets, countertops, lighting, backsplashes, flooring, and more." -Canonical "$($site.baseUrl)/location-kitchen-remodeling-riverview-fl.html" -Robots $robots -Schema $locationSchemas -Body $locationBody)
 
 $areasPageEntries = @(
-  @{ key = "riverview-fl"; label = "Riverview, FL"; text = "Homeowners in Riverview can request estimates for remodeling, flooring, painting, drywall, plumbing, and other local home improvement projects." },
+    @{ key = "riverview-fl"; label = "Riverview, FL"; text = "Homeowners in Riverview can request estimates for remodeling, flooring, painting, drywall, plumbing, roofing, HVAC, drainage, and other local home improvement projects." },
   @{ label = "Tampa, FL"; text = "Property owners in Tampa often use GetEstimateFast to compare local estimates for renovations, repairs, cleaning, and contractor-led upgrades." },
   @{ key = "brandon-fl"; label = "Brandon, FL"; text = "Brandon homeowners can request local estimates for kitchen updates, bathroom projects, flooring, painting, and general home services." },
   @{ label = "Valrico, FL"; text = "Valrico projects often include remodeling, drywall, painting, plumbing, and other home improvement requests that benefit from clearer project details." },
@@ -1743,6 +1805,19 @@ $(Render-Header "services.html")
 </div>
 "@
         }) -join "")
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:18px;">
+      <div class="section-head">
+        <h2>Recommended Riverview service pages</h2>
+        <p>These local pages highlight common project types Riverview homeowners often research before requesting estimates.</p>
+      </div>
+      <div class="service-links">
+        <a class="service-link is-active" href="hvac-contractor-riverview-fl.html">HVAC Contractor in Riverview, FL</a>
+        <a class="service-link is-active" href="general-contractor-riverview-fl.html">General Contractor in Riverview, FL</a>
+        <a class="service-link is-active" href="foundation-repair-riverview-fl.html">Foundation Repair in Riverview, FL</a>
+        <a class="service-link is-active" href="drainage-contractor-riverview-fl.html">Drainage Contractor in Riverview, FL</a>
       </div>
     </div>
 
