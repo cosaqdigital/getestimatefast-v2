@@ -1129,6 +1129,7 @@ $(Render-HomeHeader)
           <p>GetEstimateFast is focused on local professionals serving Riverview, Tampa, Brandon, Valrico, Apollo Beach, and nearby communities.</p>
         </div>
         <div class="areas-list">$(Render-Pills $site.homeAreas "area-pill")</div>
+        <p class="group-note" style="margin-top:16px;">Looking for Brandon-specific local pages? <a href="areas-we-serve.html#brandon-services">See Brandon service pages</a> for roofing, AC repair, plumbing, and electrical help.</p>
         <div class="hero-actions" style="margin-top:18px;">
           <a class="btn btn-secondary" href="areas-we-serve.html" data-track="home-link" data-cta="view-all-service-areas">View all service areas</a>
         </div>
@@ -1229,6 +1230,35 @@ $(Render-Header "services.html")
 </a></div>
     </div>
 
+    <div class="panel" style="margin-top:18px;" id="brandon-services">
+      <div class="section-head">
+        <div class="eyebrow">Brandon local service pages</div>
+        <h2>High-priority service pages for Brandon homeowners</h2>
+        <p>Explore Brandon-focused pages for roof, HVAC, plumbing, and electrical needs across Brandon, Valrico, Seffner, Bloomingdale, Lithia, Fish Hawk, and nearby Hillsborough County communities.</p>
+      </div>
+      <div class="cards"><a class="card" href="roofing-contractor-brandon-fl.html" data-track="home-link" data-cta="brandon-local-service-card">
+  <img src="assets/images/standard-service.svg" alt="Roofing Contractor in Brandon service image">
+  <h3>Roofing Contractor in Brandon, FL</h3>
+  <p>Roof repair, replacement, storm damage, inspections, leaks, and shingle-related roofing needs.</p>
+  <span class="btn btn-primary">View local page</span>
+</a><a class="card" href="ac-repair-brandon-fl.html" data-track="home-link" data-cta="brandon-local-service-card">
+  <img src="assets/images/standard-service.svg" alt="AC Repair in Brandon service image">
+  <h3>AC Repair in Brandon, FL</h3>
+  <p>Cooling issues, HVAC diagnostics, urgent AC trouble, maintenance, and replacement-related questions.</p>
+  <span class="btn btn-primary">View local page</span>
+</a><a class="card" href="plumber-brandon-fl.html" data-track="home-link" data-cta="brandon-local-service-card">
+  <img src="assets/images/standard-service.svg" alt="Plumber in Brandon service image">
+  <h3>Plumber in Brandon, FL</h3>
+  <p>Leaks, drains, water heaters, toilet overflow concerns, and local plumbing repair requests.</p>
+  <span class="btn btn-primary">View local page</span>
+</a><a class="card" href="electrician-brandon-fl.html" data-track="home-link" data-cta="brandon-local-service-card">
+  <img src="assets/images/standard-service.svg" alt="Electrician in Brandon service image">
+  <h3>Electrician in Brandon, FL</h3>
+  <p>Electrical repairs, panel upgrades, EV chargers, troubleshooting, and urgent electrical issues.</p>
+  <span class="btn btn-primary">View local page</span>
+</a></div>
+    </div>
+
     <div class="service-list" style="margin-top:18px;">
       $(($categories | ForEach-Object {
         $category = $_
@@ -1242,7 +1272,7 @@ $(Render-Header "services.html")
   <div class="service-links">
     $(($category.servicesDisplay | ForEach-Object {
       Render-ServiceHubChip $_
-    }) -join "")$(if ($category.key -eq "remodeling-construction") { '<a class="service-link is-active" href="general-contractor-riverview-fl.html">General Contractor in Riverview, FL</a>' } elseif ($category.key -eq "roofing-exterior") { '<a class="service-link is-active" href="foundation-repair-riverview-fl.html">Foundation Repair in Riverview, FL</a>' } elseif ($category.key -eq "hvac") { '<a class="service-link is-active" href="hvac-contractor-riverview-fl.html">HVAC Contractor in Riverview, FL</a>' } elseif ($category.key -eq "outdoor-landscaping") { '<a class="service-link is-active" href="drainage-contractor-riverview-fl.html">Drainage Contractor in Riverview, FL</a>' } else { "" })
+    }) -join "")$(if ($category.key -eq "remodeling-construction") { '<a class="service-link is-active" href="general-contractor-riverview-fl.html">General Contractor in Riverview, FL</a>' } elseif ($category.key -eq "roofing-exterior") { '<a class="service-link is-active" href="foundation-repair-riverview-fl.html">Foundation Repair in Riverview, FL</a><a class="service-link is-active" href="roofing-contractor-brandon-fl.html">Roofing Contractor in Brandon, FL</a>' } elseif ($category.key -eq "plumbing") { '<a class="service-link is-active" href="plumber-brandon-fl.html">Plumber in Brandon, FL</a>' } elseif ($category.key -eq "electrical") { '<a class="service-link is-active" href="electrician-brandon-fl.html">Electrician in Brandon, FL</a>' } elseif ($category.key -eq "hvac") { '<a class="service-link is-active" href="hvac-contractor-riverview-fl.html">HVAC Contractor in Riverview, FL</a><a class="service-link is-active" href="ac-repair-brandon-fl.html">AC Repair in Brandon, FL</a>' } elseif ($category.key -eq "outdoor-landscaping") { '<a class="service-link is-active" href="drainage-contractor-riverview-fl.html">Drainage Contractor in Riverview, FL</a>' } else { "" })
   </div>
 </section>
 "@
@@ -1583,7 +1613,7 @@ Write-GeneratedFile -FileName "location-kitchen-remodeling-riverview-fl.html" -C
 $areasPageEntries = @(
     @{ key = "riverview-fl"; label = "Riverview, FL"; text = "Homeowners in Riverview can request estimates for remodeling, flooring, painting, drywall, plumbing, roofing, HVAC, drainage, and other local home improvement projects." },
   @{ label = "Tampa, FL"; text = "Property owners in Tampa often use GetEstimateFast to compare local estimates for renovations, repairs, cleaning, and contractor-led upgrades." },
-  @{ key = "brandon-fl"; label = "Brandon, FL"; text = "Brandon homeowners can request local estimates for kitchen updates, bathroom projects, flooring, painting, and general home services." },
+    @{ key = "brandon-fl"; label = "Brandon, FL"; text = "Brandon homeowners can request local estimates for kitchen updates, bathroom projects, flooring, painting, roofing, HVAC, plumbing, electrical work, and general home services." },
   @{ label = "Valrico, FL"; text = "Valrico projects often include remodeling, drywall, painting, plumbing, and other home improvement requests that benefit from clearer project details." },
   @{ label = "Apollo Beach, FL"; text = "Apollo Beach residents can request estimates for home upgrades, exterior work, cleaning, and maintenance projects from local professionals." },
   @{ label = "Ruskin, FL"; text = "Ruskin homeowners can use GetEstimateFast to start remodeling, painting, flooring, plumbing, and general property improvement requests." },
@@ -1818,6 +1848,19 @@ $(Render-Header "services.html")
         <a class="service-link is-active" href="general-contractor-riverview-fl.html">General Contractor in Riverview, FL</a>
         <a class="service-link is-active" href="foundation-repair-riverview-fl.html">Foundation Repair in Riverview, FL</a>
         <a class="service-link is-active" href="drainage-contractor-riverview-fl.html">Drainage Contractor in Riverview, FL</a>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:18px;" id="brandon-services">
+      <div class="section-head">
+        <h2>Recommended Brandon service pages</h2>
+        <p>These local pages highlight common project types Brandon homeowners often research before requesting estimates.</p>
+      </div>
+      <div class="service-links">
+        <a class="service-link is-active" href="roofing-contractor-brandon-fl.html">Roofing Contractor in Brandon, FL</a>
+        <a class="service-link is-active" href="ac-repair-brandon-fl.html">AC Repair in Brandon, FL</a>
+        <a class="service-link is-active" href="plumber-brandon-fl.html">Plumber in Brandon, FL</a>
+        <a class="service-link is-active" href="electrician-brandon-fl.html">Electrician in Brandon, FL</a>
       </div>
     </div>
 
