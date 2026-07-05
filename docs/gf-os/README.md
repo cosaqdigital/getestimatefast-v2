@@ -19,6 +19,7 @@ O GF-OS foi criado para garantir que o GetEstimateFast tenha uma base corporativ
 - produto e experiência do usuário;
 - engenharia e arquitetura técnica;
 - operações e qualidade;
+- dados, analytics e business intelligence;
 - indicadores, processos e melhoria contínua.
 
 ---
@@ -34,7 +35,8 @@ docs/
     ├── GFSEO/
     ├── GFPROD/
     ├── GFENG/
-    └── GFOPS/
+    ├── GFOPS/
+    └── GFDATA/
 ```
 
 ---
@@ -81,6 +83,14 @@ Documentos voltados ao modelo operacional, gestão de leads, gestão de parceiro
 
 ---
 
+### GFDATA — Dados, Analytics e Business Intelligence
+
+Documentos voltados à arquitetura de métricas, analytics, dashboards, eventos, tracking, relatórios, qualidade dos dados, inteligência de mercado, análise de leads e tomada de decisão orientada por dados.
+
+**Total:** 1 documento.
+
+---
+
 ## Situação Atual
 
 | Série | Área | Quantidade |
@@ -90,16 +100,17 @@ Documentos voltados ao modelo operacional, gestão de leads, gestão de parceiro
 | GFPROD | Produto | 10 |
 | GFENG | Engenharia | 10 |
 | GFOPS | Operações | 10 |
+| GFDATA | Dados, Analytics e BI | 1 |
 
-**Total:** 56 documentos corporativos oficiais.
+**Total:** 57 documentos corporativos oficiais.
 
 ---
 
 ## Versão Atual
 
-**GF-OS v1.0**
+**GF-OS v1.1**
 
-Esta versão representa a primeira consolidação oficial da documentação corporativa do GetEstimateFast.
+Esta versão representa a evolução da primeira consolidação oficial da documentação corporativa do GetEstimateFast, com inclusão da série GFDATA para dados, analytics e business intelligence.
 
 ---
 
@@ -119,7 +130,7 @@ Toda atualização relevante deve seguir estes princípios:
 2. preservar a estrutura das séries oficiais;
 3. registrar mudanças relevantes em commits claros;
 4. atualizar este README quando novas séries ou documentos forem adicionados;
-5. garantir alinhamento com a estratégia, produto, engenharia, SEO e operações do GetEstimateFast.
+5. garantir alinhamento com a estratégia, produto, engenharia, SEO, operações e dados do GetEstimateFast.
 
 ---
 
@@ -127,7 +138,6 @@ Toda atualização relevante deve seguir estes princípios:
 
 Séries futuras poderão incluir:
 
-- GFDATA — Dados, Analytics e Business Intelligence;
 - GFAI — Inteligência Artificial e Automações;
 - GFCRM — CRM e Sucesso do Cliente;
 - GFMKT — Marketing e Growth;
