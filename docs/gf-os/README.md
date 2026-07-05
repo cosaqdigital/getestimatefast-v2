@@ -20,6 +20,7 @@ O GF-OS foi criado para garantir que o GetEstimateFast tenha uma base corporativ
 - engenharia e arquitetura técnica;
 - operações e qualidade;
 - dados, analytics e business intelligence;
+- inteligência artificial e automações;
 - indicadores, processos e melhoria contínua.
 
 ---
@@ -36,7 +37,8 @@ docs/
     ├── GFPROD/
     ├── GFENG/
     ├── GFOPS/
-    └── GFDATA/
+    ├── GFDATA/
+    └── GFAI/
 ```
 
 ---
@@ -91,6 +93,14 @@ Documentos voltados à arquitetura de métricas, analytics, dashboards, eventos,
 
 ---
 
+### GFAI — Inteligência Artificial e Automações
+
+Documentos voltados ao uso estratégico, operacional e seguro de inteligência artificial, automações, agentes internos, análise assistida, triagem de leads, SEO com IA, mídia paga com IA, relatórios automáticos e governança de IA.
+
+**Total:** 1 documento.
+
+---
+
 ## Situação Atual
 
 | Série | Área | Quantidade |
@@ -101,16 +111,17 @@ Documentos voltados à arquitetura de métricas, analytics, dashboards, eventos,
 | GFENG | Engenharia | 10 |
 | GFOPS | Operações | 10 |
 | GFDATA | Dados, Analytics e BI | 11 |
+| GFAI | Inteligência Artificial e Automações | 1 |
 
-**Total:** 67 documentos corporativos oficiais.
+**Total:** 68 documentos corporativos oficiais.
 
 ---
 
 ## Versão Atual
 
-**GF-OS v1.1**
+**GF-OS v1.2**
 
-Esta versão representa a evolução da primeira consolidação oficial da documentação corporativa do GetEstimateFast, com inclusão da série GFDATA para dados, analytics e business intelligence.
+Esta versão representa a evolução da documentação corporativa do GetEstimateFast, com inclusão da série GFAI para inteligência artificial e automações, além da consolidação da série GFDATA para dados, analytics e business intelligence.
 
 ---
 
@@ -130,7 +141,7 @@ Toda atualização relevante deve seguir estes princípios:
 2. preservar a estrutura das séries oficiais;
 3. registrar mudanças relevantes em commits claros;
 4. atualizar este README quando novas séries ou documentos forem adicionados;
-5. garantir alinhamento com a estratégia, produto, engenharia, SEO, operações e dados do GetEstimateFast.
+5. garantir alinhamento com a estratégia, produto, engenharia, SEO, operações, dados e IA do GetEstimateFast.
 
 ---
 
@@ -138,7 +149,6 @@ Toda atualização relevante deve seguir estes princípios:
 
 Séries futuras poderão incluir:
 
-- GFAI — Inteligência Artificial e Automações;
 - GFCRM — CRM e Sucesso do Cliente;
 - GFMKT — Marketing e Growth;
 - GFFIN — Finanças e Indicadores Financeiros.
