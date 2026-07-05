@@ -2,11 +2,11 @@
 
 ## Sistema Operacional Corporativo do GetEstimateFast
 
-O **GF-OS** é o sistema oficial de documentação corporativa do **GetEstimateFast**.
+O **GF-OS** e o sistema oficial de documentacao corporativa do **GetEstimateFast**.
 
-Seu objetivo é reunir, organizar e versionar os padrões, processos, políticas, playbooks e diretrizes utilizados na estratégia, desenvolvimento, operação e evolução da plataforma.
+Seu objetivo e reunir, organizar e versionar os padroes, processos, politicas, playbooks e diretrizes utilizados na estrategia, desenvolvimento, operacao e evolucao da plataforma.
 
-Esta documentação serve como base para tomada de decisão, padronização interna, onboarding, auditorias, melhoria contínua e crescimento escalável do projeto.
+Esta documentacao serve como base para tomada de decisao, padronizacao interna, onboarding, auditorias, melhoria continua e crescimento escalavel do projeto.
 
 ---
 
@@ -14,149 +14,149 @@ Esta documentação serve como base para tomada de decisão, padronização inte
 
 O GF-OS foi criado para garantir que o GetEstimateFast tenha uma base corporativa clara, organizada e evolutiva, cobrindo os principais pilares de uma empresa de tecnologia moderna:
 
-- estratégia e governança;
-- SEO e aquisição orgânica;
-- produto e experiência do usuário;
-- engenharia e arquitetura técnica;
-- operações e qualidade;
+- estrategia e governanca;
+- SEO e aquisicao organica;
+- produto e experiencia do usuario;
+- engenharia e arquitetura tecnica;
+- operacoes e qualidade;
 - dados, analytics e business intelligence;
-- inteligência artificial e automações;
-- indicadores, processos e melhoria contínua.
+- inteligencia artificial e automacoes;
+- indicadores, processos e melhoria continua.
 
 ---
 
-## Estrutura da Documentação
+## Estrutura da Documentacao
 
-A documentação está organizada em séries oficiais:
+A documentacao esta organizada em series oficiais:
 
 ```text
 docs/
-└── gf-os/
-    ├── GESMP/
-    ├── GFSEO/
-    ├── GFPROD/
-    ├── GFENG/
-    ├── GFOPS/
-    ├── GFDATA/
-    └── GFAI/
+|-- gf-os/
+    |-- GESMP/
+    |-- GFSEO/
+    |-- GFPROD/
+    |-- GFENG/
+    |-- GFOPS/
+    |-- GFDATA/
+    |-- GFAI/
 ```
 
 ---
 
-## Séries Oficiais
+## Series Oficiais
 
-### GESMP — Governança Estratégica
+### GESMP - Governanca Estrategica
 
-Documentos voltados à visão estratégica, arquitetura empresarial, modelo de negócio, posicionamento, produto, SEO, riscos, roadmap, qualidade, decisão estratégica e governança da inteligência artificial.
+Documentos voltados a visao estrategica, arquitetura empresarial, modelo de negocio, posicionamento, produto, SEO, riscos, roadmap, qualidade, decisao estrategica e governanca da inteligencia artificial.
 
 **Total:** 16 documentos.
 
 ---
 
-### GFSEO — Sistema Operacional de SEO
+### GFSEO - Sistema Operacional de SEO
 
-Documentos voltados à estratégia de crescimento orgânico, arquitetura de keywords, clusters, SEO local, EEAT, links internos, conteúdo, auditorias técnicas, autoridade externa e melhoria contínua de SEO.
-
-**Total:** 10 documentos.
-
----
-
-### GFPROD — Sistema Operacional de Produto
-
-Documentos voltados à arquitetura de produto, quote flows, UX, conversão, design system, acessibilidade, performance, testes A/B, jornada do usuário, gestão de funcionalidades e governança de produto.
+Documentos voltados a estrategia de crescimento organico, arquitetura de keywords, clusters, SEO local, EEAT, links internos, conteudo, auditorias tecnicas, autoridade externa e melhoria continua de SEO.
 
 **Total:** 10 documentos.
 
 ---
 
-### GFENG — Sistema Operacional de Engenharia
+### GFPROD - Sistema Operacional de Produto
 
-Documentos voltados à arquitetura de software, padrões de código, organização do repositório, APIs, integrações, banco de dados, segurança, observabilidade, CI/CD, infraestrutura e governança técnica.
-
-**Total:** 10 documentos.
-
----
-
-### GFOPS — Sistema Operacional de Operações
-
-Documentos voltados ao modelo operacional, gestão de leads, gestão de parceiros, qualidade operacional, suporte ao cliente, SOPs, SLAs, KPIs, expansão operacional e governança operacional.
+Documentos voltados a arquitetura de produto, quote flows, UX, conversao, design system, acessibilidade, performance, testes A/B, jornada do usuario, gestao de funcionalidades e governanca de produto.
 
 **Total:** 10 documentos.
 
 ---
 
-### GFDATA — Dados, Analytics e Business Intelligence
+### GFENG - Sistema Operacional de Engenharia
 
-Documentos voltados à arquitetura de métricas, analytics, dashboards, eventos, tracking, relatórios, qualidade dos dados, inteligência de mercado, análise de leads e tomada de decisão orientada por dados.
+Documentos voltados a arquitetura de software, padroes de codigo, organizacao do repositorio, APIs, integracoes, banco de dados, seguranca, observabilidade, CI/CD, infraestrutura e governanca tecnica.
+
+**Total:** 10 documentos.
+
+---
+
+### GFOPS - Sistema Operacional de Operacoes
+
+Documentos voltados ao modelo operacional, gestao de leads, gestao de parceiros, qualidade operacional, suporte ao cliente, SOPs, SLAs, KPIs, expansao operacional e governanca operacional.
+
+**Total:** 10 documentos.
+
+---
+
+### GFDATA - Dados, Analytics e Business Intelligence
+
+Documentos voltados a arquitetura de metricas, analytics, dashboards, eventos, tracking, relatorios, qualidade dos dados, inteligencia de mercado, analise de leads e tomada de decisao orientada por dados.
 
 **Total:** 11 documentos.
 
 ---
 
-### GFAI — Inteligência Artificial e Automações
+### GFAI - Inteligencia Artificial e Automacoes
 
-Documentos voltados ao uso estratégico, operacional e seguro de inteligência artificial, automações, agentes internos, análise assistida, triagem de leads, SEO com IA, mídia paga com IA, relatórios automáticos e governança de IA.
+Documentos voltados ao uso estrategico, operacional e seguro de inteligencia artificial, automacoes, agentes internos, analise assistida, triagem de leads, SEO com IA, midia paga com IA, relatorios automaticos e governanca de IA.
 
-**Total:** 2 documentos.
+**Total:** 3 documentos.
 
 ---
 
-## Situação Atual
+## Situacao Atual
 
-| Série | Área | Quantidade |
+| Serie | Area | Quantidade |
 |---|---|---:|
-| GESMP | Governança Estratégica | 16 |
+| GESMP | Governanca Estrategica | 16 |
 | GFSEO | SEO | 10 |
 | GFPROD | Produto | 10 |
 | GFENG | Engenharia | 10 |
-| GFOPS | Operações | 10 |
+| GFOPS | Operacoes | 10 |
 | GFDATA | Dados, Analytics e BI | 11 |
-| GFAI | Inteligência Artificial e Automações | 2 |
+| GFAI | Inteligencia Artificial e Automacoes | 3 |
 
-**Total:** 69 documentos corporativos oficiais.
+**Total:** 70 documentos corporativos oficiais.
 
 ---
 
-## Versão Atual
+## Versao Atual
 
 **GF-OS v1.2**
 
-Esta versão representa a evolução da documentação corporativa do GetEstimateFast, com inclusão da série GFAI para inteligência artificial e automações, além da consolidação da série GFDATA para dados, analytics e business intelligence.
+Esta versao representa a evolucao da documentacao corporativa do GetEstimateFast, com inclusao da serie GFAI para inteligencia artificial e automacoes, alem da consolidacao da serie GFDATA para dados, analytics e business intelligence.
 
 ---
 
 ## Diretriz de Versionamento
 
-Os arquivos em Markdown (`.md`) são considerados a fonte oficial da documentação.
+Os arquivos em Markdown (`.md`) sao considerados a fonte oficial da documentacao.
 
-Arquivos PDF podem ser gerados quando necessário para apresentações, auditorias, reuniões ou pacotes formais, mas não são a fonte principal de verdade do GF-OS.
-
----
-
-## Diretriz de Manutenção
-
-Toda atualização relevante deve seguir estes princípios:
-
-1. manter a documentação em português;
-2. preservar a estrutura das séries oficiais;
-3. registrar mudanças relevantes em commits claros;
-4. atualizar este README quando novas séries ou documentos forem adicionados;
-5. garantir alinhamento com a estratégia, produto, engenharia, SEO, operações, dados e IA do GetEstimateFast.
+Arquivos PDF podem ser gerados quando necessario para apresentacoes, auditorias, reunioes ou pacotes formais, mas nao sao a fonte principal de verdade do GF-OS.
 
 ---
 
-## Próximas Evoluções Possíveis
+## Diretriz de Manutencao
 
-Séries futuras poderão incluir:
+Toda atualizacao relevante deve seguir estes principios:
 
-- GFCRM — CRM e Sucesso do Cliente;
-- GFMKT — Marketing e Growth;
-- GFFIN — Finanças e Indicadores Financeiros.
+1. manter a documentacao em portugues;
+2. preservar a estrutura das series oficiais;
+3. registrar mudancas relevantes em commits claros;
+4. atualizar este README quando novas series ou documentos forem adicionados;
+5. garantir alinhamento com a estrategia, produto, engenharia, SEO, operacoes, dados e IA do GetEstimateFast.
 
 ---
 
-## Conclusão
+## Proximas Evolucoes Possiveis
 
-O GF-OS transforma a documentação do GetEstimateFast em um ativo estratégico.
+Series futuras poderao incluir:
 
-Ele permite que a empresa cresça com mais organização, clareza, rastreabilidade e consistência, mantendo todos os pilares do negócio conectados em um sistema corporativo único.
+- GFCRM - CRM e Sucesso do Cliente;
+- GFMKT - Marketing e Growth;
+- GFFIN - Financas e Indicadores Financeiros.
+
+---
+
+## Conclusao
+
+O GF-OS transforma a documentacao do GetEstimateFast em um ativo estrategico.
+
+Ele permite que a empresa cresca com mais organizacao, clareza, rastreabilidade e consistencia, mantendo todos os pilares do negocio conectados em um sistema corporativo unico.
