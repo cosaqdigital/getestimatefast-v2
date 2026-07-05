@@ -87,7 +87,7 @@ Documentos voltados ao modelo operacional, gestão de leads, gestão de parceiro
 
 Documentos voltados à arquitetura de métricas, analytics, dashboards, eventos, tracking, relatórios, qualidade dos dados, inteligência de mercado, análise de leads e tomada de decisão orientada por dados.
 
-**Total:** 5 documentos.
+**Total:** 6 documentos.
 
 ---
 
@@ -100,9 +100,9 @@ Documentos voltados à arquitetura de métricas, analytics, dashboards, eventos,
 | GFPROD | Produto | 10 |
 | GFENG | Engenharia | 10 |
 | GFOPS | Operações | 10 |
-| GFDATA | Dados, Analytics e BI | 5 |
+| GFDATA | Dados, Analytics e BI | 6 |
 
-**Total:** 61 documentos corporativos oficiais.
+**Total:** 62 documentos corporativos oficiais.
 
 ---
 
