@@ -97,7 +97,7 @@ Documentos voltados à arquitetura de métricas, analytics, dashboards, eventos,
 
 Documentos voltados ao uso estratégico, operacional e seguro de inteligência artificial, automações, agentes internos, análise assistida, triagem de leads, SEO com IA, mídia paga com IA, relatórios automáticos e governança de IA.
 
-**Total:** 1 documento.
+**Total:** 2 documentos.
 
 ---
 
@@ -111,9 +111,9 @@ Documentos voltados ao uso estratégico, operacional e seguro de inteligência a
 | GFENG | Engenharia | 10 |
 | GFOPS | Operações | 10 |
 | GFDATA | Dados, Analytics e BI | 11 |
-| GFAI | Inteligência Artificial e Automações | 1 |
+| GFAI | Inteligência Artificial e Automações | 2 |
 
-**Total:** 68 documentos corporativos oficiais.
+**Total:** 69 documentos corporativos oficiais.
 
 ---
 
