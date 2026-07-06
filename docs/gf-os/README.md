@@ -16,9 +16,9 @@ Documentacao corporativa oficial do GetEstimateFast.
 | GFENG | 10 |
 | GFOPS | 10 |
 | GFDATA | 11 |
-| GFAI | 9 |
+| GFAI | 10 |
 
-**Total:** 76 documentos corporativos oficiais.
+**Total:** 77 documentos corporativos oficiais.
 
 ---
 
