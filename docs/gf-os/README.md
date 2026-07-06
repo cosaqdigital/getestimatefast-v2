@@ -9,8 +9,8 @@
 | GFOPS | 10 |
 | GFDATA | 11 |
 | GFAI | 11 |
-| GFCRM | 4 |
+| GFCRM | 5 |
 
-**Total:** 82 documentos corporativos oficiais.
+**Total:** 83 documentos corporativos oficiais.
 
 **Versao:** GF-OS v1.3
