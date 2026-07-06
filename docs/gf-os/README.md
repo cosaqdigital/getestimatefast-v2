@@ -52,7 +52,7 @@ docs/
 
 ### GFAI - Inteligencia Artificial e Automacoes
 
-**Total:** 5 documentos.
+**Total:** 6 documentos.
 
 ---
 
@@ -66,9 +66,9 @@ docs/
 | GFENG | Engenharia | 10 |
 | GFOPS | Operacoes | 10 |
 | GFDATA | Dados, Analytics e BI | 11 |
-| GFAI | Inteligencia Artificial e Automacoes | 5 |
+| GFAI | Inteligencia Artificial e Automacoes | 6 |
 
-**Total:** 72 documentos corporativos oficiais.
+**Total:** 73 documentos corporativos oficiais.
 
 ---
 
