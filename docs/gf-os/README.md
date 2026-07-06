@@ -1,13 +1,5 @@
 # GF-OS
 
-## Sistema Operacional Corporativo do GetEstimateFast
-
-Documentacao corporativa oficial do GetEstimateFast.
-
----
-
-## Series Oficiais
-
 | Serie | Quantidade |
 |---|---:|
 | GESMP | 16 |
@@ -17,18 +9,8 @@ Documentacao corporativa oficial do GetEstimateFast.
 | GFOPS | 10 |
 | GFDATA | 11 |
 | GFAI | 11 |
-| GFCRM | 2 |
+| GFCRM | 3 |
 
-**Total:** 80 documentos corporativos oficiais.
+**Total:** 81 documentos corporativos oficiais.
 
----
-
-## Versao Atual
-
-**GF-OS v1.3**
-
----
-
-## Fonte Oficial
-
-Os arquivos em Markdown sao a fonte oficial da documentacao.
+**Versao:** GF-OS v1.3
