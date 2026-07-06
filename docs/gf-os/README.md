@@ -9,7 +9,7 @@
 | GFOPS | 10 |
 | GFDATA | 11 |
 | GFAI | 11 |
-| GFCRM | 10 |
+| GFCRM | 11 |
 
-Total: 88 documentos.
+Total: 89 documentos.
 Versao: GF-OS v1.3
