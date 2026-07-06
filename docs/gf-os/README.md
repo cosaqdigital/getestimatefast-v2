@@ -17,14 +17,15 @@ Documentacao corporativa oficial do GetEstimateFast.
 | GFOPS | 10 |
 | GFDATA | 11 |
 | GFAI | 11 |
+| GFCRM | 1 |
 
-**Total:** 78 documentos corporativos oficiais.
+**Total:** 79 documentos corporativos oficiais.
 
 ---
 
 ## Versao Atual
 
-**GF-OS v1.2**
+**GF-OS v1.3**
 
 ---
 
