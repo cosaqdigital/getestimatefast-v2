@@ -7,6 +7,7 @@
 | GF-ROADMAP | 1 |
 | GF-ARCH | 1 |
 | GF-EXEC | 1 |
+| GFSEO-EXEC | 1 |
 | GESMP | 16 |
 | GFSEO | 10 |
 | GFPROD | 10 |
@@ -16,5 +17,5 @@
 | GFAI | 11 |
 | GFCRM | 11 |
 
-Total: 94 documentos.
+Total: 95 documentos.
 Versao: GF-OS v1.3
