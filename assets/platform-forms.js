@@ -21,6 +21,8 @@
     "general-contractors": { title: "What contractor help do you need?", options: ["Project planning", "Multiple trades", "Major renovation", "Addition / expansion", "Repair coordination", "Not sure yet"] },
     "office-cleaning": { title: "What office cleaning help do you need?", options: ["One-time cleaning", "Recurring cleaning", "Deep cleaning", "Move-in / move-out", "Post-construction cleaning", "Not sure yet"] },
     "commercial-cleaning": { title: "What commercial cleaning help do you need?", options: ["Office / workspace", "Retail / storefront", "Deep cleaning", "Recurring janitorial", "Post-construction cleaning", "Not sure yet"] },
+    "foundation-repair": { title: "What foundation repair help do you need?", options: ["Cracks or gaps", "Settling / uneven floors", "Slab concerns", "Water or moisture damage", "Inspection / assessment", "Not sure yet"] },
+    "drainage": { title: "What drainage help do you need?", options: ["Standing water", "French drain", "Yard grading", "Erosion control", "Downspout / stormwater", "Not sure yet"] },
     "roofing": { title: "What roofing help do you need?", options: ["Roof repair", "Roof replacement", "Leak", "Storm damage", "Inspection", "Not sure yet"] },
     "plumbing": { title: "What plumbing work do you need help with?", options: ["Leak repair", "Drain or clog", "Faucet / fixture", "Toilet", "Water heater", "Not sure yet"] },
     "electrical": { title: "What electrical work do you need?", options: ["Panel / breaker", "Outlet / switch", "Lighting", "Fan / fixture", "EV charger", "Not sure yet"] },
