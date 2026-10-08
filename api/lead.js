@@ -37,7 +37,9 @@ module.exports = async function handler(req, res) {
     // With enabled persistence, fail closed before emailing: never imply a request was saved.
     if (process.env.LEAD_PERSISTENCE_ENABLED === "true") {
       try {
-        savedLeadId = await persistLead(fields);
+        const persistenceResult = await persistLead(fields);
+        if (persistenceResult.duplicate) return redirectToThankYou(res);
+        savedLeadId = persistenceResult.id;
       } catch (persistError) {
         console.error("GetEstimateFast lead storage failed:", persistError.message);
         return sendErrorPage(res, 503, "We couldn't save your request right now. Please try again shortly.");
@@ -91,15 +93,18 @@ async function persistLead(fields) {
     throw new Error("Independent database environment is not configured");
   }
 
-  const response = await fetch(endpoint + "/rest/v1/leads?select=id", {
+  const rawToken = firstValue(fields["Submission Token"]);
+  const submissionToken = /^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(rawToken) ? rawToken : null;
+  const response = await fetch(endpoint + "/rest/v1/leads?on_conflict=submission_token&select=id", {
     method: "POST",
     headers: {
       apikey: key,
       ...(key.startsWith("sb_secret_") ? {} : { Authorization: "Bearer " + key }),
       "Content-Type": "application/json",
-      Prefer: "return=representation"
+      Prefer: "resolution=ignore-duplicates,return=representation"
     },
     body: JSON.stringify({
+      submission_token: submissionToken,
       service_type: firstValue(fields["Service Type"]),
       full_name: firstValue(fields["Full Name"]),
       email: firstValue(fields["Email Address"]),
@@ -115,10 +120,10 @@ async function persistLead(fields) {
     throw new Error("Lead database insert returned HTTP " + response.status);
   }
   const records = await response.json();
-  if (!Array.isArray(records) || !records[0] || !records[0].id) {
-    throw new Error("Lead database returned no ID");
-  }
-  return records[0].id;
+  if (!Array.isArray(records)) throw new Error("Invalid lead database response");
+  if (records.length === 0 && submissionToken) return { duplicate: true };
+  if (!records[0] || !records[0].id) throw new Error("Lead database returned no ID");
+  return { duplicate: false, id: records[0].id };
 }
 
 async function parseFormData(req) {

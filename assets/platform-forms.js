@@ -7,6 +7,13 @@
   const form = document.querySelector("[data-quote-flow-form]");
   if (!form) return;
 
+  // Stable for retries of the same form, new value for each fresh request.
+  const submissionToken = document.createElement("input");
+  submissionToken.type = "hidden";
+  submissionToken.name = "Submission Token";
+  submissionToken.value = window.crypto && window.crypto.randomUUID ? window.crypto.randomUUID() : "";
+  form.appendChild(submissionToken);
+
   const steps = Array.from(form.querySelectorAll(".step"));
   const progressFill = document.getElementById("progressFill");
   const stepLabel = document.getElementById("stepLabel");
