@@ -19,6 +19,10 @@ module.exports = async function handler(req, res) {
     const fields = normalizeFields(formData);
 
     if (isSpamSubmission(fields)) {
+      if (process.env.VERCEL_ENV === "preview") {
+        console.warn("Preview test rejected by honeypot; no lead was saved.");
+        return sendErrorPage(res, 400, "Test submission blocked by anti-spam field. No request was saved.");
+      }
       return redirectToThankYou(res);
     }
 
@@ -273,7 +277,8 @@ function renderLeadText(subject, fields, attachments) {
 
 function redirectToThankYou(res) {
   res.statusCode = 303;
-  res.setHeader("Location", THANK_YOU_URL);
+  // Keep Preview on the same deployment for a verifiable test.
+  res.setHeader("Location", process.env.VERCEL_ENV === "preview" ? "/thank-you.html" : THANK_YOU_URL);
   res.end();
 }
 
