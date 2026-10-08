@@ -180,7 +180,7 @@ async function collectAttachments(formData) {
 }
 
 function isSpamSubmission(fields) {
-  return Boolean(firstValue(fields.company) || firstValue(fields.website));
+  return Boolean(firstValue(fields.gef_hp_trap_47b) || firstValue(fields.company) || firstValue(fields.website));
 }
 
 function validateLead(fields) {
