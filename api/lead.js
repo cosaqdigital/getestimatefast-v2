@@ -78,9 +78,9 @@ module.exports = async function handler(req, res) {
 };
 
 async function persistLead(fields) {
-  const endpoint = String(process.env.GETESTIMATEFAST_SUPABASE_URL || "").replace(/\\/$/, "");
+  const endpoint = String(process.env.GETESTIMATEFAST_SUPABASE_URL || "").replace(/\/$/, "");
   const key = process.env.GETESTIMATEFAST_SUPABASE_SECRET_KEY;
-  if (!endpoint || !/^https:\/\/[a-z0-9-]+\\.supabase\\.co$/.test(endpoint) || !key) {
+  if (!endpoint || !/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(endpoint) || !key) {
     throw new Error("Independent database environment is not configured");
   }
 
