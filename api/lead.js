@@ -13,6 +13,7 @@ module.exports = async function handler(req, res) {
     return sendErrorPage(res, 500, "Email delivery is not configured yet. Please try again shortly.");
   }
 
+  let savedLeadId = null;
   try {
     const formData = await parseFormData(req);
     const fields = normalizeFields(formData);
@@ -26,8 +27,20 @@ module.exports = async function handler(req, res) {
       return sendErrorPage(res, 400, validationError);
     }
 
+    // Persistence is opt-in until an isolated GetEstimateFast database is provisioned.
+    // With enabled persistence, fail closed before emailing: never imply a request was saved.
+    if (process.env.LEAD_PERSISTENCE_ENABLED === "true") {
+      try {
+        savedLeadId = await persistLead(fields);
+      } catch (persistError) {
+        console.error("GetEstimateFast lead storage failed:", persistError.message);
+        return sendErrorPage(res, 503, "We couldn't save your request right now. Please try again shortly.");
+      }
+    }
+
     const attachments = await collectAttachments(formData);
     const subject = buildSubject(fields);
+    if (savedLeadId) fields["Request ID"] = savedLeadId;
     const replyTo = firstValue(fields["Email Address"]);
 
     const response = await fetch("https://api.resend.com/emails", {
@@ -59,9 +72,47 @@ module.exports = async function handler(req, res) {
     return redirectToThankYou(res);
   } catch (error) {
     console.error("Lead submission failed:", error);
+    if (savedLeadId) return redirectToThankYou(res);
     return sendErrorPage(res, 500, "We couldn't send your request right now. Please go back and try again in a moment.");
   }
 };
+
+async function persistLead(fields) {
+  const endpoint = String(process.env.GETESTIMATEFAST_SUPABASE_URL || "").replace(/\\/$/, "");
+  const key = process.env.GETESTIMATEFAST_SUPABASE_SECRET_KEY;
+  if (!endpoint || !/^https:\/\/[a-z0-9-]+\\.supabase\\.co$/.test(endpoint) || !key) {
+    throw new Error("Independent database environment is not configured");
+  }
+
+  const response = await fetch(endpoint + "/rest/v1/leads?select=id", {
+    method: "POST",
+    headers: {
+      apikey: key,
+      Authorization: "Bearer " + key,
+      "Content-Type": "application/json",
+      Prefer: "return=representation"
+    },
+    body: JSON.stringify({
+      service_type: firstValue(fields["Service Type"]),
+      full_name: firstValue(fields["Full Name"]),
+      email: firstValue(fields["Email Address"]),
+      phone: firstValue(fields["Phone Number"]),
+      city: firstValue(fields["City"]),
+      zip_code: firstValue(fields["ZIP Code"]),
+      contact_method: firstValue(fields["Preferred contact method"]) || null,
+      details: fields,
+      source: "getestimatefast.com"
+    })
+  });
+  if (!response.ok) {
+    throw new Error("Lead database insert returned HTTP " + response.status);
+  }
+  const records = await response.json();
+  if (!Array.isArray(records) || !records[0] || !records[0].id) {
+    throw new Error("Lead database returned no ID");
+  }
+  return records[0].id;
+}
 
 async function parseFormData(req) {
   const bodyBuffer = await readRequestBody(req);
