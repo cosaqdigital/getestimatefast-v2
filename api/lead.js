@@ -1,6 +1,8 @@
 const THANK_YOU_URL = "https://www.getestimatefast.com/thank-you.html";
 const DEFAULT_FROM_EMAIL = "GetEstimateFast <onboarding@resend.dev>";
 const MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024;
+const MAX_REQUEST_SIZE = 15 * 1024 * 1024;
+const MAX_ATTACHMENT_COUNT = 3;
 
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
@@ -70,6 +72,7 @@ module.exports = async function handler(req, res) {
     if (!response.ok) {
       const errorBody = await response.text();
       console.error("Resend API error:", response.status, errorBody);
+      if (savedLeadId) return redirectToThankYou(res);
       return sendErrorPage(res, 502, "We couldn't deliver your request right now. Please try again in a moment.");
     }
 
@@ -133,8 +136,17 @@ async function parseFormData(req) {
 function readRequestBody(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];
-    req.on("data", (chunk) => chunks.push(chunk));
-    req.on("end", () => resolve(Buffer.concat(chunks)));
+    let total = 0;
+    req.on("data", (chunk) => {
+      total += chunk.length;
+      if (total > MAX_REQUEST_SIZE) {
+        reject(new Error("Request payload exceeds size limit"));
+        req.pause();
+        return;
+      }
+      chunks.push(chunk);
+    });
+    req.on("end", () => { if (total <= MAX_REQUEST_SIZE) resolve(Buffer.concat(chunks)); });
     req.on("error", reject);
   });
 }
@@ -166,7 +178,9 @@ async function collectAttachments(formData) {
   for (const [, rawValue] of formData.entries()) {
     if (!isFileLike(rawValue)) continue;
     if (!rawValue.size || rawValue.size <= 0) continue;
-    if (rawValue.size > MAX_ATTACHMENT_SIZE) continue;
+    if (rawValue.size > MAX_ATTACHMENT_SIZE) throw new Error("Attachment exceeds size limit");
+    if (attachments.length >= MAX_ATTACHMENT_COUNT) throw new Error("Too many attachments");
+    if (!["image/jpeg", "image/png", "image/webp", "application/pdf"].includes(rawValue.type)) throw new Error("Unsupported attachment type");
 
     const arrayBuffer = await rawValue.arrayBuffer();
     attachments.push({
