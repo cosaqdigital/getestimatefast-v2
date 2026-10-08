@@ -88,7 +88,7 @@ async function persistLead(fields) {
     method: "POST",
     headers: {
       apikey: key,
-      Authorization: "Bearer " + key,
+      ...(key.startsWith("sb_secret_") ? {} : { Authorization: "Bearer " + key }),
       "Content-Type": "application/json",
       Prefer: "return=representation"
     },
