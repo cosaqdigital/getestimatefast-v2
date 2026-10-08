@@ -80,12 +80,15 @@ async function loadContractors() {
       const op = document.createElement("option"); op.value = next; op.textContent = next;
       op.selected = next === p.account_status; sel.appendChild(op);
     }
+    if (p.account_status === "pending_review") sel.disabled = true;
     const note = document.createElement("textarea");
     note.rows = 2; note.maxLength = 1000; note.placeholder = "Required review reason (5+ characters)";
     const save = document.createElement("button"); save.textContent = "Save decision"; save.type = "button";
+    save.disabled = p.account_status === "pending_review";
     save.addEventListener("click", async () => {
       if (note.value.trim().length < 5) { status("Enter a review reason (at least 5 characters)."); return; }
-      if (sel.value === "active" && !window.confirm("Activate this contractor? Confirm email and required trade credentials independently first. Do not approve a test business as a verified real contractor.")) return;
+      if (sel.value === "active" && !["suspended", "rejected"].includes(p.account_status)) { status("New accounts are enabled automatically; no manual approval required."); return; }
+      if (sel.value === "active" && !window.confirm("Reactivate this previously restricted account? This does not verify a trade license.")) return;
       save.disabled = true;
       try {
         await api("contractor-review", "POST", {user_id:p.user_id,status:sel.value,note:note.value});
