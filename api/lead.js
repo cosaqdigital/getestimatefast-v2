@@ -13,6 +13,7 @@ module.exports = async function handler(req, res) {
     return sendErrorPage(res, 500, "Email delivery is not configured yet. Please try again shortly.");
   }
 
+  let savedLeadId = null;
   try {
     const formData = await parseFormData(req);
     const fields = normalizeFields(formData);
@@ -28,7 +29,6 @@ module.exports = async function handler(req, res) {
 
     // Persistence is opt-in until an isolated GetEstimateFast database is provisioned.
     // With enabled persistence, fail closed before emailing: never imply a request was saved.
-    let savedLeadId = null;
     if (process.env.LEAD_PERSISTENCE_ENABLED === "true") {
       try {
         savedLeadId = await persistLead(fields);
@@ -72,6 +72,7 @@ module.exports = async function handler(req, res) {
     return redirectToThankYou(res);
   } catch (error) {
     console.error("Lead submission failed:", error);
+    if (savedLeadId) return redirectToThankYou(res);
     return sendErrorPage(res, 500, "We couldn't send your request right now. Please go back and try again in a moment.");
   }
 };
