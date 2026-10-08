@@ -1,6 +1,6 @@
 const { json, method, readJson, requireAdmin, queryDb, fail } = require("./_auth");
 
-const VALID_STATUSES = ["pending_review", "active", "suspended", "rejected"];
+const VALID_STATUSES = ["active", "suspended", "rejected"];
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 module.exports = async function handler(req, res) {
