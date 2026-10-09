@@ -1,4 +1,7 @@
 {
+  "rewrites": [
+    {"source": "/professionals/:slug", "destination": "/api/public-profile?slug=:slug&format=html"}
+  ],
   "redirects": [
     {
       "source": "/(.*)",
