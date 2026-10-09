@@ -52,6 +52,39 @@ function renderLead(lead) {
   card.append(node("p", "review-contact", lead.full_name + " · " + lead.phone + " · " + lead.email));
   if (lead.status !== "new") {
     card.append(node("div", "review-muted", "Reviewed. Status: " + lead.status + (lead.admin_note ? " · Note: " + lead.admin_note : "")));
+    const reviewed = details._platform_review;
+    const completeReview = reviewed?.review_status === "approved" && reviewed?.contact_reviewed === true && reviewed?.scope_reviewed === true && reviewed?.approved_category === lead.service_type;
+    if (lead.status === "qualified" && !completeReview) {
+      const panel=node("div","review-card");
+      panel.append(node("strong","","Legacy request: reconfirm before publishing"));
+      panel.append(node("p","review-muted","This request was previously qualified but is missing the current review checks. Confirm both items here without changing the original description."));
+      const label=node("label","","Service category (change only if needed)");
+      const category=document.createElement("select");
+      const names=window.GetEstimateFastLaunch?.names||[];
+      for(const name of (names.includes(lead.service_type)?names:[lead.service_type,...names])){
+        const opt=document.createElement("option");opt.value=name;opt.textContent=name;category.append(opt);
+      }
+      category.value=lead.service_type;
+      const c1=checkboxReview("Customer contact reviewed");
+      const c2=checkboxReview("Service description and category reviewed");
+      const noteLabel=node("label","","Internal note (optional)");
+      const note=document.createElement("textarea");note.rows=2;note.maxLength=1000;
+      note.placeholder="Add a note only if necessary";
+      const submit=node("button","approve","Reconfirm review");
+      submit.type="button";submit.disabled=true;
+      const update=()=>{submit.disabled=!(c1.input.checked&&c2.input.checked&&category.value.trim());};
+      c1.input.addEventListener("change",update);c2.input.addEventListener("change",update);category.addEventListener("change",update);
+      submit.addEventListener("click",async()=>{
+        submit.disabled=true;
+        try {
+          await api("reconfirm-legacy-lead","POST",{id:lead.id,category:category.value,contactReviewed:c1.input.checked,serviceReviewed:c2.input.checked,note:note.value});
+          status("Legacy review confirmed. The request has not been published.");await load();
+        }catch(error){status(error.message);update();}
+      });
+      panel.append(label,category,c1.wrapper,c2.wrapper,noteLabel,note,submit);
+      card.append(panel);
+      return card;
+    }
     if (lead.status === "qualified" || lead.status === "published") {
       const matches = node("div", "review-details", "Find matching professionals by ZIP radius and service");
       const show = node("button", "secondary", "Check professionals in range");
