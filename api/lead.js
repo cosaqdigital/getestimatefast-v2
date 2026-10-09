@@ -107,13 +107,21 @@ async function persistLead(fields) {
     body: JSON.stringify({
       submission_token: submissionToken,
       service_type: firstValue(fields["Service Type"]),
+      status: "new", // Manual review before qualification or publishing.
       full_name: firstValue(fields["Full Name"]),
       email: firstValue(fields["Email Address"]),
       phone: firstValue(fields["Phone Number"]),
       city: firstValue(fields["City"]),
       zip_code: firstValue(fields["ZIP Code"]),
       contact_method: firstValue(fields["Preferred contact method"]) || null,
-      details: fields,
+      details: {
+        ...fields,
+        _platform_review: {
+          required: true,
+          reason: manualReviewReason(fields),
+          original_service: firstValue(fields["Service Type"])
+        }
+      },
       source: "getestimatefast.com"
     })
   });
@@ -125,6 +133,16 @@ async function persistLead(fields) {
   if (records.length === 0 && submissionToken) return { duplicate: true };
   if (!records[0] || !records[0].id) throw new Error("Lead database returned no ID");
   return { duplicate: false, id: records[0].id };
+}
+
+// Pure, server-derived review marker; descriptions are never blocked by
+// service keywords or inferred licensing requirements.
+function manualReviewReason(fields) {
+  const service = firstValue(fields["Service Type"]);
+  const category = LAUNCH_CATALOG.findByName(service);
+  if (category?.slug === "other-services") return "other_services";
+  if (!category) return "unlisted_or_legacy_category";
+  return "standard_request";
 }
 
 async function parseFormData(req) {
@@ -212,13 +230,15 @@ function validateLead(fields) {
     }
   }
 
-  const category = LAUNCH_CATALOG.findByName(firstValue(fields["Service Type"]));
-  if (!category) return "This service is not currently available. Please choose a service from the current catalog.";
-  if (category.slug === "other-services" && firstValue(fields["Project Description"]).length < LAUNCH_CATALOG.MIN_OTHER_DESCRIPTION) {
+  // No service/category keyword filter here. Unlisted and older service categories
+  // are retained for human review rather than automatically rejected.
+  const service = firstValue(fields["Service Type"]);
+  if (service.length > 120) return "Please shorten the service name.";
+  if (service === "Other Services" && firstValue(fields["Project Description"]).length < LAUNCH_CATALOG.MIN_OTHER_DESCRIPTION) {
     return "Please describe your Other Services request using at least 60 characters.";
   }
-  if (category.slug === "other-services" && firstValue(fields["Project Description"]).length > 3000) {
-    return "Please shorten the description to 3000 characters.";
+  if (firstValue(fields["Project Description"]).length > 10000) {
+    return "Please shorten the description to 10000 characters.";
   }
 
   const phoneDigits = firstValue(fields["Phone Number"]).replace(/\D/g, "");
