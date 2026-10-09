@@ -1,5 +1,6 @@
+const LAUNCH_CATALOG = require("../../assets/launch-categories");
 const {config,headers,json,method,readJson,queryDb,fail}=require("../admin/_auth");
-const CATEGORIES=["Bathroom Remodeling","Kitchen Remodeling","Flooring","Painting","Drywall","Roofing","Plumbing","Electrical","HVAC","House Cleaning","Yard Cleanup & Other Cleanup","General Remodeling","Foundation Repair","Drainage","Other"];
+const CATEGORIES=LAUNCH_CATALOG.names;
 async function userFor(req,res){
  const match=/^Bearer ([A-Za-z0-9._~-]+)$/.exec(String(req.headers.authorization||""));
  if(!match){json(res,401,{error:"Sign in required"});return null;}
