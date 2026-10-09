@@ -86,6 +86,20 @@
     flow.steps[1].field = "Project Type";
     flow.steps[1].options = custom.options;
 
+    if (serviceSlug === "yard-cleanup-other-cleanup" && steps[2] && flow.steps[2]) {
+      flow.steps[2].title = "Describe what you need cleaned up";
+      flow.steps[2].required = true;
+      const descStep = steps[2];
+      const title = descStep.querySelector("h2");
+      const label = descStep.querySelector(".field-label");
+      const input = descStep.querySelector("textarea");
+      const help = descStep.querySelector(".step-help");
+      if (title) title.textContent = "Describe what you need cleaned up";
+      if (label) label.textContent = "What needs cleaning, and approximately how much is there?";
+      if (input) input.placeholder = "Example: A backyard with fallen leaves, palm fronds, and a few bags of garden waste. Need cleanup and possibly removal.";
+      if (help) help.textContent = "Tell us what needs cleaning. Please do not include hazardous waste, demolition debris or household trash removal.";
+    }
+
     const step = steps[1];
     const heading = step.querySelector("h2");
     const hidden = step.querySelector('input[type="hidden"]');
