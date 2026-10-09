@@ -4,6 +4,8 @@
 
 Branch `feat/us-marketplace-wallet-foundation-20261009`, baseada em `feat/zenvia-us-webhook-safety-20261009` / PR #49. A ancestralidade das PRs #47 e #48 foi confirmada com Git. Todo desenvolvimento pertence ao GetEstimateFast; referência brasileira consultada somente em leitura. Nenhum merge, escrita em main, envio SMS, pagamento real ou migração financeira em produção.
 
+Entrega para revisão: [PR draft #50](https://github.com/cosaqdigital/getestimatefast-v2/pull/50), aberta e confirmada como draft com a base acima. Os checks Vercel e Vercel Preview Comments do commit de implementação passaram; isso confirma o status de deploy informado pelo GitHub, sem validar visualmente o produto nem provisionar o backend isolado.
+
 Comparação, evidências, decisões comerciais e prioridades: [auditoria comparativa](comparative-marketplace-audit.md).
 
 ## Implementado
@@ -63,6 +65,7 @@ Manter `GETESTIMATEFAST_SMS_MODE=dry_run` e as travas Zenvia existentes. O cadas
 ## Evidências e limites
 
 - Validação final: `npm test` passou com **44 testes, zero falhas**, incluindo execução das funções financeiras com os grants reais de `service_role`. `git diff --check` passou.
+- `npm audit --omit=dev`: zero vulnerabilidades nas dependências de produção.
 - Testes Node cobrem centavos, arredondamento, descontos, prazo, compradores, filtros e consentimento.
 - PostgreSQL PGlite executa o SQL preparado e verifica rollback atômico, duplicação de compras/eventos, estorno, separação de saldos e privilégios/RLS.
 - Testes HTTP executam handlers reais com Auth e PostgREST substituídos exclusivamente no sandbox, e RPCs em PostgreSQL real embarcado. Confirmam autorização, perfil, moderação, preço e bloqueio financeiro sem entradas de ledger.
