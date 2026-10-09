@@ -18,7 +18,7 @@ module.exports=async function handler(req,res){
   const text=formatOpportunityNotification(opportunity.city);
   const ids=assignments.map(x=>x.contractor_user_id);
   const profiles=ids.length?await queryDb("contractor_profiles?user_id=in.("+ids.map(encodeURIComponent).join(",")+")&select=user_id,account_status,email_verified_at,sms_opt_in,sms_opt_in_at"): [];
-  const existing=await queryDb("opportunity_sms_simulations?matching_recipient_id=in.("+assignments.map(a=>a.id).join(",")+")&select=matching_recipient_id,status");
+  const existing=assignments.length?await queryDb("opportunity_sms_simulations?matching_recipient_id=in.("+assignments.map(a=>a.id).join(",")+")&select=matching_recipient_id,status"):[];
   let recorded=0;
   for(const a of assignments){
    if(existing.some(x=>x.matching_recipient_id===a.id))continue;
