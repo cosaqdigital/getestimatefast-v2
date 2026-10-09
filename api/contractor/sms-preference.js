@@ -1,3 +1,4 @@
+const crypto=require("node:crypto");
 const {json,method,readJson,queryDb,userFor,fail}=require("./_shared");
 module.exports=async function handler(req,res){
  if(!method(req,res,["POST"]))return;
@@ -13,8 +14,14 @@ module.exports=async function handler(req,res){
   if(!rows.length)return json(res,404,{error:"Complete your contractor profile first"});
   const previous=rows[0].sms_opt_in===true;
   if(previous===body.smsOptIn)return json(res,200,{sms_opt_in:previous,changed:false,live_sms_enabled:false});
+  const now=new Date().toISOString();
   await queryDb(path,{method:"PATCH",headers:{Prefer:"return=minimal"},
-   body:JSON.stringify({sms_opt_in:body.smsOptIn,sms_opt_in_at:body.smsOptIn?new Date().toISOString():null})});
+   body:JSON.stringify({sms_opt_in:body.smsOptIn,sms_opt_in_at:body.smsOptIn?now:null,sms_opt_out_at:body.smsOptIn?null:now})});
+  await queryDb("sms_consent_events",{method:"POST",headers:{Prefer:"return=minimal"},body:JSON.stringify({
+   provider:"profile",provider_event_id:crypto.randomUUID(),contractor_user_id:user.id,
+   event_type:body.smsOptIn?"PROFILE_OPT_IN":"PROFILE_OPT_OUT",action:body.smsOptIn?"OPTED_IN":"OPTED_OUT",
+   provider_timestamp:now,response_sent:false
+  })});
   return json(res,200,{sms_opt_in:body.smsOptIn,changed:true,live_sms_enabled:false});
  }catch(e){fail(res,e);}
 };
