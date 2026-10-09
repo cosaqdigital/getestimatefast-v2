@@ -1,5 +1,7 @@
 # Relatório da etapa isolada — GetEstimateFast
 
+Entrega: [PR draft #51](https://github.com/cosaqdigital/getestimatefast-v2/pull/51), baseada na branch da [PR #50](https://github.com/cosaqdigital/getestimatefast-v2/pull/50). A branch nova é `feat/isolated-preview-stripe-test-20261009`; as PRs anteriores continuam intactas.
+
 ## Implementações
 
 - Auditoria dos seis scripts da #50, com suas dependências, ordem de instalação e permissões, documentada em [provisionamento](isolated-preview-provisioning.md).
