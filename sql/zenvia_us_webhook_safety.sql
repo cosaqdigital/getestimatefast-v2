@@ -28,6 +28,9 @@ create table if not exists public.sms_consent_events(
   created_at timestamptz not null default now()
 );
 
+create index if not exists sms_consent_events_contractor_user_id_idx
+  on public.sms_consent_events(contractor_user_id);
+
 alter table public.sms_consent_events enable row level security;
-revoke all on public.sms_consent_events from public, anon, authenticated;
+revoke all on public.sms_consent_events from public, anon, authenticated, service_role;
 grant select, insert on public.sms_consent_events to service_role;
