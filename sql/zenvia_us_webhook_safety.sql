@@ -4,10 +4,10 @@ alter table public.contractor_profiles
 
 update public.contractor_profiles
 set sms_phone_e164 = case
-  when regexp_replace(contact_phone,'\\D','','g') ~ '^[2-9][0-9]{2}[2-9][0-9]{6}$'
-    then '1' || regexp_replace(contact_phone,'\\D','','g')
-  when regexp_replace(contact_phone,'\\D','','g') ~ '^1[2-9][0-9]{2}[2-9][0-9]{6}$'
-    then regexp_replace(contact_phone,'\\D','','g')
+  when regexp_replace(contact_phone,'[^0-9]','','g') ~ '^[2-9][0-9]{2}[2-9][0-9]{6}$'
+    then '1' || regexp_replace(contact_phone,'[^0-9]','','g')
+  when regexp_replace(contact_phone,'[^0-9]','','g') ~ '^1[2-9][0-9]{2}[2-9][0-9]{6}$'
+    then regexp_replace(contact_phone,'[^0-9]','','g')
   else null
 end
 where sms_phone_e164 is null;
