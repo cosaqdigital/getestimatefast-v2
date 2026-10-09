@@ -6,6 +6,10 @@ const MAX_REQUEST_SIZE = 15 * 1024 * 1024;
 const MAX_ATTACHMENT_COUNT = 3;
 
 module.exports = async function handler(req, res) {
+  if (process.env.GETESTIMATEFAST_ISOLATED_BACKEND === "true" ||
+      (process.env.VERCEL_ENV === "preview" && process.env.VERCEL_GIT_COMMIT_REF === "feat/isolated-preview-stripe-test-20261009")) {
+    return sendErrorPage(res, 503, "Public submissions and external email delivery are disabled in this isolated test environment.");
+  }
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return sendErrorPage(res, 405, "This page only accepts form submissions.");

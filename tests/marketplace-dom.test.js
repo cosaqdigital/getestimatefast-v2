@@ -12,11 +12,16 @@ test("local DOM: contractor dashboard, categories, public profile, invitations, 
   const login=d.getElementById("login");login.elements.email.value="contractor@example.invalid";login.elements.password.value="SyntheticTestOnly!";login.dispatchEvent(new w.Event("submit",{bubbles:true,cancelable:true}));
   await until(()=>d.getElementById("paidBalance").textContent==="$0.00"&&d.getElementById("opportunityCount").textContent==="1");
   assert.equal(d.getElementById("dashboardProfileStatus").textContent,"active");assert.equal(d.getElementById("categories").multiple,true);assert(d.getElementById("opportunityCards").textContent.includes("SYNTHETIC SANDBOX REQUEST"));
+  assert.equal(d.getElementById("message").textContent,"Signed in.");
   const f=d.getElementById("publicProfileForm");f.elements.slug.value="synthetic-dom-profile";f.elements.published.checked=true;f.elements.languages.value="English";f.dispatchEvent(new w.Event("submit",{bubbles:true,cancelable:true}));
   await until(()=>d.getElementById("profileShare").querySelector('a[href^="sms:"]'));
   const publicData=await (await s.fetch(s.origin+"/api/public-profile?slug=synthetic-dom-profile")).json();assert.equal(publicData.profile.display_name,"Synthetic Painting Business");
   d.getElementById("createReviewInvite").click();await until(()=>d.getElementById("reviewInviteShare").querySelector("input"));assert(d.getElementById("reviewInviteShare").querySelector("input").value.includes("/review.html#"));
-  assert(d.getElementById("walletPanel").querySelector("button").disabled);d.getElementById("logout").click();assert(d.getElementById("workspace").hidden);assert.equal(d.getElementById("profileShare").textContent,"");assert.equal(d.getElementById("paidBalance").textContent,"—");
+  assert(d.getElementById("walletPanel").querySelector("button").disabled);
+  const originalFetch=w.fetch;let release;const delayed=new Promise(resolve=>{release=resolve;});w.fetch=async(...args)=>{const response=await originalFetch(...args);await delayed;return response;};
+  const pending=w.GetEstimateFastPortal.api("marketplace?action=dashboard").then(()=>null,error=>error);
+  d.getElementById("logout").click();release();assert.match((await pending).message,/Session changed/);w.fetch=originalFetch;
+  assert(d.getElementById("workspace").hidden);assert.equal(d.getElementById("profileShare").textContent,"");assert.equal(d.getElementById("paidBalance").textContent,"—");
   admin=await JSDOM.fromURL(s.origin+"/marketplace-admin.html",options);const aw=admin.window,ad=aw.document;await until(()=>ad.getElementById("adminCategories").options.length>0);
   const form=ad.getElementById("adminLogin");form.elements.email.value="admin@example.invalid";form.elements.password.value="SyntheticTestOnly!";form.dispatchEvent(new aw.Event("submit",{bubbles:true,cancelable:true}));await until(()=>!ad.getElementById("adminWorkspace").hidden);assert(ad.getElementById("adminMetrics").textContent.includes("public profiles"));
   assert.deepEqual(errors,[]);

@@ -95,6 +95,7 @@ create table gef_private.contact_purchases(
  quote_id uuid not null unique references gef_private.contact_quotes(id),
  amount_cents bigint not null check(amount_cents between 1 and 100000000),
  status text not null default 'acquired' check(status in ('acquired','refunded')),
+ funding_source text not null default 'wallet' check(funding_source in ('wallet','stripe_test')),
  operation_key text not null,
  created_at timestamptz not null default now(),
  unique(contractor_id,opportunity_id),unique(contractor_id,operation_key)
@@ -211,6 +212,7 @@ begin
  perform 1 from public.opportunity_previews where id=p.opportunity_id for update;
  perform 1 from gef_private.wallets where contractor_id=p.contractor_id for update;
  select * into p from gef_private.contact_purchases where id=p_purchase for update;
+ if p.funding_source<>'wallet' then raise exception 'Direct Stripe payments require a separate provider refund flow'; end if;
  select * into v_audit from gef_private.admin_audit where operation_key=p_operation_key;
  if found then
   if v_audit.actor_id<>p_actor or v_audit.action<>'contact_refund' or v_audit.target_id<>p_purchase or v_audit.reason<>p_reason then raise exception 'Idempotency payload conflict'; end if;

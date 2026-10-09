@@ -1,4 +1,5 @@
--- PREPARED ONLY, Supabase isolated development environment; not used by PGlite.
+-- PREPARED ONLY, Supabase isolated development environment.
+-- Local tests validate this DDL with a bucket schema stub, not the Storage service.
 -- Images are public ONLY after explicit upload permission; never use this bucket for private documents.
 insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
 values('gef-portfolio','gef-portfolio',true,3000000,array['image/jpeg','image/png','image/webp'])
