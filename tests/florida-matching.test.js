@@ -14,7 +14,7 @@ const p = {account_status:"active",email_verified_at:"2026-10-09T00:00:00Z",stat
 const o = {service_category:"Flooring",zip_code:"33578",city:"Riverview"};
 test("same zip = 0 miles", () => assert.equal(calculateMatch(p,{...o,zip_code:"33569"},zipLookup).distance_miles,0));
 test("nearby city within radius", () => assert.equal(calculateMatch(p,o,zipLookup).eligible,true));
-test("farther than the chosen radius fails closed", () => assert.equal(calculateMatch(p,{...o,zip_code:"33701"},zipLookup).eligible,false));
+test("farther than the chosen radius fails closed", () => assert.equal(calculateMatch({...p,service_radius_miles:20},{...o,zip_code:"33701"},zipLookup).eligible,false));
 test("larger radius covers neighboring cities", () => assert.equal(calculateMatch({...p,service_radius_miles:60},{...o,zip_code:"33701"},zipLookup).eligible,true));
 test("category must match", () => assert.equal(calculateMatch(p,{...o,service_category:"Painting"},zipLookup).reason,"different_category"));
 test("Other Services matches any active professional within radius", () => assert.equal(calculateMatch(p,{...o,service_category:"Other Services"},zipLookup).eligible,true));

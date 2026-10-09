@@ -3,7 +3,19 @@ function config() {
   const url = String(process.env.GETESTIMATEFAST_SUPABASE_URL || "").replace(/\/$/, "");
   const secret = process.env.GETESTIMATEFAST_SUPABASE_SECRET_KEY;
   const publishable = process.env.GETESTIMATEFAST_SUPABASE_PUBLISHABLE_KEY;
-  if (url !== PROJECT_URL || !secret || !publishable) throw new Error("GetEstimateFast admin backend not configured");
+  const isolated = process.env.GETESTIMATEFAST_ISOLATED_BACKEND === "true";
+  if (isolated) {
+    const target = new URL(url);
+    const developmentRef = process.env.GETESTIMATEFAST_DEVELOPMENT_PROJECT_REF;
+    const local = target.protocol === "http:" && ["localhost", "127.0.0.1"].includes(target.hostname);
+    const dedicated = typeof developmentRef === "string" && /^[a-z]{20}$/.test(developmentRef)
+      && !["wedsjubkttygxtpkopfj", "ecbcbvnupndkaypegubv", "jwvsbgfhtaojjmhcmega"].includes(developmentRef)
+      && url === "https://" + developmentRef + ".supabase.co";
+    if (process.env.VERCEL_ENV === "production" || (!local && !dedicated) || target.username || target.password || target.search || target.hash || !["", "/"].includes(target.pathname)) {
+      throw new Error("An isolated GetEstimateFast development backend is required");
+    }
+  } else if (url !== PROJECT_URL) throw new Error("GetEstimateFast admin backend not configured");
+  if (!secret || !publishable) throw new Error("GetEstimateFast admin backend not configured");
   return { url, secret, publishable };
 }
 function headers(key, extra = {}) {
