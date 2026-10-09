@@ -51,7 +51,37 @@ function renderLead(lead) {
   }
   card.append(node("p", "review-contact", lead.full_name + " · " + lead.phone + " · " + lead.email));
   if (lead.status !== "new") {
-    card.append(node("div", "review-muted", "Already reviewed. Status: " + lead.status + (lead.admin_note ? " · Note: " + lead.admin_note : "")));
+    card.append(node("div", "review-muted", "Reviewed. Status: " + lead.status + (lead.admin_note ? " · Note: " + lead.admin_note : "")));
+    if (lead.status === "qualified") {
+      const editor = node("div", "publish-editor");
+      const title = node("label", "", "Public opportunity summary (20-1400 characters)");
+      const summary = document.createElement("textarea");
+      summary.rows = 3;
+      summary.maxLength = 1400;
+      summary.placeholder = "Describe the work without client name, phone, email, links or street address.";
+      const confirmation = checkboxReview("I checked that this summary contains no personal contact details or exact address.");
+      const publish = node("button", "approve", "Publish opportunity");
+      publish.type = "button"; publish.disabled = true;
+      const update = () => {publish.disabled = summary.value.trim().length < 20 || !confirmation.input.checked;};
+      summary.addEventListener("input", update);confirmation.input.addEventListener("change", update);
+      publish.addEventListener("click", async () => {
+        publish.disabled = true;
+        try {await api("publish-opportunity","POST",{id:lead.id,summary:summary.value,confirmReviewed:confirmation.input.checked});status("Opportunity published without customer contact details.");await load();}
+        catch(e){status(e.message);update();}
+      });
+      editor.append(title,summary,confirmation.wrapper,publish);
+      card.append(editor);
+    } else if (lead.status === "published") {
+      const withdraw = node("button", "secondary", "Withdraw opportunity");
+      withdraw.type="button";
+      withdraw.addEventListener("click",async()=>{
+        if(!window.confirm("Hide this opportunity from contractors?"))return;
+        withdraw.disabled=true;
+        try{await api("withdraw-opportunity","POST",{id:lead.id,note:"Withdrawn by administrator"});status("Opportunity withdrawn.");await load();}
+        catch(e){status(e.message);withdraw.disabled=false;}
+      });
+      card.append(withdraw);
+    }
     return card;
   }
 
