@@ -148,6 +148,14 @@ function renderLead(lead) {
       editor.append(title,summary,confirmation.wrapper,publish);
       card.append(editor);
     } else if (lead.status === "published") {
+      const simulate=node("button","secondary","Simulate SMS notifications (no sending)");
+      simulate.type="button";
+      simulate.addEventListener("click",async()=>{
+        simulate.disabled=true;
+        try{const result=await api("simulate-sms","POST",{leadId:lead.id});status("SMS simulation: "+result.selected+" selected, "+result.recorded+" new records, 0 messages sent.");}
+        catch(e){status(e.message);}finally{simulate.disabled=false;}
+      });
+      card.append(simulate);
       const withdraw = node("button", "secondary", "Withdraw opportunity");
       withdraw.type="button";
       withdraw.addEventListener("click",async()=>{
