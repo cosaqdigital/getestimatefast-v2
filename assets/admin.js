@@ -259,6 +259,7 @@ $("loginForm").addEventListener("submit",async event=>{
   }catch(e){status(e.message);}
 });
 $("logout").addEventListener("click",()=>{token="";loggedIn(false);status("Signed out. Note: existing token expires automatically.");});
+$("checkSmsProvider").addEventListener("click",async()=>{const out=$("smsProviderStatus");out.textContent="Checking...";try{const d=await api("sms-provider-status");out.textContent="Provider: "+d.provider+" | Mode: "+d.mode+" | US route: "+(d.us_route_approved?"confirmed":"unconfirmed")+" | STOP handling: "+(d.reply_stop_verified?"verified":"unverified")+" | Credentials: "+(d.token_configured&&d.sender_configured?"configured":"incomplete")+" | Live SMS: DISABLED. Next: "+d.next_steps.join("; ");}catch(e){out.textContent=e.message;}});
 $("refresh").addEventListener("click",()=>load().catch(e=>status(e.message)));
 $("filter").addEventListener("change",()=>{page=0;load().catch(e=>status(e.message));});
 $("previous").addEventListener("click",()=>{if(page){page--;load().catch(e=>status(e.message));}});
