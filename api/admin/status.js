@@ -9,6 +9,7 @@ module.exports = async function handler(req, res) {
     const host = String(req.headers.host || "");
     if (origin && new URL(origin).host !== host) return json(res, 403, { error: "Origin not allowed" });
     const { id, status, note } = await readJson(req);
+    if (status === "qualified" || status === "published") return json(res, 409, { error: "Use the review and approval workflow. Publishing is not available in this preview." });
     if (!/^[a-f0-9-]{36}$/i.test(String(id)) || !statuses.includes(status) || typeof note !== "string" || note.length > 1000) {
       return json(res, 400, { error: "Invalid request" });
     }
