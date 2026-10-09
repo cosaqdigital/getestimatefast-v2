@@ -35,6 +35,7 @@
     "drywall": { title: "What drywall work do you need?", options: ["Patch / repair", "New drywall", "Ceiling repair", "Texture matching", "Water damage", "Not sure yet"] },
     "painting": { title: "What painting work do you need?", options: ["Interior painting", "Exterior painting", "Cabinets", "Touch-ups", "Whole home", "Not sure yet"] },
     "flooring": { title: "What flooring work do you need?", options: ["Vinyl / laminate", "Tile", "Hardwood", "Floor repair", "Floor replacement", "Not sure yet"] },
+    "yard-cleanup-other-cleanup": { title: "What kind of cleanup do you need?", options: ["Leaves / grass clippings", "Branches / palm fronds", "General yard cleanup", "Other cleanup", "Not sure yet"] },
     "landscaping": { title: "What landscaping help do you need?", options: ["Yard cleanup", "New planting", "Mulch / rock", "Sod / lawn", "Irrigation", "Not sure yet"] },
     "pressure-washing": { title: "What pressure washing do you need?", options: ["Driveway", "House exterior", "Patio / pavers", "Fence / deck", "Commercial surface", "Not sure yet"] },
     "fence-installation": { title: "What fence project do you need?", options: ["New fence", "Fence replacement", "Fence repair", "Gate", "Privacy fence", "Not sure yet"] },
@@ -331,7 +332,7 @@
     input.addEventListener("input", () => { const query = normalizeText(input.value); if (!query) { render(items.slice(0, 5)); return; } render(items.filter((item) => item.normalized.includes(query)).slice(0, 6)); });
     input.addEventListener("keydown", (event) => { if (event.key !== "Enter") return; const firstLink = results.querySelector("a.service-starter-item"); if (!firstLink) return; event.preventDefault(); window.location.href = firstLink.getAttribute("href"); });
     function render(itemsToRender) {
-      if (!itemsToRender.length) { results.innerHTML = '<div class="service-starter-empty">No close match yet. Try kitchen, cleaning, roofing, or plumbing.</div>'; results.classList.add("is-visible"); return; }
+      if (!itemsToRender.length) { results.innerHTML = '<div class="service-starter-empty">No close match yet. Try yard cleanup, painting, flooring, or handyman.</div>'; results.classList.add("is-visible"); return; }
       results.innerHTML = itemsToRender.map((item) => `<a class="service-starter-item" href="${item.href}" data-service-option data-track="service_selected" data-cta="service-search-result" data-service="${item.key}" data-action="starter-result-click"><strong>${escapeHtml(item.label)}</strong><span>${escapeHtml(item.cta)} · ${escapeHtml(item.summary || "")}</span></a>`).join("");
       results.classList.add("is-visible");
     }
