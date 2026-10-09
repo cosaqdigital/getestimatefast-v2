@@ -52,6 +52,25 @@ function renderLead(lead) {
   card.append(node("p", "review-contact", lead.full_name + " · " + lead.phone + " · " + lead.email));
   if (lead.status !== "new") {
     card.append(node("div", "review-muted", "Reviewed. Status: " + lead.status + (lead.admin_note ? " · Note: " + lead.admin_note : "")));
+    if (lead.status === "qualified" || lead.status === "published") {
+      const matches = node("div", "review-details", "Find matching professionals by ZIP radius and service");
+      const show = node("button", "secondary", "Check professionals in range");
+      show.type="button";
+      const output=node("div","review-details");
+      show.addEventListener("click",async()=>{
+        show.disabled=true;output.textContent="Checking service area...";
+        try {
+          const d=await api("matching-candidates?id="+encodeURIComponent(lead.id));
+          output.replaceChildren();
+          output.append(node("strong","",d.candidates.length+" matching professionals"));
+          for(const p of d.candidates){
+            output.append(node("p","review-muted",p.display_name+" · "+p.city+" · "+p.base_zip+" · "+p.distance_miles+" mi (radius "+p.service_radius_miles+" mi)"));
+          }
+          if(d.unresolved_zip)output.append(node("p","review-muted","ZIP not recognized: review location manually."));
+        }catch(error){output.textContent=error.message;}finally{show.disabled=false;}
+      });
+      card.append(matches,show,output);
+    }
     if (lead.status === "qualified") {
       const editor = node("div", "publish-editor");
       const title = node("label", "", "Public opportunity summary (20-1400 characters)");
