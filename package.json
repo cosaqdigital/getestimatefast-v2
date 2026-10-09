@@ -1,0 +1,12 @@
+{
+  "name": "getestimatefast-v2",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Florida-first independent contractor marketplace",
+  "scripts": {
+    "test": "node --test tests/*.test.js"
+  },
+  "dependencies": {
+    "zipcodes": "8.0.0"
+  }
+}
