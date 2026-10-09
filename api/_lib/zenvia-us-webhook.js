@@ -2,7 +2,7 @@
 const crypto=require("node:crypto");
 const {normalizeUsPhone}=require("./zenvia-us-provider");
 
-const WEBHOOK_SECRET_HEADER="x-getestimatefast-webhook-token";
+const WEBHOOK_SECRET_HEADER="x-auth-token";
 
 function safeEqualSecret(provided,expected){
   if(typeof provided!=="string"||typeof expected!=="string"||expected.length<32)return false;
