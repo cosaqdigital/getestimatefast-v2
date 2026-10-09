@@ -28,7 +28,8 @@ test("Stripe preparation has no delivery and separates profile service from wall
 });
 test("isolated backend pin rejects production and every other known platform",()=>{
  const previous={...process.env};try{
-  process.env.GETESTIMATEFAST_ISOLATED_BACKEND="true";process.env.GETESTIMATEFAST_SUPABASE_SECRET_KEY="synthetic-secret";process.env.GETESTIMATEFAST_SUPABASE_PUBLISHABLE_KEY="synthetic-public";process.env.GETESTIMATEFAST_SUPABASE_URL="http://127.0.0.1:54321";process.env.VERCEL_ENV="preview";assert.equal(config().url,"http://127.0.0.1:54321");
+  process.env.GETESTIMATEFAST_ISOLATED_BACKEND="true";process.env.GETESTIMATEFAST_SUPABASE_SECRET_KEY="synthetic-secret";process.env.GETESTIMATEFAST_SUPABASE_PUBLISHABLE_KEY="synthetic-public";process.env.GETESTIMATEFAST_SUPABASE_URL="http://127.0.0.1:54321";process.env.VERCEL_ENV="development";delete process.env.VERCEL;assert.equal(config().url,"http://127.0.0.1:54321");
+  process.env.VERCEL_ENV="preview";assert.throws(config);
   process.env.VERCEL_ENV="production";assert.throws(config);process.env.VERCEL_ENV="preview";
   for(const ref of ["wedsjubkttygxtpkopfj","ecbcbvnupndkaypegubv","jwvsbgfhtaojjmhcmega"]){process.env.GETESTIMATEFAST_SUPABASE_URL="https://"+ref+".supabase.co";process.env.GETESTIMATEFAST_DEVELOPMENT_PROJECT_REF=ref;assert.throws(config);}
  }finally{for(const key of Object.keys(process.env))if(!(key in previous))delete process.env[key];Object.assign(process.env,previous);}

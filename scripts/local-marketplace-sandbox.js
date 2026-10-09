@@ -3,11 +3,15 @@
 const http=require("node:http"),fs=require("node:fs"),path=require("node:path"),crypto=require("node:crypto");
 const {PGlite}=require("@electric-sql/pglite");
 const root=path.resolve(__dirname,".."),u=n=>`10000000-0000-4000-8000-${String(n).padStart(12,"0")}`;
-async function createSandbox(port=0){
- const db=new PGlite();await db.waitReady;
+async function createSandbox(port=0,options={}){
+ const db=options.db||new PGlite();await db.waitReady;
  await db.exec("create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key,email text,email_confirmed_at timestamptz);");
  const files=["getestimatefast_leads.sql","getestimatefast_marketplace_foundation.sql","getestimatefast_contractors_foundation.sql","contractor_consent_fields.sql","contractor_auto_enable.sql","opportunity_publication_preview.sql","controlled_matching_rounds.sql","sms_simulation_preview.sql","zenvia_us_webhook_safety.sql","us_marketplace_financial_foundation.sql","us_public_profiles_reviews.sql","us_marketplace_read_models.sql","us_topup_test_contract.sql","us_public_review_rate_limit.sql"];
  for(const file of files){const sql=fs.readFileSync(path.join(root,"sql",file),"utf8").replace("create extension if not exists pgcrypto;","");await db.exec(sql);}
+ // DDL-only Storage contract. Real upload/RLS behavior still needs Supabase Storage.
+ await db.exec("create schema storage;create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);");
+ await db.exec(fs.readFileSync(path.join(root,"sql/us_portfolio_storage.sql"),"utf8"));
+ await db.exec(fs.readFileSync(path.join(root,"sql/us_stripe_test_checkout.sql"),"utf8"));
  const asService=(sql,values=[])=>db.transaction(async tx=>{await tx.exec("set local role service_role");return tx.query(sql,values);});
  await db.query("insert into auth.users(id,email,email_confirmed_at) values($1,'contractor@example.invalid',now()),($2,'admin@example.invalid',now()),($3,'other@example.invalid',now())",[u(1),u(9),u(2)]);
  await db.query("insert into admin_users(user_id) values($1)",[u(9)]);
@@ -49,6 +53,7 @@ async function createSandbox(port=0){
    if(target.pathname==="/sandbox-info"){res.setHeader("Content-Type","application/json");return res.end(JSON.stringify({synthetic_only:true,contractor_email:"contractor@example.invalid",admin_email:"admin@example.invalid",password:"SyntheticTestOnly!"}));}
    if(target.pathname.startsWith("/api/")){
     const relative=target.pathname.slice(1)+".js",file=path.resolve(root,relative);if(!file.startsWith(root+path.sep)||!fs.existsSync(file)){res.statusCode=404;return res.end();}
+    if(options.stripe && ["api/stripe-test-webhook.js","api/contractor/stripe-test-checkout.js"].includes(relative))return await require(file).createHandler(options.stripe)(req,res);
     return await require(file)(req,res);
    }
    if(target.pathname.startsWith("/professionals/")){req.query={slug:target.pathname.split("/").pop(),format:"html"};return await require("../api/public-profile")(req,res);}
