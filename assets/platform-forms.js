@@ -20,31 +20,9 @@
   const stepMiniTitle = document.getElementById("stepMiniTitle");
   const state = { currentStep: 0, lockedService: false };
 
-  const standardServiceQuestions = {
-    "bathroom-remodeling": { title: "What bathroom remodeling work do you need?", options: ["Full bathroom remodel", "Shower or tub", "Vanity / fixtures", "Tile", "Small update", "Not sure yet"] },
-    "home-remodeling": { title: "What home remodeling work do you need?", options: ["Whole-home remodel", "Multiple rooms", "Layout changes", "Interior update", "Repair / replacement", "Not sure yet"] },
-    "remodeling-services": { title: "What remodeling help do you need?", options: ["General remodel", "Planning help", "Multiple trades", "Interior renovation", "Exterior renovation", "Not sure yet"] },
-    "room-additions": { title: "What type of addition are you planning?", options: ["Bedroom addition", "Office addition", "Garage conversion", "Enclosed patio", "Other addition", "Not sure yet"] },
-    "general-contractors": { title: "What contractor help do you need?", options: ["Project planning", "Multiple trades", "Major renovation", "Addition / expansion", "Repair coordination", "Not sure yet"] },
-    "office-cleaning": { title: "What office cleaning help do you need?", options: ["One-time cleaning", "Recurring cleaning", "Deep cleaning", "Move-in / move-out", "Post-construction cleaning", "Not sure yet"] },
-    "commercial-cleaning": { title: "What commercial cleaning help do you need?", options: ["Office / workspace", "Retail / storefront", "Deep cleaning", "Recurring janitorial", "Post-construction cleaning", "Not sure yet"] },
-    "roofing": { title: "What roofing help do you need?", options: ["Roof repair", "Roof replacement", "Leak", "Storm damage", "Inspection", "Not sure yet"] },
-    "plumbing": { title: "What plumbing work do you need help with?", options: ["Leak repair", "Drain or clog", "Faucet / fixture", "Toilet", "Water heater", "Not sure yet"] },
-    "electrical": { title: "What electrical work do you need?", options: ["Panel / breaker", "Outlet / switch", "Lighting", "Fan / fixture", "EV charger", "Not sure yet"] },
-    "hvac": { title: "What HVAC service do you need?", options: ["AC repair", "New installation", "Replacement", "Ductwork", "Maintenance / tune-up", "Not sure yet"] },
-    "drywall": { title: "What drywall work do you need?", options: ["Patch / repair", "New drywall", "Ceiling repair", "Texture matching", "Water damage", "Not sure yet"] },
-    "painting": { title: "What painting work do you need?", options: ["Interior painting", "Exterior painting", "Cabinets", "Touch-ups", "Whole home", "Not sure yet"] },
-    "flooring": { title: "What flooring work do you need?", options: ["Vinyl / laminate", "Tile", "Hardwood", "Floor repair", "Floor replacement", "Not sure yet"] },
-    "yard-cleanup-other-cleanup": { title: "What kind of cleanup do you need?", options: ["Leaves / grass clippings", "Branches / palm fronds", "General yard cleanup", "Other cleanup", "Not sure yet"] },
-    "landscaping": { title: "What landscaping help do you need?", options: ["Yard cleanup", "New planting", "Mulch / rock", "Sod / lawn", "Irrigation", "Not sure yet"] },
-    "pressure-washing": { title: "What pressure washing do you need?", options: ["Driveway", "House exterior", "Patio / pavers", "Fence / deck", "Commercial surface", "Not sure yet"] },
-    "fence-installation": { title: "What fence project do you need?", options: ["New fence", "Fence replacement", "Fence repair", "Gate", "Privacy fence", "Not sure yet"] },
-    "paver-installation": { title: "What paver project do you need?", options: ["Patio", "Driveway", "Walkway", "Pool deck", "Repair / reset", "Not sure yet"] },
-    "gutter-services": { title: "What gutter service do you need?", options: ["Gutter installation", "Gutter replacement", "Gutter repair", "Cleaning", "Drainage issue", "Not sure yet"] },
-    "junk-removal": { title: "What junk removal help do you need?", options: ["Furniture removal", "Appliance removal", "Garage cleanout", "Yard debris", "Construction debris", "Not sure yet"] },
-    "pest-control": { title: "What pest control help do you need?", options: ["Ants / roaches", "Rodents", "Termites", "Mosquitoes", "General treatment", "Not sure yet"] },
-    "pool-services": { title: "What pool service do you need?", options: ["Pool cleaning", "Pool maintenance", "Equipment repair", "Green pool", "Inspection", "Not sure yet"] }
-  };
+  const catalog = window.GetEstimateFastLaunch;
+  const standardServiceQuestions = Object.fromEntries((catalog ? catalog.categories : []).map(item => [item.slug, {title:item.question, options:item.options}]));
+  const minimumOtherDescription = catalog ? catalog.MIN_OTHER_DESCRIPTION : 60;
 
   ensureLeadEndpointDefaults();
   prepareDynamicService();
@@ -64,7 +42,7 @@
     if (!requested) return;
 
     const selected = serviceStep.options.find((option) => slugify(option) === requested);
-    if (!selected) return;
+    if (!selected) { window.location.replace("services.html"); return; }
 
     const serviceField = document.getElementById("field-0");
     if (serviceField) serviceField.value = selected;
@@ -86,20 +64,20 @@
     flow.steps[1].field = "Project Type";
     flow.steps[1].options = custom.options;
 
-    if (serviceSlug === "yard-cleanup-other-cleanup" && steps[2] && flow.steps[2]) {
-      flow.steps[2].title = "Describe what you need cleaned up";
-      flow.steps[2].required = true;
-      const descStep = steps[2];
-      const title = descStep.querySelector("h2");
-      const label = descStep.querySelector(".field-label");
-      const input = descStep.querySelector("textarea");
-      const help = descStep.querySelector(".step-help");
-      if (title) title.textContent = "Describe what you need cleaned up";
-      if (label) label.textContent = "What needs cleaning, and approximately how much is there?";
-      if (input) input.placeholder = "Example: A backyard with fallen leaves, palm fronds, and a few bags of garden waste. Need cleanup and possibly removal.";
-      if (help) help.textContent = "Tell us what needs cleaning. Please do not include hazardous waste, demolition debris or household trash removal.";
+    if (steps[2] && flow.steps[2]) {
+      const isOther = serviceSlug === "other-services";
+      const isCleanup = serviceSlug === "yard-cleanup-other-cleanup";
+      if (isOther || isCleanup) {
+        const descStep = steps[2], heading2 = descStep.querySelector("h2"), label2 = descStep.querySelector(".field-label"), help2 = descStep.querySelector(".step-help"), textarea = descStep.querySelector("textarea");
+        const title2 = isOther ? "Describe the service you need" : "Describe what you need cleaned up";
+        flow.steps[2].title = title2;
+        flow.steps[2].required = true;
+        if (heading2) heading2.textContent = title2;
+        if (label2) label2.textContent = isOther ? "What work needs to be done? (at least 60 characters)" : "What needs cleaning, and approximately how much is there?";
+        if (help2) help2.textContent = isOther ? "Describe the type of work, approximate scope and any useful details. Other Services requests are reviewed before being made available to professionals." : "Tell us what needs cleaning. Hazardous materials, household trash hauling and demolition debris removal are outside the initial scope.";
+        if (textarea) { textarea.placeholder = isOther ? "Example: I need someone to help with a small household project not listed in the categories. The work involves..." : "Example: A backyard with leaves and palm fronds; the area needs cleaning."; textarea.minLength = isOther ? minimumOtherDescription : 8; }
+      }
     }
-
     const step = steps[1];
     const heading = step.querySelector("h2");
     const hidden = step.querySelector('input[type="hidden"]');
@@ -257,7 +235,7 @@
     if (config.type === "multi" && !step.querySelectorAll('input[type="checkbox"]:checked').length) return showError(error, "Please select at least one option to continue.");
     if (config.type === "textarea") {
       const textarea = step.querySelector("textarea");
-      if (config.required && (!textarea || textarea.value.trim().length < 8)) return showError(error, "Please add a short project note before continuing.");
+      if (config.required && (!textarea || textarea.value.trim().length < (flow.type === "standard" && slugify(flow.serviceLabel) === "other-services" ? minimumOtherDescription : 8))) return showError(error, flow.type === "standard" && slugify(flow.serviceLabel) === "other-services" ? `Please describe your request in at least ${minimumOtherDescription} characters.` : "Please add a short project note before continuing.");
     }
     if (config.type === "location") {
       const city = getValue("city");
@@ -346,7 +324,7 @@
     input.addEventListener("input", () => { const query = normalizeText(input.value); if (!query) { render(items.slice(0, 5)); return; } render(items.filter((item) => item.normalized.includes(query)).slice(0, 6)); });
     input.addEventListener("keydown", (event) => { if (event.key !== "Enter") return; const firstLink = results.querySelector("a.service-starter-item"); if (!firstLink) return; event.preventDefault(); window.location.href = firstLink.getAttribute("href"); });
     function render(itemsToRender) {
-      if (!itemsToRender.length) { results.innerHTML = '<div class="service-starter-empty">No close match yet. Try yard cleanup, painting, flooring, or handyman.</div>'; results.classList.add("is-visible"); return; }
+      if (!itemsToRender.length) { results.innerHTML = '<div class="service-starter-empty">No close match yet. Try yard cleanup, painting, flooring, or other services.</div>'; results.classList.add("is-visible"); return; }
       results.innerHTML = itemsToRender.map((item) => `<a class="service-starter-item" href="${item.href}" data-service-option data-track="service_selected" data-cta="service-search-result" data-service="${item.key}" data-action="starter-result-click"><strong>${escapeHtml(item.label)}</strong><span>${escapeHtml(item.cta)} · ${escapeHtml(item.summary || "")}</span></a>`).join("");
       results.classList.add("is-visible");
     }

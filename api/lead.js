@@ -1,3 +1,4 @@
+const LAUNCH_CATALOG = require("../assets/launch-categories");
 const THANK_YOU_URL = "https://www.getestimatefast.com/thank-you.html";
 const DEFAULT_FROM_EMAIL = "GetEstimateFast <onboarding@resend.dev>";
 const MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024;
@@ -209,6 +210,15 @@ function validateLead(fields) {
     if (!firstValue(fields[field])) {
       return `Please complete the ${field.toLowerCase()} field and try again.`;
     }
+  }
+
+  const category = LAUNCH_CATALOG.findByName(firstValue(fields["Service Type"]));
+  if (!category) return "This service is not currently available. Please choose a service from the current catalog.";
+  if (category.slug === "other-services" && firstValue(fields["Project Description"]).length < LAUNCH_CATALOG.MIN_OTHER_DESCRIPTION) {
+    return "Please describe your Other Services request using at least 60 characters.";
+  }
+  if (category.slug === "other-services" && firstValue(fields["Project Description"]).length > 3000) {
+    return "Please shorten the description to 3000 characters.";
   }
 
   const phoneDigits = firstValue(fields["Phone Number"]).replace(/\D/g, "");
