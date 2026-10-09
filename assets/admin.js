@@ -63,8 +63,32 @@ function renderLead(lead) {
           const d=await api("matching-candidates?id="+encodeURIComponent(lead.id));
           output.replaceChildren();
           output.append(node("strong","",d.candidates.length+" matching professionals"));
+          if(lead.status==="published")output.append(node("p","review-muted","Rounds used: "+d.round_count+" / 5 · each round may select up to five new professionals."));
+          const selections=[];
+          const save=node("button","approve","Record selected professionals");
+          save.type="button"; save.disabled=true;
+          const update=()=>{save.disabled=selections.filter(i=>i.input.checked).length<1||d.remaining_rounds===0;};
           for(const p of d.candidates){
-            output.append(node("p","review-muted",p.display_name+" · "+p.city+" · "+p.base_zip+" · "+p.distance_miles+" mi (radius "+p.service_radius_miles+" mi)"));
+            const item=checkboxReview(p.display_name+" · "+p.city+" · "+p.base_zip+" · "+p.distance_miles+" mi (radius "+p.service_radius_miles+" mi)"+(p.already_selected?" · Previously selected":""));
+            item.input.disabled=p.already_selected||lead.status!=="published"||d.remaining_rounds===0;
+            item.input.addEventListener("change",()=>{
+              if(selections.filter(i=>i.input.checked).length>5){item.input.checked=false;status("Select no more than five professionals per round.");}
+              update();
+            });
+            selections.push({...item,id:p.user_id});output.append(item.wrapper);
+          }
+          if(lead.status==="published"){
+            save.addEventListener("click",async()=>{
+              const selected=selections.filter(i=>i.input.checked).map(i=>i.id);
+              if(!selected.length||selected.length>5)return;
+              save.disabled=true;
+              try{
+                const recorded=await api("record-matching-round","POST",{leadId:lead.id,contractorIds:selected});
+                status("Round "+recorded.result.round_number+" saved ("+recorded.result.selected_count+" professionals). No notifications sent.");
+                show.click();
+              }catch(err){status(err.message);update();}
+            });
+            output.append(save,node("p","review-muted","This only records a selection. It does not send SMS, email or customer contacts."));
           }
           if(d.unresolved_zip)output.append(node("p","review-muted","ZIP not recognized: review location manually."));
         }catch(error){output.textContent=error.message;}finally{show.disabled=false;}
