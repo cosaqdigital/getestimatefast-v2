@@ -13,34 +13,129 @@ async function api(path, method = "GET", body) {
     throw new Error(data.error || "Request failed"); }
   return data;
 }
+function node(tag, className, text) {
+  const n = document.createElement(tag);
+  if (className) n.className = className;
+  if (text !== undefined) n.textContent = String(text);
+  return n;
+}
+function reviewField(label, value) {
+  const wrapper = node("div", "review-details");
+  wrapper.append(node("strong", "", label + ": "), document.createTextNode(String(value == null ? "" : value)));
+  return wrapper;
+}
+function checkboxReview(label) {
+  const wrapper = node("label");
+  const input = document.createElement("input");
+  input.type = "checkbox";
+  wrapper.append(input, document.createTextNode(label));
+  return { wrapper, input };
+}
+function renderLead(lead) {
+  const card = node("article", "review-card");
+  const top = node("div", "review-top");
+  const head = node("div");
+  head.append(node("h2", "", lead.service_type + " · " + lead.city + ", " + lead.zip_code),
+    node("div", "review-muted", "Received: " + new Date(lead.created_at).toLocaleString()));
+  top.append(head, node("span", "review-status", lead.status));
+  card.append(top);
+
+  const details = lead.details || {};
+  const description = details["Project Description"] || details["Description"] || "No project description supplied.";
+  const desc = node("p", "review-description", description);
+  card.append(desc);
+  const original = details._platform_review?.original_service || details["Service Type"] || lead.service_type;
+  if (original !== lead.service_type) card.append(reviewField("Original category", original));
+  for (const key of ["Project Type", "Project Intent", "Timeline", "Cleaning Type", "Cleaning Frequency", "Job Size"]) {
+    if (details[key]) card.append(reviewField(key, details[key]));
+  }
+  card.append(node("p", "review-contact", lead.full_name + " · " + lead.phone + " · " + lead.email));
+  if (lead.status !== "new") {
+    card.append(node("div", "review-muted", "Already reviewed. Status: " + lead.status + (lead.admin_note ? " · Note: " + lead.admin_note : "")));
+    return card;
+  }
+
+  const categoryLabel = node("label", "", "Service category (adjust if needed)");
+  const category = document.createElement("select");
+  category.setAttribute("aria-label", "Service category");
+  const names = window.GetEstimateFastLaunch?.names || [];
+  const all = names.includes(lead.service_type) ? names : [lead.service_type, ...names];
+  for (const name of all) {
+    const op = document.createElement("option");
+    op.value = name;
+    op.textContent = name === lead.service_type && !names.includes(name) ? name + " (original request)" : name;
+    category.appendChild(op);
+  }
+  category.value = lead.service_type;
+  const categoryWrap = node("div", "edit-row");
+  categoryWrap.append(categoryLabel, category);
+  card.append(categoryWrap);
+
+  const checks = node("div", "review-checks");
+  const contact = checkboxReview("Contact details reviewed");
+  const scope = checkboxReview("Service description and category reviewed");
+  checks.append(contact.wrapper, scope.wrapper);
+  card.append(checks);
+
+  const noteLabel = node("label", "", "Internal note (optional)");
+  const note = document.createElement("textarea");
+  note.rows = 2;
+  note.maxLength = 1000;
+  note.placeholder = "Only add a note when clarification is needed.";
+  card.append(noteLabel, note);
+
+  const footer = node("div", "review-footer");
+  const approve = node("button", "approve", "Approve request");
+  approve.type = "button";
+  approve.disabled = true;
+  const reject = node("button", "secondary", "Reject request");
+  reject.type = "button";
+  const hint = node("span", "review-muted", "Approval does not publish or send the contact.");
+  const sync = () => { approve.disabled = !(contact.input.checked && scope.input.checked && category.value.trim()); };
+  contact.input.addEventListener("change", sync);
+  scope.input.addEventListener("change", sync);
+  category.addEventListener("change", sync);
+  approve.addEventListener("click", async () => {
+    approve.disabled = true;
+    reject.disabled = true;
+    try {
+      await api("approve-lead", "POST", {
+        id: lead.id, category: category.value,
+        contactReviewed: contact.input.checked,
+        serviceReviewed: scope.input.checked,
+        note: note.value
+      });
+      status("Request approved and marked qualified; it has not been published.");
+      await load();
+    } catch (error) {
+      status(error.message);
+      reject.disabled = false;
+      sync();
+    }
+  });
+  reject.addEventListener("click", async () => {
+    if (!window.confirm("Reject this request? It will remain in the admin history.")) return;
+    approve.disabled = true; reject.disabled = true;
+    try {
+      await api("status", "POST", {id:lead.id,status:"rejected",note:note.value});
+      status("Request rejected and retained in the admin record.");
+      await load();
+    } catch (error) { status(error.message); reject.disabled = false; sync(); }
+  });
+  footer.append(approve, reject, hint);
+  card.append(footer);
+  return card;
+}
 async function load() {
   const params = new URLSearchParams({page:String(page)});
-  if ($("filter").value) params.set("status",$("filter").value);
+  if ($("filter").value) params.set("status", $("filter").value);
   const data = await api("leads?" + params);
-  const body = $("rows"); body.replaceChildren(); leadCount = data.leads.length;
-  for (const lead of data.leads) {
-    const tr = document.createElement("tr");
-    const cell = text => { const td = document.createElement("td"); td.textContent = text; tr.appendChild(td); return td; };
-    cell(new Date(lead.created_at).toLocaleString());
-    cell(lead.service_type + " · " + lead.city + ", " + lead.zip_code + (lead.details?.["Project Description"] ? "\n" + lead.details["Project Description"] : ""));
-    cell(lead.full_name + "\n" + lead.email + "\n" + lead.phone);
-    cell(lead.status);
-    const action = document.createElement("td");
-    const select = document.createElement("select");
-    for (const s of ["new","qualified","published","closed","rejected"]) {
-      const opt=document.createElement("option"); opt.value=s; opt.textContent=s; opt.selected=s===lead.status;select.appendChild(opt);
-    }
-    const note=document.createElement("textarea");note.rows=2; note.maxLength=1000; note.placeholder="Internal note (optional)";
-    const save=document.createElement("button");save.textContent="Save";
-    save.addEventListener("click",async()=>{
-      save.disabled=true;
-      try{await api("status","POST",{id:lead.id,status:select.value,note:note.value});status("Updated.");await load();}
-      catch(e){status(e.message);}finally{save.disabled=false;}
-    });
-    action.append(select,note,save);tr.appendChild(action);body.appendChild(tr);
-  }
-  $("previous").disabled=page===0;$("next").disabled=leadCount<25;
-  if(!leadCount) status("No requests on this page.");
+  const body = $("rows"); body.replaceChildren();
+  leadCount = data.leads.length;
+  for (const lead of data.leads) body.appendChild(renderLead(lead));
+  $("previous").disabled = page === 0;
+  $("next").disabled = leadCount < 25;
+  if (!leadCount) body.append(node("p", "review-muted", "No requests in this filter."));
 }
 $("loginForm").addEventListener("submit",async event=>{
   event.preventDefault(); status("Signing in...");
