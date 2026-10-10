@@ -1,7 +1,7 @@
 "use strict";
 const {json,method,readJson,queryDb,fail,config}=require("./admin/_auth");
 const {marketplaceReady,uuid}=require("./_lib/marketplace-access");
-const {parseReview,identityHash,text}=require("./_lib/public-profile-policy");
+const {identityHash,text}=require("./_lib/public-profile-policy");
 const {profileHtml}=require("./_lib/public-profile-html");
 const crypto=require("node:crypto"),net=require("node:net");
 const rpc=(name,payload)=>queryDb("rpc/"+name,{method:"POST",body:JSON.stringify(payload)});
@@ -20,6 +20,7 @@ module.exports=async function handler(req,res){
    return res.end(profileHtml(data,origin(),url));
   }
   const action=String(req.query?.action||"review");
+  if(action==="review")return json(res,401,{error:"Continue with Google on the review invitation page to submit your review."});
   const secret=process.env.GETESTIMATEFAST_REVIEW_IDENTITY_SECRET;
   if(typeof secret!=="string"||secret.length<32)throw Error("Review identity secret not configured");
   const ip=process.env.VERCEL==="1"?String(req.headers["x-vercel-forwarded-for"]||"").split(",")[0].trim():req.socket?.remoteAddress;
@@ -27,10 +28,6 @@ module.exports=async function handler(req,res){
   const hash=crypto.createHmac("sha256",secret).update(action+":"+ip).digest("hex");
   if(!await rpc("gef_public_request_allowed",{p_hash:hash,p_limit:action==="report"?5:10}))return json(res,429,{error:"Too many submissions. Please try again later."});
   const body=await readJson(req,6000);
-  if(action==="review"){
-   let review;try{review=parseReview(body,process.env.GETESTIMATEFAST_REVIEW_IDENTITY_SECRET);}catch(e){return json(res,400,{error:e.message});}
-   return json(res,201,await rpc("gef_submit_review",{p_review:review}));
-  }
   if(action==="report"){
    let id,reason,hash;try{id=uuid(body.review_id);reason=text(body.reason,10,1000);hash=identityHash(body.email,process.env.GETESTIMATEFAST_REVIEW_IDENTITY_SECRET);if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email))throw Error("Invalid email");}catch(e){return json(res,400,{error:e.message});}
    return json(res,200,await rpc("gef_report_review",{p_review:id,p_hash:hash,p_reason:reason}));

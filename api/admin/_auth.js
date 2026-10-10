@@ -62,15 +62,17 @@ async function queryDb(path, options = {}) {
   if (!response.ok) {
     const error = new Error("Database returned " + response.status);
     // Only classify known review conflicts. Never forward SQL messages or details.
-    if (path === "rpc/gef_submit_review") {
+    if (["rpc/gef_submit_review", "rpc/gef_submit_authenticated_review"].includes(path)) {
       let data; try { data = await response.json(); } catch { /* Keep generic failure. */ }
       if (data?.code === "P0001" && data.message === "Review invitation expired or already used") {
         error.reviewConflict = "This invitation is unavailable or has already been used. Ask the professional for a new invitation.";
       } else if (data?.code === "23505" && [
         "duplicate key value violates unique constraint \"contractor_reviews_contractor_id_identity_hash_key\"",
-        "duplicate key value violates unique constraint \"contractor_reviews_invitation_id_key\""
+        "duplicate key value violates unique constraint \"contractor_reviews_invitation_id_key\"",
+        "duplicate key value violates unique constraint \"review_identity_user_unique\"",
+        "duplicate key value violates unique constraint \"review_identity_google_unique\""
       ].includes(data.message)) {
-        error.reviewConflict = "A review has already been submitted for this professional with this email or invitation.";
+        error.reviewConflict = path === "rpc/gef_submit_authenticated_review" ? "You have already submitted a review for this professional." : "A review has already been submitted for this professional with this email or invitation.";
       }
     }
     throw error;
