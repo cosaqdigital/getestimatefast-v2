@@ -1,5 +1,7 @@
 # Backend isolado e Preview — continuação da PR #50
 
+Atualização posterior à #51: o projeto `getestimatefast-development` / `cpjsbijgijeyrwjpuciv` foi criado pelo usuário e reconhecido pelo conector. A auditoria e a ordem completa proposta estão em [verificação e plano antes da instalação](development-project-verification-and-migration-plan.md). A seção abaixo registra o bloqueio histórico da etapa anterior; nenhuma migração remota foi aplicada na atualização.
+
 ## Situação e bloqueios
 
 Em 9 de outubro de 2026, a conexão Supabase lista somente `getestimatefast-prod`, `orcamentos-brasil` e `pelos-e-patas-brasil`. Nenhum é seguro para esta etapa. Não foram criados projetos nem branches Supabase. A criação exige seleção da organização e confirmação do custo; essas dependências ficam registradas para uma etapa de provisionamento autorizada, conforme solicitado. Não usar uma branch de produção nem copiar tabelas, usuários, credenciais ou dados reais.
