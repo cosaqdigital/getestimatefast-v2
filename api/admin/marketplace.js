@@ -17,7 +17,10 @@ module.exports=async function handler(req,res){
   let args;
   try{
    const reason=text(body.reason,5,500),key=operationKey(body.operation_key);
-   if(action==="moderate-review")args={name:"gef_moderate_review",payload:{p_actor:admin.id,p_review:uuid(body.review_id),p_status:body.status,p_reason:reason,p_key:key}};
+   if(action==="moderate-review"){
+    if(!["approved","rejected","hidden"].includes(body.status))throw Error("Choose approve, reject or hide for this review");
+    args={name:"gef_moderate_review",payload:{p_actor:admin.id,p_review:uuid(body.review_id),p_status:body.status,p_reason:reason,p_key:key}};
+   }
    else if(action==="resolve-report")args={name:"gef_resolve_review_report",payload:{p_actor:admin.id,p_report:uuid(body.report_id),p_status:body.status,p_reason:reason,p_key:key}};
    else{
     const p=body.payload;let payload;
