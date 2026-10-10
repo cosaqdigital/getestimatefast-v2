@@ -25,6 +25,7 @@ async function createSandbox(port=0,options={}){
   const target=new URL(String(input));
   if(target.origin!==origin||!/^\/(rest|auth|storage)\/v1\//.test(target.pathname))return nativeFetch(input,options);
   if(target.pathname==="/auth/v1/user"){const token=(options.headers?.Authorization||"").replace(/^Bearer /,"");return users[token]?response(users[token]):response({error:"Invalid synthetic session"},401);}
+  if(target.pathname.startsWith("/auth/v1/admin/users/")){const user=Object.values(users).find(u=>u.id===target.pathname.split("/").pop());return user?response(user):response({error:"Unknown synthetic owner"},404);}
   if(target.pathname==="/auth/v1/token"){
    const body=JSON.parse(options.body||"{}");const token=body.email==="admin@example.invalid"?"synthetic-admin":body.email==="contractor@example.invalid"?"synthetic-contractor":body.email==="other@example.invalid"?"synthetic-other":null;
    return token&&body.password==="SyntheticTestOnly!"?response({access_token:token,user:users[token],expires_in:3600}):response({error:"Invalid synthetic credentials"},401);
