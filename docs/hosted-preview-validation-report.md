@@ -5,6 +5,12 @@ Branch de correções: `feat/hosted-preview-validation-20261010`.
 
 **Endereço exato do Preview validado: nenhum. A validação hospedada permanece bloqueada por acesso/identidade do projeto Vercel.** Os testes locais e a auditoria SQL remota não substituem esse teste.
 
+PR de correções: [draft #53](https://github.com/cosaqdigital/getestimatefast-v2/pull/53), baseada na #52.
+
+Após publicar a branch, a integração Git informou este endereço real: [Preview publicado](https://getestimatefast-v2-git-feat-hosted-pre-674b48-get-estimate-fast.vercel.app). O status GitHub `Vercel` ficou SUCCESS para o commit de código `fa89947811aeb0dd2d3396f5f38c0d7a524101dc`, deployment `2Be76uepQpWxwg3mUXLSV7JRaRBi`. O comentário do bot aponta os IDs de projeto/time fornecidos. Isso confirma a publicação pela integração Git, mas não valida a configuração do backend.
+
+A tentativa de acessar `/api/preview-readiness` recebeu HTTP 302 para autenticação Vercel. A consulta do deployment pelo conector retornou 404 e o fetch autenticado pelo conector retornou 403: acesso ao projeto/time não autorizado. O preflight da aplicação não foi alcançado. A proteção não foi desativada; nenhum link de bypass ou token foi publicado. Esta URL é um alias de branch e poderá apontar a novos commits; registrar o SHA correspondente antes da validação.
+
 ## Identidade e acesso Vercel
 
 Identificadores fornecidos: projeto `getestimatefast-v2`, `prj_kA6x5rt1MChiNSQpa6pShHoUSuOF`, time `team_vRw9eJBijmUFe1SbbOFY5xZs`.
