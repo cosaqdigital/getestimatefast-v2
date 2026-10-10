@@ -1,0 +1,74 @@
+[
+  {
+    "preflight_http": 200,
+    "ready": true,
+    "checkout": false,
+    "preview": "https://getestimatefast-v2-mji1m6rds-get-estimate-fast.vercel.app"
+  },
+  {
+    "three_synthetic_accounts_authenticated": true,
+    "professional_moderation_denied": 403,
+    "direct_reviews_rls_http": 403
+  },
+  {
+    "invitation_created_in_browser": true,
+    "manual_sharing_only": true,
+    "token_withheld": true
+  },
+  {
+    "self_review_prevention": "FAILED",
+    "self_review_http": 201,
+    "accepted_status": "pending",
+    "invitation_removed_from_visible_url": true
+  },
+  {
+    "self_review_rejected_in_admin_browser": true,
+    "pending_not_public": true,
+    "rejected_not_public": true
+  },
+  {
+    "concurrent_same_invitation_http": [
+      201,
+      503
+    ],
+    "duplicate_identity_http": 503,
+    "duplicate_error_message": "Service temporarily unavailable",
+    "payload_source_status_owner_tampering_ignored": true,
+    "pending_not_public": true
+  },
+  {
+    "width": 1440,
+    "profile_overflow": false,
+    "only_approved_rating_visible": true,
+    "external_label": true,
+    "report_dialog_has_accessible_name": false,
+    "report_button_focus_restored": true
+  },
+  {
+    "width": 390,
+    "profile_overflow": false,
+    "only_approved_rating_visible": true,
+    "external_label": true,
+    "report_dialog_has_accessible_name": false,
+    "report_button_focus_restored": true
+  },
+  {
+    "width": 1440,
+    "admin_overflow": false,
+    "moderation_reject_approve_hide_browser_and_api": true
+  },
+  {
+    "width": 390,
+    "admin_overflow": false,
+    "moderation_reject_approve_hide_browser_and_api": true
+  },
+  {
+    "moderation_replay_no_change": true,
+    "conflicting_replay_http": 503,
+    "report_resolved_in_browser": true,
+    "final_approved_reviews": 0,
+    "financial_operations": 0,
+    "external_deliveries": 0,
+    "complete": true
+  }
+]

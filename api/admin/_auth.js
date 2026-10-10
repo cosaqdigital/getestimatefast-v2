@@ -59,7 +59,22 @@ async function queryDb(path, options = {}) {
     headers: headers(secret, { "Content-Type": "application/json", ...options.headers }),
     signal: AbortSignal.timeout(10000)
   });
-  if (!response.ok) throw new Error("Database returned " + response.status);
+  if (!response.ok) {
+    const error = new Error("Database returned " + response.status);
+    // Only classify known review conflicts. Never forward SQL messages or details.
+    if (path === "rpc/gef_submit_review") {
+      let data; try { data = await response.json(); } catch { /* Keep generic failure. */ }
+      if (data?.code === "P0001" && data.message === "Review invitation expired or already used") {
+        error.reviewConflict = "This invitation is unavailable or has already been used. Ask the professional for a new invitation.";
+      } else if (data?.code === "23505" && [
+        "duplicate key value violates unique constraint \"contractor_reviews_contractor_id_identity_hash_key\"",
+        "duplicate key value violates unique constraint \"contractor_reviews_invitation_id_key\""
+      ].includes(data.message)) {
+        error.reviewConflict = "A review has already been submitted for this professional with this email or invitation.";
+      }
+    }
+    throw error;
+  }
   if (response.status === 204) return null;
   return response.json();
 }

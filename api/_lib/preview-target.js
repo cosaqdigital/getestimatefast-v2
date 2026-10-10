@@ -6,7 +6,8 @@ const PREVIEW_BRANCHES = Object.freeze([
   "feat/development-db-preflight-20261009",
   VALIDATION_BRANCH,
   "feat/preview-auth-validation-20261010",
-  "feat/preview-phase2-validation-20261010"
+  "feat/preview-phase2-validation-20261010",
+  "feat/preview-reviews-validation-20261010"
 ]);
 function protectedPreview(env = process.env) {
   return env.VERCEL_ENV === "preview" && PREVIEW_BRANCHES.includes(env.VERCEL_GIT_COMMIT_REF);

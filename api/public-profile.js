@@ -36,5 +36,5 @@ module.exports=async function handler(req,res){
    return json(res,200,await rpc("gef_report_review",{p_review:id,p_hash:hash,p_reason:reason}));
   }
   return json(res,400,{error:"Unknown action"});
- }catch(e){fail(res,e);}
+ }catch(e){if(e.reviewConflict)return json(res,409,{error:e.reviewConflict});fail(res,e);}
 };

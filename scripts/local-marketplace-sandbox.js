@@ -37,7 +37,7 @@ async function createSandbox(port=0,options={}){
     const args=entries.map(([k],i)=>`${k}=>$${i+1}`).join(","),values=entries.map(([,v])=>v);
     if(name==="list_contractor_opportunities")return response((await asService(`select * from public.${name}(${args})`,values)).rows);
     return response((await asService(`select public.${name}(${args}) result`,values)).rows[0].result);
-   }catch(e){return response({error:"Synthetic database rejected operation",code:e.code},409);}
+   }catch(e){return response({error:"Synthetic database rejected operation",code:e.code,message:e.message},409);}
   }
   if(target.pathname.startsWith("/rest/v1/")){
    const table=target.pathname.split("/").pop(),select=target.searchParams.get("select")||"*";
