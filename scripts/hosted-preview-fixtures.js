@@ -13,13 +13,14 @@ function plan() {
     accounts: [
       { label: "synthetic-admin", email: "gef-preview-admin@example.invalid", role: "admin" },
       { label: "synthetic-contractor", email: "gef-preview-contractor@example.invalid", role: "contractor", category: "Painting" },
-      { label: "synthetic-other", email: "gef-preview-other@example.invalid", role: "contractor", category: "Plumbing" }
+      { label: "synthetic-other", email: "gef-preview-other@example.invalid", role: "contractor", category: "House Cleaning" }
     ],
     identity_mapping: "Use IDs returned by Auth; record fixture IDs privately, enroll only synthetic-admin in admin_users via an authorized development-only SQL step",
     contractor_defaults: { display_name: "SYNTHETIC Preview Business", city: "Riverview", state_code: "FL", base_zip: "33569", service_radius_miles: 25, contact_phone: "8135550100", sms_opt_in: false, privacyConsent: true, termsConsent: true },
+    active_profile_requirements: "Before inserting an active synthetic profile, map administrative email confirmation to email_verified_at and fixture consent to privacy_accepted_at/terms_accepted_at with explicit synthetic consent versions. Never weaken contractor_active_requires_complete_profile.",
     opportunities: [
       { service_type: "Painting", full_name: "SYNTHETIC Preview Customer", email: "gef-preview-customer@example.invalid", phone: "8135550199", city: "Riverview", zip_code: "33569", status: "new", public_summary: "SYNTHETIC PREVIEW REQUEST: sample interior painting. No real customer or service." },
-      { service_type: "Plumbing", full_name: "SYNTHETIC Other Customer", email: "gef-preview-other-customer@example.invalid", phone: "8135550198", city: "Riverview", zip_code: "33569", status: "new", public_summary: "SYNTHETIC PREVIEW REQUEST: sample plumbing inspection. No real customer or service." }
+      { service_type: "House Cleaning", full_name: "SYNTHETIC Other Customer", email: "gef-preview-other-customer@example.invalid", phone: "8135550198", city: "Riverview", zip_code: "33569", status: "new", public_summary: "SYNTHETIC PREVIEW REQUEST: sample house cleaning. No real customer or service." }
     ],
     publication_flow: "Insert fictitious new leads, then admin_approve_lead and admin_publish_opportunity with the returned admin/lead IDs",
     pricing: { currency: "USD", base_cents: 1234, floor_cents: 100, max_buyers: 2, lifetime_hours: 24, synthetic_only: true },
