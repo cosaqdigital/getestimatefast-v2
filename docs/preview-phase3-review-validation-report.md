@@ -2,6 +2,8 @@
 
 Data: 10/10/2026. Base: PR draft #55. Resultado: **validação parcial; autoavaliação reprovada**.
 
+Correções e evidências entregues na [PR draft #56](https://github.com/cosaqdigital/getestimatefast-v2/pull/56), sem merge.
+
 ## Ambiente e evidências
 
 - Supabase exclusivo: `cpjsbijgijeyrwjpuciv`.
@@ -69,6 +71,8 @@ Nenhum SQL, schema, grant ou variável remota foi alterado. As lacunas foram reg
 ![Diálogo corrigido, Chromium local](evidence/phase3/local-corrected-report-dialog-mobile.png)
 
 **As correções desta PR ainda não foram validadas em um novo Preview configurado.** O Preview hospedado citado acima é da #55. Nenhum novo backend/secret de avaliações foi criado para a nova branch; isso evita afirmar deduplicação entre segredos diferentes no mesmo banco.
+
+O Preview automático da #56, https://getestimatefast-v2-axwnnaoqv-get-estimate-fast.vercel.app, está READY (`dpl_6kxYfoQY4n2Dswm6RwhALv4XAutg`, SHA `8f313001655d8b5b54130eeebfbb1a45ecd4bde5`). A consulta autenticada confirmou preflight HTTP 503 / `ready=false` e dashboard HTTP 503 antes da autenticação da aplicação: a nova branch está bloqueada até configuração exclusiva. Sem autenticação Vercel, HTTP 302, confirmando proteção ativa. Nenhuma variável remota foi criada ou modificada.
 
 ## Estado final do Development
 
