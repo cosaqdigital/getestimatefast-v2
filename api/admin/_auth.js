@@ -1,12 +1,16 @@
 const PROJECT_URL = "https://wedsjubkttygxtpkopfj.supabase.co";
+const { protectedPreview, DEVELOPMENT_REF } = require("../_lib/preview-target");
 function config(env = process.env) {
   const url = String(env.GETESTIMATEFAST_SUPABASE_URL || "").replace(/\/$/, "");
   const secret = env.GETESTIMATEFAST_SUPABASE_SECRET_KEY;
   const publishable = env.GETESTIMATEFAST_SUPABASE_PUBLISHABLE_KEY;
   const isolated = env.GETESTIMATEFAST_ISOLATED_BACKEND === "true";
   // The new integration branch must never inherit a production backend in Preview.
-  if (env.VERCEL_ENV === "preview" && env.VERCEL_GIT_COMMIT_REF === "feat/isolated-preview-stripe-test-20261009" && !isolated) {
+  if (protectedPreview(env) && !isolated) {
     throw new Error("This Preview branch requires its isolated development backend");
+  }
+  if (protectedPreview(env) && env.GETESTIMATEFAST_DEVELOPMENT_PROJECT_REF !== DEVELOPMENT_REF) {
+    throw new Error("This Preview branch requires the approved development project");
   }
   if (isolated) {
     const target = new URL(url);

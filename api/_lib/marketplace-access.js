@@ -1,8 +1,13 @@
 "use strict";
 const {config,json}=require("../admin/_auth");
+const {protectedPreview}=require("./preview-target");
+const {inspect}=require("../../scripts/preview-readiness");
 function marketplaceReady(req,res){
  if(process.env.GETESTIMATEFAST_MARKETPLACE_PREVIEW!=="true"||process.env.GETESTIMATEFAST_ISOLATED_BACKEND!=="true"||process.env.VERCEL_ENV==="production"){
   json(res,503,{error:"This feature is available in the isolated development preview only."});return false;
+ }
+ if(protectedPreview()&&!inspect().ready){
+  json(res,503,{error:"Preview configuration preflight has not passed."});return false;
  }
  config();return true;
 }

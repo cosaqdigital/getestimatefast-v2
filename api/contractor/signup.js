@@ -1,6 +1,8 @@
 const {config,json,method,readJson,fail}=require("./_shared");
+const {protectedPreview}=require("../_lib/preview-target");
 module.exports=async function handler(req,res){
  if(!method(req,res,["POST"]))return;
+ if(protectedPreview()||process.env.GETESTIMATEFAST_ISOLATED_BACKEND==="true")return json(res,503,{error:"Registration and confirmation email delivery are disabled in this test environment."});
  if(process.env.CONTRACTOR_SIGNUP_ENABLED!=="true")return json(res,503,{error:"Registration is not open yet."});
  try{
   const data=await readJson(req,3000);

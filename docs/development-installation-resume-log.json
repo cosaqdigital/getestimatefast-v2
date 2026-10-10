@@ -1,0 +1,953 @@
+{
+  "project_ref": "cpjsbijgijeyrwjpuciv",
+  "approved_commit": "8b0a33726e05cab503b636af23a54cfdb47a0da4",
+  "rate_limit": {
+    "beforeScript": 19,
+    "error": "RATE_LIMITED 429 during read-only precheck",
+    "retryAfterSeconds": 60
+  },
+  "migrations": [
+    {
+      "order": 4,
+      "name": "getestimatefast_admin_status_rpc.sql",
+      "sha256": "be2928340b13a1b2f16cf5168fa4ebdb412f9d12c95fa589f62a0e801f483418",
+      "previous_version": "20261010023959",
+      "prechecked_database_utc": "20261010025323",
+      "prechecked_clock_utc": "20261010025318",
+      "version": "20261010025324"
+    },
+    {
+      "order": 5,
+      "name": "admin_approve_lead.sql",
+      "sha256": "9573765259697a8ccedbcb640541b071ee1a35481f34f444ecaf96636619fa48",
+      "previous_version": "20261010025324",
+      "prechecked_database_utc": "20261010025330",
+      "prechecked_clock_utc": "20261010025325",
+      "version": "20261010025331"
+    },
+    {
+      "order": 6,
+      "name": "getestimatefast_contractors_foundation.sql",
+      "sha256": "f4bd149d107b8a6641c8e25fa65e5c670caee05811f58a1e8b1d3cc81fe6b7ff",
+      "previous_version": "20261010025331",
+      "prechecked_database_utc": "20261010025338",
+      "prechecked_clock_utc": "20261010025333",
+      "version": "20261010025339"
+    },
+    {
+      "order": 7,
+      "name": "contractor_consent_fields.sql",
+      "sha256": "3ef81bcbec4360bcce47c065046ef2b216d341eed382fc226235b0ca2ccac43d",
+      "previous_version": "20261010025339",
+      "prechecked_database_utc": "20261010025346",
+      "prechecked_clock_utc": "20261010025341",
+      "version": "20261010025347"
+    },
+    {
+      "order": 8,
+      "name": "contractor_auto_enable.sql",
+      "sha256": "5b0273db881fd622209f969a59cf4816b99d16d89a764d561ac63a39424d432c",
+      "previous_version": "20261010025347",
+      "prechecked_database_utc": "20261010025354",
+      "prechecked_clock_utc": "20261010025349",
+      "version": "20261010025356"
+    },
+    {
+      "order": 9,
+      "name": "opportunity_publication_preview.sql",
+      "sha256": "52f52eaff8a6a66807b923b9effbae0f26bdaef6204895dbf5aff8b114d73d2a",
+      "previous_version": "20261010025356",
+      "prechecked_database_utc": "20261010025402",
+      "prechecked_clock_utc": "20261010025357",
+      "version": "20261010025403"
+    },
+    {
+      "order": 10,
+      "name": "admin_reconfirm_legacy_review.sql",
+      "sha256": "727861b7074267161b966d46a7175cb5e8c51935b7ae69e357ae2edafe95868a",
+      "previous_version": "20261010025403",
+      "prechecked_database_utc": "20261010025410",
+      "prechecked_clock_utc": "20261010025405",
+      "version": "20261010025411"
+    },
+    {
+      "order": 11,
+      "name": "controlled_matching_rounds.sql",
+      "sha256": "5466983447c0f4ef0d1b11ee6b26259eb4d657781515eb080d01d928dbf70511",
+      "previous_version": "20261010025411",
+      "prechecked_database_utc": "20261010025417",
+      "prechecked_clock_utc": "20261010025412",
+      "version": "20261010025418"
+    },
+    {
+      "order": 12,
+      "name": "sms_simulation_preview.sql",
+      "sha256": "7d7c9b24a2476bc1f66cfedb80a837043e270f803a97a8937fa54ecc5b310cc3",
+      "previous_version": "20261010025418",
+      "prechecked_database_utc": "20261010025425",
+      "prechecked_clock_utc": "20261010025420",
+      "version": "20261010025426"
+    },
+    {
+      "order": 13,
+      "name": "zenvia_us_webhook_safety.sql",
+      "sha256": "a72987d9cad284a54ea426a9341d1b5c2e3f52adffbf4eef12b8c5870552dc3b",
+      "previous_version": "20261010025426",
+      "prechecked_database_utc": "20261010025432",
+      "prechecked_clock_utc": "20261010025427",
+      "version": "20261010025432"
+    },
+    {
+      "order": 14,
+      "name": "us_marketplace_financial_foundation.sql",
+      "sha256": "972ba8bd56042be0f41b97e163cd398ca2a270221fe829512753af16a24159bc",
+      "previous_version": "20261010025432",
+      "prechecked_database_utc": "20261010025438",
+      "prechecked_clock_utc": "20261010025433",
+      "version": "20261010025439"
+    },
+    {
+      "order": 15,
+      "name": "us_public_profiles_reviews.sql",
+      "sha256": "2d37d7919ef8285c36701490675b95f48d0acbe51098f4a4a83f57356e74b147",
+      "previous_version": "20261010025439",
+      "prechecked_database_utc": "20261010025445",
+      "prechecked_clock_utc": "20261010025440",
+      "version": "20261010025446"
+    },
+    {
+      "order": 16,
+      "name": "us_marketplace_read_models.sql",
+      "sha256": "a0b8c7da52a9451df8a5f268fb3897dfb5f47dbb616abf63025e4f7acdab88a3",
+      "previous_version": "20261010025446",
+      "prechecked_database_utc": "20261010025452",
+      "prechecked_clock_utc": "20261010025447",
+      "version": "20261010025453"
+    },
+    {
+      "order": 17,
+      "name": "us_topup_test_contract.sql",
+      "sha256": "1be34c783b178e053230228ceb4d2706c548c471f3f1763534f041b1d319ffbb",
+      "previous_version": "20261010025453",
+      "prechecked_database_utc": "20261010025459",
+      "prechecked_clock_utc": "20261010025454",
+      "version": "20261010025500"
+    },
+    {
+      "order": 18,
+      "name": "us_public_review_rate_limit.sql",
+      "sha256": "a7c87713c93455e1626eb733419a39daa461b1af8dee44f7387daab7d8c31abc",
+      "previous_version": "20261010025500",
+      "prechecked_database_utc": "20261010025506",
+      "prechecked_clock_utc": "20261010025501",
+      "version": "20261010025507"
+    },
+    {
+      "order": 19,
+      "name": "us_portfolio_storage.sql",
+      "sha256": "fd47590cb995eba435bcce3af7c60eb02d6e737de7735ddd32c2df24d4720179",
+      "previous_version": "20261010025507",
+      "prechecked_database_utc": "20261010025644",
+      "prechecked_clock_utc": "20261010025639",
+      "version": "20261010025645"
+    },
+    {
+      "order": 20,
+      "name": "us_stripe_test_checkout.sql",
+      "sha256": "d3218cdf37fa95f5cba4912e13332cdebdbec53f998151f1674b0e585d25e4d2",
+      "previous_version": "20261010025645",
+      "prechecked_database_utc": "20261010025651",
+      "prechecked_clock_utc": "20261010025646",
+      "version": "20261010025652"
+    }
+  ],
+  "completed": true,
+  "total_history": [
+    {
+      "version": "20261010023945",
+      "name": "development_baseline_permissions"
+    },
+    {
+      "version": "20261010023958",
+      "name": "getestimatefast_leads"
+    },
+    {
+      "version": "20261010023959",
+      "name": "getestimatefast_marketplace_foundation"
+    },
+    {
+      "version": "20261010025324",
+      "name": "getestimatefast_admin_status_rpc"
+    },
+    {
+      "version": "20261010025331",
+      "name": "admin_approve_lead"
+    },
+    {
+      "version": "20261010025339",
+      "name": "getestimatefast_contractors_foundation"
+    },
+    {
+      "version": "20261010025347",
+      "name": "contractor_consent_fields"
+    },
+    {
+      "version": "20261010025356",
+      "name": "contractor_auto_enable"
+    },
+    {
+      "version": "20261010025403",
+      "name": "opportunity_publication_preview"
+    },
+    {
+      "version": "20261010025411",
+      "name": "admin_reconfirm_legacy_review"
+    },
+    {
+      "version": "20261010025418",
+      "name": "controlled_matching_rounds"
+    },
+    {
+      "version": "20261010025426",
+      "name": "sms_simulation_preview"
+    },
+    {
+      "version": "20261010025432",
+      "name": "zenvia_us_webhook_safety"
+    },
+    {
+      "version": "20261010025439",
+      "name": "us_marketplace_financial_foundation"
+    },
+    {
+      "version": "20261010025446",
+      "name": "us_public_profiles_reviews"
+    },
+    {
+      "version": "20261010025453",
+      "name": "us_marketplace_read_models"
+    },
+    {
+      "version": "20261010025500",
+      "name": "us_topup_test_contract"
+    },
+    {
+      "version": "20261010025507",
+      "name": "us_public_review_rate_limit"
+    },
+    {
+      "version": "20261010025645",
+      "name": "us_portfolio_storage"
+    },
+    {
+      "version": "20261010025652",
+      "name": "us_stripe_test_checkout"
+    }
+  ],
+  "summary": {
+    "tables": 28,
+    "functions": 39,
+    "indexes": 92,
+    "triggers": 13,
+    "explicitIndexes": 36
+  },
+  "security": [
+    {
+      "name": "rls_enabled_no_policy",
+      "title": "RLS Enabled No Policy",
+      "level": "INFO",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects cases where row level security (RLS) has been enabled on a table but no RLS policies have been created.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy",
+      "count": 28,
+      "findings": [
+        {
+          "detail": "Table \\`gef_private.admin_audit\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "admin_audit",
+            "type": "table",
+            "schema": "gef_private"
+          },
+          "observed_at": "2026-10-10T02:57:13.206Z"
+        },
+        {
+          "detail": "Table \\`gef_private.contact_purchases\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "contact_purchases",
+            "type": "table",
+            "schema": "gef_private"
+          },
+          "observed_at": "2026-10-10T02:57:13.206Z"
+        },
+        {
+          "detail": "Table \\`gef_private.contact_quotes\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "contact_quotes",
+            "type": "table",
+            "schema": "gef_private"
+          },
+          "observed_at": "2026-10-10T02:57:13.206Z"
+        },
+        {
+          "detail": "Table \\`gef_private.ledger\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "ledger",
+            "type": "table",
+            "schema": "gef_private"
+          },
+          "observed_at": "2026-10-10T02:57:13.206Z"
+        },
+        {
+          "detail": "Table \\`gef_private.opportunity_terms\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "opportunity_terms",
+            "type": "table",
+            "schema": "gef_private"
+          },
+          "observed_at": "2026-10-10T02:57:13.206Z"
+        },
+        {
+          "detail": "Table \\`gef_private.payment_events\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "payment_events",
+            "type": "table",
+            "schema": "gef_private"
+          },
+          "observed_at": "2026-10-10T02:57:13.206Z"
+        },
+        {
+          "detail": "Table \\`gef_private.payment_intents\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "payment_intents",
+            "type": "table",
+            "schema": "gef_private"
+          },
+          "observed_at": "2026-10-10T02:57:13.206Z"
+        },
+        {
+          "detail": "Table \\`gef_private.public_request_limits\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "public_request_limits",
+            "type": "table",
+            "schema": "gef_private"
+          },
+          "observed_at": "2026-10-10T02:57:13.206Z"
+        },
+        {
+          "detail": "Table \\`gef_private.review_invitations\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "review_invitations",
+            "type": "table",
+            "schema": "gef_private"
+          },
+          "observed_at": "2026-10-10T02:57:13.206Z"
+        },
+        {
+          "detail": "Table \\`gef_private.review_reports\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "review_reports",
+            "type": "table",
+            "schema": "gef_private"
+          },
+          "observed_at": "2026-10-10T02:57:13.206Z"
+        },
+        {
+          "detail": "Table \\`gef_private.test_checkout_events\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "test_checkout_events",
+            "type": "table",
+            "schema": "gef_private"
+          },
+          "observed_at": "2026-10-10T02:57:13.206Z"
+        },
+        {
+          "detail": "Table \\`gef_private.test_checkout_orders\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "test_checkout_orders",
+            "type": "table",
+            "schema": "gef_private"
+          },
+          "observed_at": "2026-10-10T02:57:13.206Z"
+        },
+        {
+          "detail": "Table \\`gef_private.wallets\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "wallets",
+            "type": "table",
+            "schema": "gef_private"
+          },
+          "observed_at": "2026-10-10T02:57:13.206Z"
+        },
+        {
+          "detail": "Table \\`public.admin_users\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "admin_users",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-10T02:57:13.206Z"
+        },
+        {
+          "detail": "Table \\`public.contractor_profiles\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "contractor_profiles",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-10T02:57:13.206Z"
+        },
+        {
+          "detail": "Table \\`public.contractor_public_profiles\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "contractor_public_profiles",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-10T02:57:13.206Z"
+        },
+        {
+          "detail": "Table \\`public.contractor_reviews\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "contractor_reviews",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-10T02:57:13.206Z"
+        },
+        {
+          "detail": "Table \\`public.contractor_verification_events\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "contractor_verification_events",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-10T02:57:13.206Z"
+        },
+        {
+          "detail": "Table \\`public.lead_status_events\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "lead_status_events",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-10T02:57:13.206Z"
+        },
+        {
+          "detail": "Table \\`public.leads\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "leads",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-10T02:57:13.206Z"
+        },
+        {
+          "detail": "Table \\`public.marketplace_price_rules\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "marketplace_price_rules",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-10T02:57:13.206Z"
+        },
+        {
+          "detail": "Table \\`public.marketplace_promotions\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "marketplace_promotions",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-10T02:57:13.206Z"
+        },
+        {
+          "detail": "Table \\`public.opportunity_matching_recipients\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "opportunity_matching_recipients",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-10T02:57:13.206Z"
+        },
+        {
+          "detail": "Table \\`public.opportunity_matching_rounds\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "opportunity_matching_rounds",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-10T02:57:13.206Z"
+        },
+        {
+          "detail": "Table \\`public.opportunity_previews\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "opportunity_previews",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-10T02:57:13.206Z"
+        },
+        {
+          "detail": "Table \\`public.opportunity_sms_simulations\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "opportunity_sms_simulations",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-10T02:57:13.206Z"
+        },
+        {
+          "detail": "Table \\`public.profile_service_prices\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "profile_service_prices",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-10T02:57:13.206Z"
+        },
+        {
+          "detail": "Table \\`public.sms_consent_events\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "sms_consent_events",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-10T02:57:13.206Z"
+        }
+      ]
+    }
+  ],
+  "performance": [
+    {
+      "name": "unindexed_foreign_keys",
+      "title": "Unindexed foreign keys",
+      "level": "INFO",
+      "facing": "EXTERNAL",
+      "categories": [
+        "PERFORMANCE"
+      ],
+      "description": "Identifies foreign key constraints without a covering index, which can impact database performance.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0001_unindexed_foreign_keys",
+      "count": 6,
+      "findings": [
+        {
+          "detail": "Table \\`gef_private.contact_quotes\\` has a foreign key \\`contact_quotes_terms_id_opportunity_id_rule_id_max_buyers__fkey\\` without a covering index. This can lead to suboptimal query performance.",
+          "metadata": {
+            "name": "contact_quotes",
+            "type": "table",
+            "schema": "gef_private",
+            "fkey_name": "contact_quotes_terms_id_opportunity_id_rule_id_max_buyers__fkey",
+            "fkey_columns": [
+              5,
+              3,
+              4,
+              7,
+              9,
+              10
+            ]
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Table \\`public.contractor_verification_events\\` has a foreign key \\`contractor_verification_events_actor_admin_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+          "metadata": {
+            "name": "contractor_verification_events",
+            "type": "table",
+            "schema": "public",
+            "fkey_name": "contractor_verification_events_actor_admin_id_fkey",
+            "fkey_columns": [
+              3
+            ]
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Table \\`public.contractor_verification_events\\` has a foreign key \\`contractor_verification_events_contractor_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+          "metadata": {
+            "name": "contractor_verification_events",
+            "type": "table",
+            "schema": "public",
+            "fkey_name": "contractor_verification_events_contractor_id_fkey",
+            "fkey_columns": [
+              2
+            ]
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Table \\`public.lead_status_events\\` has a foreign key \\`lead_status_events_actor_user_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+          "metadata": {
+            "name": "lead_status_events",
+            "type": "table",
+            "schema": "public",
+            "fkey_name": "lead_status_events_actor_user_id_fkey",
+            "fkey_columns": [
+              3
+            ]
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Table \\`public.opportunity_matching_rounds\\` has a foreign key \\`opportunity_matching_rounds_selected_by_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+          "metadata": {
+            "name": "opportunity_matching_rounds",
+            "type": "table",
+            "schema": "public",
+            "fkey_name": "opportunity_matching_rounds_selected_by_fkey",
+            "fkey_columns": [
+              4
+            ]
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Table \\`public.opportunity_previews\\` has a foreign key \\`opportunity_previews_published_by_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+          "metadata": {
+            "name": "opportunity_previews",
+            "type": "table",
+            "schema": "public",
+            "fkey_name": "opportunity_previews_published_by_fkey",
+            "fkey_columns": [
+              8
+            ]
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        }
+      ]
+    },
+    {
+      "name": "unused_index",
+      "title": "Unused Index",
+      "level": "INFO",
+      "facing": "EXTERNAL",
+      "categories": [
+        "PERFORMANCE"
+      ],
+      "description": "Detects if an index has never been used and may be a candidate for removal.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+      "count": 33,
+      "findings": [
+        {
+          "detail": "Index \\`leads_created_at_idx\\` on table \\`public.leads\\` has not been used",
+          "metadata": {
+            "name": "leads",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Index \\`leads_location_service_idx\\` on table \\`public.leads\\` has not been used",
+          "metadata": {
+            "name": "leads",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Index \\`opportunity_previews_category_published_idx\\` on table \\`public.opportunity_previews\\` has not been used",
+          "metadata": {
+            "name": "opportunity_previews",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Index \\`leads_status_created_idx\\` on table \\`public.leads\\` has not been used",
+          "metadata": {
+            "name": "leads",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Index \\`contractor_profiles_coverage_idx\\` on table \\`public.contractor_profiles\\` has not been used",
+          "metadata": {
+            "name": "contractor_profiles",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Index \\`lead_status_events_lead_created_idx\\` on table \\`public.lead_status_events\\` has not been used",
+          "metadata": {
+            "name": "lead_status_events",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Index \\`marketplace_price_rules_category_idx\\` on table \\`public.marketplace_price_rules\\` has not been used",
+          "metadata": {
+            "name": "marketplace_price_rules",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Index \\`opportunity_matching_recipients_contractor_idx\\` on table \\`public.opportunity_matching_recipients\\` has not been used",
+          "metadata": {
+            "name": "opportunity_matching_recipients",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Index \\`sms_consent_events_contractor_user_id_idx\\` on table \\`public.sms_consent_events\\` has not been used",
+          "metadata": {
+            "name": "sms_consent_events",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Index \\`marketplace_price_rules_admin_idx\\` on table \\`public.marketplace_price_rules\\` has not been used",
+          "metadata": {
+            "name": "marketplace_price_rules",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Index \\`marketplace_promotions_admin_idx\\` on table \\`public.marketplace_promotions\\` has not been used",
+          "metadata": {
+            "name": "marketplace_promotions",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Index \\`ledger_owner_created_idx\\` on table \\`gef_private.ledger\\` has not been used",
+          "metadata": {
+            "name": "ledger",
+            "type": "table",
+            "schema": "gef_private"
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Index \\`ledger_reference_idx\\` on table \\`gef_private.ledger\\` has not been used",
+          "metadata": {
+            "name": "ledger",
+            "type": "table",
+            "schema": "gef_private"
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Index \\`ledger_actor_idx\\` on table \\`gef_private.ledger\\` has not been used",
+          "metadata": {
+            "name": "ledger",
+            "type": "table",
+            "schema": "gef_private"
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Index \\`opportunity_terms_rule_idx\\` on table \\`gef_private.opportunity_terms\\` has not been used",
+          "metadata": {
+            "name": "opportunity_terms",
+            "type": "table",
+            "schema": "gef_private"
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Index \\`contact_quotes_owner_idx\\` on table \\`gef_private.contact_quotes\\` has not been used",
+          "metadata": {
+            "name": "contact_quotes",
+            "type": "table",
+            "schema": "gef_private"
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Index \\`contact_quotes_opportunity_idx\\` on table \\`gef_private.contact_quotes\\` has not been used",
+          "metadata": {
+            "name": "contact_quotes",
+            "type": "table",
+            "schema": "gef_private"
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Index \\`contact_quotes_rule_idx\\` on table \\`gef_private.contact_quotes\\` has not been used",
+          "metadata": {
+            "name": "contact_quotes",
+            "type": "table",
+            "schema": "gef_private"
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Index \\`contact_quotes_terms_idx\\` on table \\`gef_private.contact_quotes\\` has not been used",
+          "metadata": {
+            "name": "contact_quotes",
+            "type": "table",
+            "schema": "gef_private"
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Index \\`contact_purchases_opportunity_idx\\` on table \\`gef_private.contact_purchases\\` has not been used",
+          "metadata": {
+            "name": "contact_purchases",
+            "type": "table",
+            "schema": "gef_private"
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Index \\`payment_intents_owner_idx\\` on table \\`gef_private.payment_intents\\` has not been used",
+          "metadata": {
+            "name": "payment_intents",
+            "type": "table",
+            "schema": "gef_private"
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Index \\`payment_intents_promotion_idx\\` on table \\`gef_private.payment_intents\\` has not been used",
+          "metadata": {
+            "name": "payment_intents",
+            "type": "table",
+            "schema": "gef_private"
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Index \\`admin_audit_actor_idx\\` on table \\`gef_private.admin_audit\\` has not been used",
+          "metadata": {
+            "name": "admin_audit",
+            "type": "table",
+            "schema": "gef_private"
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Index \\`contractor_reviews_owner_status_idx\\` on table \\`public.contractor_reviews\\` has not been used",
+          "metadata": {
+            "name": "contractor_reviews",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Index \\`review_invitations_owner_idx\\` on table \\`gef_private.review_invitations\\` has not been used",
+          "metadata": {
+            "name": "review_invitations",
+            "type": "table",
+            "schema": "gef_private"
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Index \\`review_reports_review_idx\\` on table \\`gef_private.review_reports\\` has not been used",
+          "metadata": {
+            "name": "review_reports",
+            "type": "table",
+            "schema": "gef_private"
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Index \\`payment_events_intent_idx\\` on table \\`gef_private.payment_events\\` has not been used",
+          "metadata": {
+            "name": "payment_events",
+            "type": "table",
+            "schema": "gef_private"
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Index \\`profile_service_prices_admin_idx\\` on table \\`public.profile_service_prices\\` has not been used",
+          "metadata": {
+            "name": "profile_service_prices",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Index \\`test_checkout_owner_idx\\` on table \\`gef_private.test_checkout_orders\\` has not been used",
+          "metadata": {
+            "name": "test_checkout_orders",
+            "type": "table",
+            "schema": "gef_private"
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Index \\`test_checkout_quote_idx\\` on table \\`gef_private.test_checkout_orders\\` has not been used",
+          "metadata": {
+            "name": "test_checkout_orders",
+            "type": "table",
+            "schema": "gef_private"
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Index \\`test_checkout_opportunity_idx\\` on table \\`gef_private.test_checkout_orders\\` has not been used",
+          "metadata": {
+            "name": "test_checkout_orders",
+            "type": "table",
+            "schema": "gef_private"
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Index \\`test_checkout_service_price_idx\\` on table \\`gef_private.test_checkout_orders\\` has not been used",
+          "metadata": {
+            "name": "test_checkout_orders",
+            "type": "table",
+            "schema": "gef_private"
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        },
+        {
+          "detail": "Index \\`test_checkout_events_order_idx\\` on table \\`gef_private.test_checkout_events\\` has not been used",
+          "metadata": {
+            "name": "test_checkout_events",
+            "type": "table",
+            "schema": "gef_private"
+          },
+          "observed_at": "2026-10-10T02:57:13.269Z"
+        }
+      ]
+    },
+    {
+      "name": "auth_db_connections_absolute",
+      "title": "Auth DB Connection Strategy is not Percentage",
+      "level": "INFO",
+      "facing": "EXTERNAL",
+      "categories": [
+        "PERFORMANCE"
+      ],
+      "description": "Using a percentage based allocation connection strategy for Auth can help to improve the server's performance when increasing instance size.",
+      "remediation": "https://supabase.com/docs/guides/deployment/going-into-prod",
+      "count": 1,
+      "findings": [
+        {
+          "detail": "Your project's Auth server is configured to use at most 10 connections. Increasing the instance size without manually adjusting this number will not improve the performance of the Auth server. Switch to a percentage based connection allocation strategy instead.",
+          "metadata": {
+            "type": "auth",
+            "entity": "Auth"
+          }
+        }
+      ]
+    }
+  ]
+}
