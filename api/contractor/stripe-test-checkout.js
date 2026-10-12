@@ -41,7 +41,7 @@ function createHandler(dependencies = {}) { return async function handler(req, r
       if (!context) return json(res, 404, { error: "Quote unavailable" });
       await eligible(context.opportunity_id);
     }
-    const order = await rpc("gef_create_test_order", { p_contractor: user.id, p_purpose: purpose, p_quote: quote, p_key: operationKey(body.operation_key) });
+    const order = await rpc("gef_prepare_test_order", { p_contractor: user.id, p_purpose: purpose, p_quote: quote, p_key: operationKey(body.operation_key), p_origin: settings.origin });
     if (order.status === "paid" || order.status === "refunded" || order.status === "refund_required") return json(res, 200, { order_id: order.id, status: order.status, test_only: true, contact_release_enabled: false });
     const session = await createCheckout(order, settings, (dependencies.client || clientFor)(settings.key));
     await rpc("gef_bind_test_session", { p_order: order.id, p_session: session.id });

@@ -2,7 +2,7 @@
 const test = require("node:test"), assert = require("node:assert/strict"), Stripe = require("stripe"), { Readable } = require("node:stream");
 const { checkoutParameters, createCheckout, processWebhook, readRaw, testConfiguration } = require("../api/_lib/stripe-test");
 const id = "20000000-0000-4000-8000-000000000001";
-const order = { id, purpose: "contact", status: "reserved", currency: "USD", amount_cents: 1234, created_at: new Date().toISOString(), session_id: "cs_test_fixture" };
+const order = { id, purpose: "contact", status: "reserved", currency: "USD", amount_cents: 1234, created_at: new Date().toISOString(), checkout_expires_at: new Date(Date.now()+2400000).toISOString(), checkout_origin: "https://synthetic.example.invalid", session_id: "cs_test_fixture" };
 const settings = { key: "sk_test_SyntheticOnly", secret: "whsec_SyntheticOnly", origin: "https://synthetic.example.invalid" };
 const sdk = new Stripe(settings.key);
 const session = { id: order.session_id, livemode: false, metadata: { gef_order_id: id, gef_purpose: "contact", gef_mode: "test" }, client_reference_id: id, mode: "payment", currency: "usd", amount_total: 1234, status: "complete", payment_status: "paid", payment_intent: "pi_fixture" };
@@ -18,8 +18,8 @@ test("Stripe Checkout uses exact contact cents and an independent profile-servic
   const profile = checkoutParameters({ ...order, purpose: "profile_service" }, settings.origin);
   assert.equal(profile.metadata.gef_purpose, "profile_service"); assert(profile.line_items[0].price_data.product_data.name.includes("profile"));
   const calls = [];
-  const client = { checkout: { sessions: { create: async (p, options) => { calls.push(options.idempotencyKey); return { id: "cs_test_fixture", livemode: false, url: "https://checkout.stripe.com/c/pay/cs_test_fixture" }; } } } };
-  await createCheckout(order, settings, client); await createCheckout(order, settings, client); assert.deepEqual(calls, ["gef-test-order:" + id, "gef-test-order:" + id]);
+  const client = { checkout: { sessions: { create: async (p, options) => { calls.push(options.idempotencyKey); return { ...session, expires_at: p.expires_at, status: "open", url: "https://checkout.stripe.com/c/pay/cs_test_fixture" }; } } } };
+  await createCheckout({ ...order, session_id: null }, settings, client); await createCheckout({ ...order, session_id: null }, settings, client); assert.deepEqual(calls, ["gef-test-order:" + id, "gef-test-order:" + id]);
   await assert.rejects(() => createCheckout(order, settings, { checkout: { sessions: { create: async () => ({ id: "cs_live_bad", livemode: true }) } } }));
   assert.throws(() => checkoutParameters({ ...order, purpose: "wallet_topup" }, settings.origin));
 });
@@ -44,7 +44,7 @@ test("server retrieves session and rejects live mode, price, currency, ownership
 });
 test("pending completion cannot fulfill; failures and expiration persist without payment credits", async () => {
   const pending = fixture({ payment_status: "unpaid" }), value = signed(event());
-  assert.equal((await processWebhook(value.raw, value.signature, settings, pending.repository, pending.client)).pending, true); assert.equal(pending.calls.length, 0);
+  assert.equal((await processWebhook(value.raw, value.signature, settings, pending.repository, pending.client)).pending, true); assert.equal(pending.calls[0].outcome, "pending");
   for (const [type, changes, outcome] of [["checkout.session.async_payment_failed", { payment_status: "unpaid", payment_intent: null }, "failed"], ["checkout.session.expired", { status: "expired", payment_status: "unpaid", payment_intent: null }, "expired"]]) {
     const f = fixture(changes), e = signed(event(type)); await processWebhook(e.raw, e.signature, settings, f.repository, f.client); assert.equal(f.calls[0].outcome, outcome);
   }
@@ -54,7 +54,7 @@ test("test Checkout gates reject default, production and live keys before SDK ne
   const old = { ...process.env };
   try {
     assert.throws(testConfiguration);
-    Object.assign(process.env, { GETESTIMATEFAST_ISOLATED_BACKEND: "true", GETESTIMATEFAST_MARKETPLACE_PREVIEW: "true", GETESTIMATEFAST_STRIPE_MODE: "test", GETESTIMATEFAST_STRIPE_TEST_CHECKOUT_APPROVED: "true", GETESTIMATEFAST_SUPABASE_URL: "http://127.0.0.1:1", GETESTIMATEFAST_SUPABASE_SECRET_KEY: "synthetic", GETESTIMATEFAST_SUPABASE_PUBLISHABLE_KEY: "synthetic", GETESTIMATEFAST_STRIPE_TEST_SECRET_KEY: settings.key, GETESTIMATEFAST_STRIPE_TEST_WEBHOOK_SECRET: settings.secret, GETESTIMATEFAST_PUBLIC_ORIGIN: settings.origin, VERCEL_ENV: "development" });
+    Object.assign(process.env, { GETESTIMATEFAST_ISOLATED_BACKEND: "true", GETESTIMATEFAST_MARKETPLACE_PREVIEW: "true", GETESTIMATEFAST_STRIPE_MODE: "test", GETESTIMATEFAST_STRIPE_TEST_CHECKOUT_APPROVED: "true", GETESTIMATEFAST_STRIPE_TEST_WEBHOOK_ENABLED: "true", GETESTIMATEFAST_STRIPE_TEST_SCHEMA_APPROVED: "true", GETESTIMATEFAST_DEVELOPMENT_PROJECT_REF: "cpjsbijgijeyrwjpuciv", GETESTIMATEFAST_SMS_MODE: "dry_run", GETESTIMATEFAST_SUPABASE_URL: "http://127.0.0.1:1", GETESTIMATEFAST_SUPABASE_SECRET_KEY: "synthetic", GETESTIMATEFAST_SUPABASE_PUBLISHABLE_KEY: "synthetic", GETESTIMATEFAST_STRIPE_TEST_SECRET_KEY: settings.key, GETESTIMATEFAST_STRIPE_TEST_WEBHOOK_SECRET: settings.secret, GETESTIMATEFAST_PUBLIC_ORIGIN: settings.origin, VERCEL_ENV: "development" });
     assert.equal(testConfiguration().origin, settings.origin);
     process.env.GETESTIMATEFAST_STRIPE_TEST_SECRET_KEY = "sk_live_SyntheticOnly"; assert.throws(testConfiguration);
     process.env.GETESTIMATEFAST_STRIPE_TEST_SECRET_KEY = settings.key; process.env.VERCEL_ENV = "production"; assert.throws(testConfiguration);
