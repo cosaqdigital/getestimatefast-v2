@@ -1,0 +1,275 @@
+{
+  "origin": "https://getestimatefast-v2-qbn4fbn4k-get-estimate-fast.vercel.app",
+  "remote": true,
+  "css_sha256": "9f2ecdc4839811208f2b586ce50650c207d57450a71bfbda4fe2a770f873e1a5",
+  "results": [
+    {
+      "width": 320,
+      "preflight_http": 200,
+      "ready": true,
+      "checkout_enabled": false,
+      "deployed_css_matches_revision": true
+    },
+    {
+      "page": "hosted-profile",
+      "width": 320,
+      "document_width": 320,
+      "overflow": 0
+    },
+    {
+      "page": "stress-profile",
+      "width": 320,
+      "document_width": 320,
+      "overflow": 0
+    },
+    {
+      "page": "report-dialog",
+      "width": 320,
+      "document_width": 320,
+      "overflow": 0
+    },
+    {
+      "page": "review-login",
+      "width": 320,
+      "document_width": 320,
+      "overflow": 0
+    },
+    {
+      "page": "review-form",
+      "width": 320,
+      "document_width": 320,
+      "overflow": 0
+    },
+    {
+      "page": "review-error",
+      "width": 320,
+      "document_width": 320,
+      "overflow": 0
+    },
+    {
+      "page": "moderation",
+      "width": 320,
+      "document_width": 320,
+      "overflow": 0
+    },
+    {
+      "page": "moderation-error",
+      "width": 320,
+      "document_width": 320,
+      "overflow": 0
+    },
+    {
+      "width": 320,
+      "javascript_errors": 0,
+      "labels": true,
+      "button_contrast_at_least_4_5": true,
+      "button_height_at_least_44": true,
+      "keyboard_focus": true,
+      "focus_outline": true,
+      "dialog_focus_return": true,
+      "external_requests_blocked": true,
+      "review_and_admin_apis": "browser fixtures only; no remote mutations"
+    },
+    {
+      "width": 375,
+      "preflight_http": 200,
+      "ready": true,
+      "checkout_enabled": false,
+      "deployed_css_matches_revision": true
+    },
+    {
+      "page": "hosted-profile",
+      "width": 375,
+      "document_width": 375,
+      "overflow": 0
+    },
+    {
+      "page": "stress-profile",
+      "width": 375,
+      "document_width": 375,
+      "overflow": 0
+    },
+    {
+      "page": "report-dialog",
+      "width": 375,
+      "document_width": 375,
+      "overflow": 0
+    },
+    {
+      "page": "review-login",
+      "width": 375,
+      "document_width": 375,
+      "overflow": 0
+    },
+    {
+      "page": "review-form",
+      "width": 375,
+      "document_width": 375,
+      "overflow": 0
+    },
+    {
+      "page": "review-error",
+      "width": 375,
+      "document_width": 375,
+      "overflow": 0
+    },
+    {
+      "page": "moderation",
+      "width": 375,
+      "document_width": 375,
+      "overflow": 0
+    },
+    {
+      "page": "moderation-error",
+      "width": 375,
+      "document_width": 375,
+      "overflow": 0
+    },
+    {
+      "width": 375,
+      "javascript_errors": 0,
+      "labels": true,
+      "button_contrast_at_least_4_5": true,
+      "button_height_at_least_44": true,
+      "keyboard_focus": true,
+      "focus_outline": true,
+      "dialog_focus_return": true,
+      "external_requests_blocked": true,
+      "review_and_admin_apis": "browser fixtures only; no remote mutations"
+    },
+    {
+      "width": 390,
+      "preflight_http": 200,
+      "ready": true,
+      "checkout_enabled": false,
+      "deployed_css_matches_revision": true
+    },
+    {
+      "page": "hosted-profile",
+      "width": 390,
+      "document_width": 390,
+      "overflow": 0
+    },
+    {
+      "page": "stress-profile",
+      "width": 390,
+      "document_width": 390,
+      "overflow": 0
+    },
+    {
+      "page": "report-dialog",
+      "width": 390,
+      "document_width": 390,
+      "overflow": 0
+    },
+    {
+      "page": "review-login",
+      "width": 390,
+      "document_width": 390,
+      "overflow": 0
+    },
+    {
+      "page": "review-form",
+      "width": 390,
+      "document_width": 390,
+      "overflow": 0
+    },
+    {
+      "page": "review-error",
+      "width": 390,
+      "document_width": 390,
+      "overflow": 0
+    },
+    {
+      "page": "moderation",
+      "width": 390,
+      "document_width": 390,
+      "overflow": 0
+    },
+    {
+      "page": "moderation-error",
+      "width": 390,
+      "document_width": 390,
+      "overflow": 0
+    },
+    {
+      "width": 390,
+      "javascript_errors": 0,
+      "labels": true,
+      "button_contrast_at_least_4_5": true,
+      "button_height_at_least_44": true,
+      "keyboard_focus": true,
+      "focus_outline": true,
+      "dialog_focus_return": true,
+      "external_requests_blocked": true,
+      "review_and_admin_apis": "browser fixtures only; no remote mutations"
+    },
+    {
+      "width": 430,
+      "preflight_http": 200,
+      "ready": true,
+      "checkout_enabled": false,
+      "deployed_css_matches_revision": true
+    },
+    {
+      "page": "hosted-profile",
+      "width": 430,
+      "document_width": 430,
+      "overflow": 0
+    },
+    {
+      "page": "stress-profile",
+      "width": 430,
+      "document_width": 430,
+      "overflow": 0
+    },
+    {
+      "page": "report-dialog",
+      "width": 430,
+      "document_width": 430,
+      "overflow": 0
+    },
+    {
+      "page": "review-login",
+      "width": 430,
+      "document_width": 430,
+      "overflow": 0
+    },
+    {
+      "page": "review-form",
+      "width": 430,
+      "document_width": 430,
+      "overflow": 0
+    },
+    {
+      "page": "review-error",
+      "width": 430,
+      "document_width": 430,
+      "overflow": 0
+    },
+    {
+      "page": "moderation",
+      "width": 430,
+      "document_width": 430,
+      "overflow": 0
+    },
+    {
+      "page": "moderation-error",
+      "width": 430,
+      "document_width": 430,
+      "overflow": 0
+    },
+    {
+      "width": 430,
+      "javascript_errors": 0,
+      "labels": true,
+      "button_contrast_at_least_4_5": true,
+      "button_height_at_least_44": true,
+      "keyboard_focus": true,
+      "focus_outline": true,
+      "dialog_focus_return": true,
+      "external_requests_blocked": true,
+      "review_and_admin_apis": "browser fixtures only; no remote mutations"
+    }
+  ]
+}
