@@ -107,9 +107,10 @@ test("refund request is never completion; only a matching succeeded processor re
 });
 test("loopback relay forwards signed bytes only to one verified Preview webhook, without opening other routes", async () => {
   const calls = [], token = "synthetic-temporary-oidc";
-  const deployment = { projectId: "prj_kA6x5rt1MChiNSQpa6pShHoUSuOF", environment: "preview", branch: SANDBOX_BRANCH, sha: "a".repeat(40), origin };
+  const deployment = { id: "dpl_synthetic", teamId: "team_vRw9eJBijmUFe1SbbOFY5xZs", projectId: "prj_kA6x5rt1MChiNSQpa6pShHoUSuOF", environment: "preview", branch: SANDBOX_BRANCH, sha: "a".repeat(40), origin };
   assert.throws(() => createRelay({ origin, deployment: { ...deployment, environment: "production" } }));
-  const server = await startRelay({ origin, deployment, tokenProvider: async () => token, transport: async (url, options) => { calls.push({ url, options }); return new Response(null, { status: 200 }); } });
+  const server = await startRelay({ origin, deployment, verifyDestination: async () => deployment, verifyToken: async value => value === token, verifySignature: async () => true,
+    tokenProvider: async () => token, transport: async (url, options) => { calls.push({ url, options: { ...options, body: Buffer.from(options.body) } }); return new Response(null, { status: 200 }); } });
   const local = "http://127.0.0.1:" + server.address().port;
   try {
     assert.equal((await fetch(local + "/api/admin/marketplace", { method: "POST" })).status, 404);
