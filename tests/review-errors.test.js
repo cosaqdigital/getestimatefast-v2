@@ -9,6 +9,9 @@ test("review conflict mapping never forwards arbitrary SQL details or classifies
   global.fetch=async()=>new Response(JSON.stringify(conflict),{status:400});
   await assert.rejects(queryDb("rpc/gef_submit_review"),e=>e.message==="Database returned 400"&&/invitation/.test(e.reviewConflict)&&!e.reviewConflict.includes("SQL"));
   await assert.rejects(queryDb("rpc/gef_moderate_review"),e=>e.message==="Database returned 400"&&!e.reviewConflict);
+  await assert.rejects(queryDb("rpc/gef_submit_authenticated_review"),e=>!e.reviewConflictCode);
+  for(const constraint of ["review_identity_user_unique","review_identity_google_unique"]){global.fetch=async()=>new Response(JSON.stringify({code:"23505",message:'duplicate key value violates unique constraint "'+constraint+'"'}),{status:409});await assert.rejects(queryDb("rpc/gef_submit_authenticated_review"),e=>e.reviewConflictCode==="review_already_submitted");}
+  global.fetch=async()=>new Response(JSON.stringify({code:"23505",message:'duplicate key value violates unique constraint "contractor_reviews_invitation_id_key"'}),{status:409});await assert.rejects(queryDb("rpc/gef_submit_authenticated_review"),e=>!e.reviewConflictCode);
   global.fetch=async()=>new Response(JSON.stringify({code:"23505",message:'duplicate key value violates unique constraint "unrelated_private_constraint"'}),{status:409});
   await assert.rejects(queryDb("rpc/gef_submit_review"),e=>e.message==="Database returned 409"&&!e.reviewConflict);
   global.fetch=async()=>new Response("not JSON: SYNTHETIC private response",{status:502});

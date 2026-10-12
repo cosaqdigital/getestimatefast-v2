@@ -73,6 +73,10 @@ async function queryDb(path, options = {}) {
         "duplicate key value violates unique constraint \"review_identity_google_unique\""
       ].includes(data.message)) {
         error.reviewConflict = path === "rpc/gef_submit_authenticated_review" ? "You have already submitted a review for this professional." : "A review has already been submitted for this professional with this email or invitation.";
+        if(path === "rpc/gef_submit_authenticated_review" && [
+          'duplicate key value violates unique constraint "review_identity_user_unique"',
+          'duplicate key value violates unique constraint "review_identity_google_unique"'
+        ].includes(data.message)) error.reviewConflictCode = "review_already_submitted";
       }
     }
     throw error;

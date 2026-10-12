@@ -1,0 +1,14 @@
+"use strict";
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const message="You've already reviewed this professional. Thank you for sharing your experience. Each Google account can submit one review per professional.";
+test('previous-review state hides form, preserves sign-out and ignores URL flags/old invitations',async()=>{
+ const {JSDOM}=await import('jsdom'),html=fs.readFileSync(path.resolve(__dirname,'../review.html'),'utf8'),script=fs.readFileSync(path.resolve(__dirname,'../assets/review-form.js'),'utf8');
+ for(const state of ['pending','approved','hidden','rejected']){
+  const dom=new JSDOM(html,{url:'https://synthetic.example.invalid/review.html?auth=success',runScripts:'outside-only'});let authenticated=true;
+  dom.window.fetch=async url=>({ok:true,json:async()=>url.endsWith('logout')?(authenticated=false,{signed_out:true}):({authenticated,profile:{display_name:'SYNTHETIC professional'},already_reviewed:authenticated,csrf:'x'.repeat(43)})});dom.window.eval(script);await new Promise(r=>setTimeout(r,15));const d=dom.window.document;
+  assert.equal(d.getElementById('reviewForm').hidden,true,state);assert.equal(d.getElementById('googleReviewLogin').hidden,true);assert.equal(d.getElementById('reviewLogout').hidden,false);assert.equal(d.getElementById('reviewStatus').textContent,message);assert.equal(d.activeElement,d.getElementById('reviewStatus'));assert.equal(d.getElementById('reviewStatus').getAttribute('aria-live'),'polite');
+  d.getElementById('reviewLogout').click();await new Promise(r=>setTimeout(r,15));assert.equal(d.getElementById('googleReviewLogin').hidden,false);assert.equal(d.getElementById('reviewForm').hidden,true);dom.window.close();
+ }
+ for(const [suffix,reviewed,visible]of [['?already_reviewed=true',false,true],['#'+'a'.repeat(43),true,false]]){const dom=new JSDOM(html,{url:'https://synthetic.example.invalid/review.html'+suffix,runScripts:'outside-only'});dom.window.fetch=async()=>({ok:true,json:async()=>({authenticated:true,profile:{display_name:'SYNTHETIC previous professional'},already_reviewed:reviewed,csrf:'x'.repeat(43)})});dom.window.eval(script);await new Promise(r=>setTimeout(r,15));assert.equal(dom.window.document.getElementById('reviewForm').hidden,!visible);if(suffix.startsWith('#'))assert.notEqual(dom.window.document.getElementById('reviewStatus').textContent,message);dom.window.close();}
+ const dom=new JSDOM(html,{url:'https://synthetic.example.invalid/review.html',runScripts:'outside-only'});dom.window.fetch=async()=>({ok:false,json:async()=>({error:'Review service temporarily unavailable.'})});dom.window.eval(script);await new Promise(r=>setTimeout(r,15));assert.equal(dom.window.document.getElementById('reviewForm').hidden,true);assert.equal(dom.window.document.getElementById('googleReviewLogin').disabled,true);dom.window.close();
+});
