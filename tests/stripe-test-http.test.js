@@ -5,7 +5,8 @@ test("HTTP Checkout + signed webhook + SQL use synthetic SDK transport, with no 
   const key = "sk_test_SyntheticHttpOnly", secret = "whsec_SyntheticHttpOnly", sessions = new Map(), requests = [];
   const sdk = new Stripe(key), sessionForOrder = new Map();
   let failNextRetrieval = false;
-  const client = { webhooks: sdk.webhooks, checkout: { sessions: {
+  let accountId = "acct_1UOl9qH5rFe1usWF";
+  const client = { accounts: { retrieve: async () => ({ object: "account", id: accountId }) }, webhooks: sdk.webhooks, checkout: { sessions: {
     async create(params, options) {
       requests.push({ params, options });
       const existing = sessionForOrder.get(options.idempotencyKey); if (existing) return existing;
@@ -14,7 +15,7 @@ test("HTTP Checkout + signed webhook + SQL use synthetic SDK transport, with no 
       sessions.set(id, session); sessionForOrder.set(options.idempotencyKey, session); return session;
     }, async retrieve(id) { if (failNextRetrieval) { failNextRetrieval = false; throw Error("Synthetic provider network failure"); } return sessions.get(id); }
   } } };
-  const s = await createSandbox(0, { stripeSafety: true, stripe: { configuration: () => ({ key, secret, origin: "https://synthetic.example.invalid" }), client: () => client } });
+  const s = await createSandbox(0, { stripeSafety: true, stripe: { configuration: () => ({ key, secret, expectedAccountId: "acct_1UOl9qH5rFe1usWF", origin: "https://synthetic.example.invalid" }), client: () => client } });
   const post = (path, body, token = "synthetic-contractor") => s.fetch(s.origin + path, { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + token }, body: JSON.stringify(body) });
   const rpc = async (name, values) => (await s.db.query(`select public.${name}(${values.map((_, i) => "$" + (i + 1)).join(",")}) result`, values)).rows[0].result;
   async function webhook(session, type = "checkout.session.completed", id = "evt_" + crypto.randomUUID().replaceAll("-", ""), wrongSignature = false) {
@@ -30,6 +31,11 @@ test("HTTP Checkout + signed webhook + SQL use synthetic SDK transport, with no 
     const response = await post("/api/contractor/stripe-test-checkout", { action: "quote", opportunity_id: op, amount_cents: 1 }); assert.equal(response.status, 201);
     const quote = await response.json(); assert.equal(quote.amount_cents, 1200);
     const body = { purpose: "contact", quote_id: quote.quote_id, operation_key: "http:stripe:contact" };
+    accountId = "acct_wrong_synthetic";
+    assert.equal((await post("/api/contractor/stripe-test-checkout", body)).status, 503);
+    assert.equal((await s.db.query("select count(*)::int n from gef_private.test_checkout_orders")).rows[0].n, 0);
+    assert.equal(sessions.size, 0);
+    accountId = "acct_1UOl9qH5rFe1usWF";
     const checkout = await post("/api/contractor/stripe-test-checkout", body); assert.equal(checkout.status, 201); const order = await checkout.json();
     const retry = await post("/api/contractor/stripe-test-checkout", body); assert.equal((await retry.json()).order_id, order.order_id); assert.equal(sessions.size, 1);
     const session = [...sessions.values()][0];

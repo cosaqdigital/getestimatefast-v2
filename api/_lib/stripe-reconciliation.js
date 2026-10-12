@@ -3,9 +3,11 @@
 // Pass the already-approved processing configuration and a server-side repository.
 const { assertSession, testConfiguration } = require("./stripe-test");
 const { uuid } = require("./marketplace-access");
+const { verifyTestAccount } = require("./stripe-account");
 const idOf = value => typeof value === "string" ? value : value?.id;
 async function reconcileTestOrder(input, repository, client, authorize = () => testConfiguration("webhook")) {
-  authorize();
+  const settings = authorize();
+  await verifyTestAccount(settings, client);
   const orderId = uuid(input.orderId), observation = uuid(input.observationId);
   const order = await repository.order(orderId);
   const sessionId = order?.session_id || input.sessionId;

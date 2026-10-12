@@ -4,18 +4,20 @@ const { config } = require("../admin/_auth");
 const { cents } = require("./marketplace-pricing");
 const { uuid } = require("./marketplace-access");
 const { checkoutApproved, webhookApproved } = require("./stripe-policy");
+const { accountConfiguration, verifyTestAccount } = require("./stripe-account");
 
 function testConfiguration(operation = "checkout") {
   const authorized = operation === "checkout" ? checkoutApproved() : operation === "webhook" ? webhookApproved() : false;
   if (!authorized) throw Error("Stripe test operation is disabled");
   config();
+  const expectedAccountId = accountConfiguration();
   const key = process.env.GETESTIMATEFAST_STRIPE_TEST_SECRET_KEY;
   const secret = process.env.GETESTIMATEFAST_STRIPE_TEST_WEBHOOK_SECRET;
   if (!/^sk_test_[A-Za-z0-9]+$/.test(key || "") || !/^whsec_[A-Za-z0-9]+$/.test(secret || "")) throw Error("Stripe test configuration unavailable");
   const origin = new URL(process.env.GETESTIMATEFAST_PUBLIC_ORIGIN || "");
   if (origin.protocol !== "https:" || origin.username || origin.password || origin.search || origin.hash || origin.pathname !== "/") throw Error("Trusted HTTPS preview origin required");
   if (process.env.VERCEL_ENV === "preview" && !origin.hostname.endsWith(".vercel.app")) throw Error("Sandbox Preview hostname required");
-  return { key, secret, origin: origin.origin };
+  return { key, secret, origin: origin.origin, expectedAccountId };
 }
 function clientFor(key) { return new Stripe(key, { apiVersion: "2026-09-30.endive", maxNetworkRetries: 2, timeout: 15000 }); }
 function checkoutParameters(order, origin) {
@@ -38,6 +40,8 @@ async function createCheckout(order, settings, client = clientFor(settings.key))
   // beyond the creation window must be recovered by reconciliation, not a new key.
   const secondsRemaining = params.expires_at - Math.floor(Date.now() / 1000);
   if (!order.session_id && (secondsRemaining < 1860 || secondsRemaining > 86400)) throw Error("Checkout creation window closed; reconciliation required");
+  await verifyTestAccount(settings, client);
+  if (!order.session_id && params.expires_at - Math.floor(Date.now() / 1000) < 1860) throw Error("Checkout creation window closed; reconciliation required");
   const session = order.session_id ? await client.checkout.sessions.retrieve(order.session_id) :
     await client.checkout.sessions.create(params, { idempotencyKey: "gef-test-order:" + order.id });
   if (session.livemode !== false || !/^cs_test_[A-Za-z0-9_]+$/.test(session.id || "")) throw Error("Unexpected Stripe mode");
@@ -71,6 +75,7 @@ function assertSession(order, session, requireBound = true) {
 async function processWebhook(raw, signature, settings, repository, client = clientFor(settings.key)) {
   const event = client.webhooks.constructEvent(raw, signature, settings.secret, 300);
   if (event.livemode !== false || !/^evt_[A-Za-z0-9_]+$/.test(event.id || "")) throw Error("Test event required");
+  await verifyTestAccount(settings, client);
   const outcomes = { "checkout.session.completed": "completed", "checkout.session.async_payment_succeeded": "completed", "checkout.session.async_payment_failed": "failed", "checkout.session.expired": "expired" };
   if (!outcomes[event.type]) return { received: true, ignored: true };
   const id = event.data?.object?.id;

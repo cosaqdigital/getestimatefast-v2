@@ -8,7 +8,7 @@ const { reconcileTestOrder } = require("../api/_lib/stripe-reconciliation");
 const { startRelay, createRelay } = require("../scripts/stripe-preview-relay");
 const id = "20000000-0000-4000-8000-000000000010";
 const origin = "https://synthetic-stripe-preview.vercel.app";
-const settings = { key: "sk_test_SyntheticOnly", secret: "whsec_SyntheticOnly", origin };
+const settings = { expectedAccountId: "acct_1UOl9qH5rFe1usWF", key: "sk_test_SyntheticOnly", secret: "whsec_SyntheticOnly", origin };
 const sdk = new Stripe(settings.key);
 const order = () => ({ id, purpose: "contact", status: "reserved", currency: "USD", amount_cents: 1000,
   checkout_origin: origin, checkout_expires_at: new Date(Date.now() + 2400000).toISOString(), session_id: null });
@@ -20,7 +20,7 @@ function env() { return { VERCEL_ENV: "preview", VERCEL_PROJECT_ID: "prj_kA6x5rt
   GETESTIMATEFAST_DEVELOPMENT_PROJECT_REF: "cpjsbijgijeyrwjpuciv", GETESTIMATEFAST_SUPABASE_URL: "https://cpjsbijgijeyrwjpuciv.supabase.co",
   GETESTIMATEFAST_SUPABASE_SECRET_KEY: "synthetic-private", GETESTIMATEFAST_SUPABASE_PUBLISHABLE_KEY: "synthetic-public",
   GETESTIMATEFAST_ISOLATED_BACKEND: "true", GETESTIMATEFAST_MARKETPLACE_PREVIEW: "true", GETESTIMATEFAST_SMS_MODE: "dry_run",
-  GETESTIMATEFAST_STRIPE_MODE: "test", GETESTIMATEFAST_STRIPE_TEST_CHECKOUT_APPROVED: "false", GETESTIMATEFAST_STRIPE_TEST_SCHEMA_APPROVED: "false",
+  GETESTIMATEFAST_STRIPE_MODE: "test", GETESTIMATEFAST_STRIPE_TEST_ACCOUNT_ID: "acct_1UOl9qH5rFe1usWF", GETESTIMATEFAST_STRIPE_TEST_CHECKOUT_APPROVED: "false", GETESTIMATEFAST_STRIPE_TEST_SCHEMA_APPROVED: "false",
   GETESTIMATEFAST_PUBLIC_ORIGIN: origin, GETESTIMATEFAST_REVIEW_IDENTITY_SECRET: "synthetic-review-identity-minimum-32" }; }
 test("infrastructure preflight survives Checkout approval; payment authorization remains separate and scoped", () => {
   const e = env(); assert.equal(inspect(e).ready, true); assert.equal(checkoutApproved(e), false);
@@ -42,7 +42,7 @@ test("closing marketplace and new Checkout does not stop separately authorized p
 });
 test("expiration remains frozen across an ambiguous network failure and bound retries use retrieval", async () => {
   const o = order(), calls = [], s = session(o); let failed = false;
-  const client = { checkout: { sessions: { async create(params, options) {
+  const client = { accounts: { retrieve: async () => ({ object: "account", id: settings.expectedAccountId }) }, checkout: { sessions: { async create(params, options) {
     calls.push({ params, options }); if (!failed) { failed = true; throw Error("Synthetic response lost after provider commit"); } return s;
   }, async retrieve(value) { assert.equal(value, s.id); return s; } } } };
   await assert.rejects(createCheckout(o, settings, client));
@@ -61,7 +61,7 @@ test("native Vercel JSON getter is never accessed and raw bytes retain valid Str
   Object.defineProperty(req, "body", { get() { throw Error("Lazy JSON getter must not be accessed"); } });
   const bytes = await readRaw(req);
   const signature = sdk.webhooks.generateTestHeaderString({ payload, secret: settings.secret });
-  assert.equal((await processWebhook(bytes, signature, settings, {}, { webhooks: sdk.webhooks })).ignored, true);
+  assert.equal((await processWebhook(bytes, signature, settings, {}, { accounts: { retrieve: async () => ({ object: "account", id: settings.expectedAccountId }) }, webhooks: sdk.webhooks })).ignored, true);
   await assert.rejects(readRaw(Readable.from(["é".repeat(5)]), 9));
   const aborted = Readable.from(["{}"]); aborted.aborted = true; await assert.rejects(readRaw(aborted));
 });
@@ -69,7 +69,7 @@ test("event redelivery skips provider retrieval after persistence, including cha
   const raw = Buffer.from(JSON.stringify({ id: "evt_repeat", livemode: false, type: "checkout.session.expired", data: { object: { id: "cs_test_safety" } } }));
   const signature = sdk.webhooks.generateTestHeaderString({ payload: raw.toString(), secret: settings.secret });
   const repo = { event: async () => ({ session_id: "cs_test_safety" }) };
-  const client = { webhooks: sdk.webhooks, checkout: { sessions: { retrieve() { throw Error("No network on completed event redelivery"); } } } };
+  const client = { accounts: { retrieve: async () => ({ object: "account", id: settings.expectedAccountId }) }, webhooks: sdk.webhooks, checkout: { sessions: { retrieve() { throw Error("No network on completed event redelivery"); } } } };
   assert.equal((await processWebhook(raw, signature, settings, repo, client)).duplicate, true);
 });
 test("database bind and confirmation failures are retriable without another Checkout or duplicated payment", async () => {
@@ -77,7 +77,7 @@ test("database bind and confirmation failures are retriable without another Chec
   let bindFailures = 1, confirmationFailures = 1, commits = 0;
   const repo = { order: async () => ({ ...o }), bind: async (_, value) => { if (bindFailures--) throw Error("Synthetic bind failure"); o.session_id = value; },
     confirm: async () => { if (confirmationFailures--) throw Error("Synthetic confirmation failure"); commits++; return { created: true, status: "paid" }; } };
-  const client = { webhooks: sdk.webhooks, checkout: { sessions: { retrieve: async () => s, create() { throw Error("No new sessions during recovery"); } } } };
+  const client = { accounts: { retrieve: async () => ({ object: "account", id: settings.expectedAccountId }) }, webhooks: sdk.webhooks, checkout: { sessions: { retrieve: async () => s, create() { throw Error("No new sessions during recovery"); } } } };
   const raw = Buffer.from(JSON.stringify({ id: "evt_database_recovery", livemode: false, type: "checkout.session.completed", data: { object: { id: s.id } } }));
   const signature = sdk.webhooks.generateTestHeaderString({ payload: raw.toString(), secret: settings.secret });
   await assert.rejects(processWebhook(raw, signature, settings, repo, client)); assert.equal(commits, 0);
@@ -86,7 +86,7 @@ test("database bind and confirmation failures are retriable without another Chec
 });
 test("orphan session recovery validates provider facts before binding or confirming", async () => {
   const o = order(), s = session(o, { status: "complete", payment_status: "paid", payment_intent: "pi_safety" }), calls = [];
-  const client = { checkout: { sessions: { retrieve: async () => s } } };
+  const client = { accounts: { retrieve: async () => ({ object: "account", id: settings.expectedAccountId }) }, checkout: { sessions: { retrieve: async () => s } } };
   const repo = { order: async () => ({ ...o }), bind: async (...args) => calls.push(["bind", ...args]), reconcile: async data => { calls.push(["confirm", data]); return { status: "paid" }; } };
   const input = { orderId: id, observationId: "20000000-0000-4000-8000-000000000099", sessionId: s.id };
   assert.equal((await reconcileTestOrder(input, repo, client, () => settings)).status, "paid"); assert.equal(calls[0][0], "bind");
@@ -97,7 +97,7 @@ test("refund request is never completion; only a matching succeeded processor re
   const refund = { id: "re_safety", payment_intent: "pi_safety", currency: "usd", amount: 1000, status: "pending" };
   const payment = { id: "pi_safety", livemode: false, status: "succeeded", amount_received: 1000, currency: "usd", metadata: s.metadata };
   let confirmations = 0;
-  const client = { checkout: { sessions: { retrieve: async () => s } }, refunds: { retrieve: async () => refund, create() { throw Error("Refund creation forbidden"); } }, paymentIntents: { retrieve: async () => payment } };
+  const client = { accounts: { retrieve: async () => ({ object: "account", id: settings.expectedAccountId }) }, checkout: { sessions: { retrieve: async () => s } }, refunds: { retrieve: async () => refund, create() { throw Error("Refund creation forbidden"); } }, paymentIntents: { retrieve: async () => payment } };
   const repo = { order: async () => o, confirmRefund: async () => { confirmations++; return { status: "refunded" }; } };
   const input = { orderId: id, observationId: "20000000-0000-4000-8000-000000000099", refundId: refund.id };
   for (const status of ["pending", "failed", "canceled", "requires_action"]) { refund.status = status; assert.equal((await reconcileTestOrder(input, repo, client, () => settings)).processor_refund_confirmed, false); }

@@ -1,11 +1,12 @@
 "use strict";
 const { DEVELOPMENT_REF } = require("./preview-target");
+const { EXPECTED_TEST_ACCOUNT_ID } = require("./stripe-account");
 const SANDBOX_BRANCH = "feat/stripe-sandbox-safety-20261012";
 // Infrastructure readiness is independent from permission to create a payment.
 function allowedScope(env) {
   return env.GETESTIMATEFAST_ISOLATED_BACKEND === "true" && env.GETESTIMATEFAST_STRIPE_MODE === "test" &&
     env.GETESTIMATEFAST_DEVELOPMENT_PROJECT_REF === DEVELOPMENT_REF &&
-    env.GETESTIMATEFAST_SMS_MODE === "dry_run" &&
+    env.GETESTIMATEFAST_SMS_MODE === "dry_run" && env.GETESTIMATEFAST_STRIPE_TEST_ACCOUNT_ID === EXPECTED_TEST_ACCOUNT_ID &&
     (env.VERCEL_ENV === "development" ||
       (env.VERCEL_ENV === "preview" && env.VERCEL_GIT_COMMIT_REF === SANDBOX_BRANCH &&
         env.VERCEL_PROJECT_ID === "prj_kA6x5rt1MChiNSQpa6pShHoUSuOF"));

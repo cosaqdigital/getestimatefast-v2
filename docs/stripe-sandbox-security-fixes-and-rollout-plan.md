@@ -45,9 +45,12 @@ Rollback operacional: interromper novas compras com Checkout false e marketplace
 
 Nada nesta lista foi instalado. Somente Preview da nova branch, Supabase `cpjsbijgijeyrwjpuciv`, projeto `prj_kA6x5rt1MChiNSQpa6pShHoUSuOF`.
 
+Atualização do patch de identidade: conta esperada informada pelo usuário no Dashboard — Cosaquevite Corp, Sandbox “Área restrita de Cosaquevite Corp”, `acct_1UOl9qH5rFe1usWF`. Config proposta `GETESTIMATEFAST_STRIPE_TEST_ACCOUNT_ID=acct_1UOl9qH5rFe1usWF`, somente Preview desta branch. A conferência autenticada pela API ainda não foi executada. O patch acrescenta GET /v1/account antes de reserva/Checkout, webhook e reconciliação; divergência ou falha bloqueia o fluxo. Publicação do código autorizada exclusivamente na branch da PR #60, preservando deployment automático desligado; configuração e execução remotas continuam pendentes. Plano atualizado em `docs/stripe-sandbox-account-connection-preparation.md`.
+
 | Nome | Tipo/estado inicial |
 |---|---|
 | GETESTIMATEFAST_STRIPE_MODE | Config: test |
+| GETESTIMATEFAST_STRIPE_TEST_ACCOUNT_ID | Config: acct_1UOl9qH5rFe1usWF |
 | GETESTIMATEFAST_STRIPE_TEST_CHECKOUT_APPROVED | Config: false |
 | GETESTIMATEFAST_STRIPE_TEST_SCHEMA_APPROVED | Config: false até instalação/auditoria aprovada |
 | GETESTIMATEFAST_STRIPE_TEST_WEBHOOK_ENABLED | Config: false até aprovação da infraestrutura de recebimento |
