@@ -3,60 +3,60 @@
 const crypto = require("node:crypto");
 const Stripe = require("stripe");
 const { StringDecoder } = require("node:string_decoder");
-const { startRelay, validDestination, PROJECT, TEAM } = require("./stripe-preview-relay");
+const { startRelay, validDestination, bounded, PROJECT, TEAM } = require("./stripe-preview-relay");
+const { selectDeployment } = require("./stripe-authorized-deployments");
+const { createOidcVerifier, diagnosticCode, OidcValidationError } = require("./stripe-oidc-validation");
+const { OperationalError, timed, safeStatus } = require("./stripe-operational-control");
 const { SANDBOX_BRANCH } = require("../api/_lib/stripe-policy");
 const ACCOUNT = "acct_1UOl9qH5rFe1usWF";
-const APPROVED = Object.freeze({ id: "dpl_HAbtXDcwSPoVpTbPVjzZmCUMneHU", sha: "9901db8b8e99ae510de9e3f63b61c6e39256befa",
-  alias: "getestimatefast-v2-git-feat-stripe-san-f12bd7-get-estimate-fast.vercel.app" });
+const APPROVED = selectDeployment("pr60-stage7"); // Metadata export; startup still requires explicit selection.
 const EVENTS = ["checkout.session.completed", "checkout.session.async_payment_succeeded", "checkout.session.async_payment_failed", "checkout.session.expired"];
-async function verifyTarget(api, signal) {
-  const p = await api("/v9/projects/" + PROJECT, signal);
-  const a = await api("/v4/aliases/" + APPROVED.alias, signal);
-  const d = await api("/v13/deployments/" + APPROVED.id, signal);
-  if (p.id !== PROJECT || p.accountId !== TEAM || p.name !== "getestimatefast-v2" || p.ssoProtection?.deploymentType !== "all_except_custom_domains" ||
-      a.projectId !== PROJECT || a.alias !== APPROVED.alias || a.deploymentId !== APPROVED.id || a.redirect ||
-      d.id !== APPROVED.id || d.projectId !== PROJECT || d.ownerId !== TEAM || d.target != null || d.readyState !== "READY" ||
-      d.meta?.githubCommitRef !== SANDBOX_BRANCH || d.meta?.githubCommitSha !== APPROVED.sha ||
-      d.gitSource?.sha !== APPROVED.sha || d.gitSource?.repoId !== 1211705834 || !d.alias?.includes(APPROVED.alias)) throw Error("Vercel target verification failed");
-  // Pin the immutable deployment URL: never send credentials to a mutable alias.
-  const origin = "https://" + d.url;
-  const target = { id: d.id, projectId: PROJECT, teamId: TEAM, environment: "preview", branch: SANDBOX_BRANCH, sha: APPROVED.sha, origin };
-  validDestination(origin, target); return target;
-}
-function createOidcVerifier({ loadJwks, now = () => Date.now() }) {
-  return async token => {
-    try {
-      if (typeof token !== "string" || token.length > 16384 || !/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(token)) throw Error();
-      const [h, p, s] = token.split("."), header = JSON.parse(Buffer.from(h, "base64url")), c = JSON.parse(Buffer.from(p, "base64url"));
-      const seconds = Math.floor(now() / 1000);
-      if (header.alg !== "RS256" || header.typ !== "JWT" || typeof header.kid !== "string" || header.jku || header.jwk || header.crit ||
-          !["https://oidc.vercel.com", "https://oidc.vercel.com/get-estimate-fast"].includes(c.iss) ||
-          c.aud !== "https://vercel.com/get-estimate-fast" || c.owner_id !== TEAM || c.owner !== "get-estimate-fast" || c.project_id !== PROJECT || c.project !== "getestimatefast-v2" ||
-          !["development", "preview"].includes(c.environment) || c.sub !== "owner:get-estimate-fast:project:getestimatefast-v2:environment:" + c.environment ||
-          !Number.isInteger(c.exp) || !Number.isInteger(c.nbf) || !Number.isInteger(c.iat) || c.exp <= seconds + 30 || c.nbf > seconds || c.iat > seconds || c.exp <= c.iat) throw Error();
-      // Adapter must use the pinned issuer's discovery/JWKS, never token jku URLs.
-      const jwks = await loadJwks(c.iss);
-      const keys = jwks.keys.filter(k => k.kid === header.kid && k.kty === "RSA" && (!k.alg || k.alg === "RS256") && (!k.use || k.use === "sig"));
-      if (keys.length !== 1 || !crypto.verify("RSA-SHA256", Buffer.from(h + "." + p), crypto.createPublicKey({ key: keys[0], format: "jwk" }), Buffer.from(s, "base64url")) || c.exp <= Math.floor(now() / 1000) + 30) throw Error();
-      return c;
-    } catch { throw Error("OIDC validation failed"); }
+async function verifyTarget(api, selection, signal, timeoutMs = 10000) {
+  const expected = selectDeployment(selection);
+  if (typeof api !== "function" || !Number.isInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 10000) throw Error("Invalid target verifier");
+  const controller = new AbortController(), timer = setTimeout(() => controller.abort(), timeoutMs);
+  const scope = signal ? AbortSignal.any([signal, controller.signal]) : controller.signal;
+  const read = async route => {
+    if (scope.aborted) throw Error();
+    const value = await bounded(Promise.resolve().then(() => api(route, scope)), scope);
+    if (!value || typeof value !== "object" || Array.isArray(value) || value.redirected || value.status >= 300 || value.error) throw Error();
+    return value;
   };
+  try {
+    const [p, a, d] = await Promise.all([read("/v9/projects/" + PROJECT), read("/v4/aliases/" + expected.alias), read("/v13/deployments/" + expected.id)]);
+    if (p.id !== PROJECT || p.accountId !== TEAM || p.name !== "getestimatefast-v2" || p.ssoProtection?.deploymentType !== "all_except_custom_domains" ||
+        p.link?.type !== "github" || p.link?.org !== "cosaqdigital" || p.link?.repo !== "getestimatefast-v2" || p.link?.repoId !== expected.repoId ||
+        a.projectId !== PROJECT || a.alias !== expected.alias || a.deploymentId !== expected.id || a.redirect !== null ||
+        d.id !== expected.id || d.projectId !== PROJECT || d.ownerId !== TEAM || d.target !== null || d.readyState !== "READY" ||
+        d.meta?.githubCommitRef !== expected.branch || d.meta?.githubCommitSha !== expected.sha ||
+        d.gitSource?.type !== "github" || d.gitSource?.ref !== expected.branch || d.gitSource?.sha !== expected.sha || d.gitSource?.repoId !== expected.repoId ||
+        !Array.isArray(d.alias) || !d.alias.includes(expected.alias) || d.url !== new URL(expected.origin).hostname) throw Error();
+    validDestination(expected.origin, expected);
+    return expected; // The immutable catalog entry, never fields supplied by API/caller.
+  } catch { throw Error("Vercel target verification failed"); }
+  finally { clearTimeout(timer); controller.abort(); }
 }
-function createTokenManager({ obtain, verify, now = () => Date.now() }) {
-  let bytes, expires = 0, pending, disposed = false;
-  const clear = () => { bytes?.fill(0); bytes = undefined; expires = 0; };
-  const get = async () => {
+function createTokenManager({ obtain, verify, now = () => Date.now(), timeoutMs = 10000 }) {
+  let bytes, expires = 0, pending, disposed = false, refreshing, generation = 0;
+  const clear = () => { bytes?.fill(0); bytes = undefined; expires = 0; generation++; };
+  const get = async signal => {
     if (disposed) throw Error("Token manager closed");
-    if (bytes && expires > now() + 60000) return bytes.toString();
-    if (!pending) pending = (async () => {
-      clear(); let value;
-      try { value = await obtain(); const c = await verify(value); if (disposed || c.exp * 1000 <= now() + 30000) throw Error(); bytes = Buffer.from(value); expires = c.exp * 1000; return bytes.toString(); }
-      catch { clear(); throw Error("Temporary OIDC unavailable"); }
+    if (signal?.aborted) throw new OperationalError("OPERATION_ABORTED");
+    if (bytes && expires > now() + 60000) {
+      const value = bytes.toString(), currentGeneration = generation;
+      try { await timed(() => verify(value), timeoutMs, signal, "OIDC_REFRESH_TIMEOUT"); if (disposed || currentGeneration !== generation) throw new OperationalError("OPERATION_ABORTED"); return value; }
+      catch (error) { if (currentGeneration === generation) clear(); throw error; }
+    }
+    if (!pending) { refreshing = new AbortController(); const refreshSignal = refreshing.signal; pending = timed(async scope => {
+      clear(); const refreshGeneration = generation; let value;
+      try { try { value = await obtain(scope); } catch { throw new OidcValidationError("OIDC_ACQUISITION"); } if (scope.aborted) throw new OperationalError("OPERATION_ABORTED"); const c = await verify(value); if (scope.aborted || disposed || c.exp * 1000 <= now() + 30000) throw Error(); bytes = Buffer.from(value); expires = c.exp * 1000; return bytes.toString(); }
+      catch (cause) { if (refreshGeneration === generation) clear(); const error = new OidcValidationError(diagnosticCode(cause)); error.message = "Temporary OIDC unavailable: " + error.code; throw error; }
       finally { value = undefined; }
-    })().finally(() => { pending = undefined; });
-    return pending;
+    }, timeoutMs, refreshSignal, "OIDC_REFRESH_TIMEOUT").catch(error => { clear(); throw error; }).finally(() => { pending = undefined; refreshing = undefined; }); }
+    const current = pending;
+    return signal ? timed(() => current, timeoutMs, signal, "OIDC_REFRESH_TIMEOUT") : current;
   };
-  return { get, verify: async token => { await verify(token); return true; }, invalidate: clear, dispose() { disposed = true; clear(); } };
+  return { get, verify: async token => { if (disposed) throw Error("Token manager closed"); await verify(token); return true; }, invalidate() { clear(); refreshing?.abort(); }, dispose() { disposed = true; clear(); refreshing?.abort(); } };
 }
 function createSecretCapture() {
   const decoder = new StringDecoder("utf8"); let carry = "", bytes, disposed = false;
@@ -80,32 +80,53 @@ function listenArguments(port) {
 async function startSyntheticLauncher(adapters) {
   // Explicitly unavailable for real startup until a separately approved adapter exists.
   if (adapters?.mode !== "synthetic" || ["spawnSynthetic", "stopSynthetic", "transport", "readStripeIdentity", "api", "obtainToken", "loadJwks"].some(n => typeof adapters[n] !== "function")) throw Error("Synthetic local launcher only");
-  let server, child, closed = false;
+  selectDeployment(adapters.deploymentSelection);
+  const selection = adapters.deploymentSelection;
+  let server, child, closed = false, stopped = false, stopping, terminal, childCleaned = false;
+  const lifecycle = new AbortController(), startupMs = adapters.startupTimeoutMs || 30000, cleanupMs = adapters.cleanupTimeoutMs || 5000;
+  if (!Number.isInteger(startupMs) || startupMs < 1 || startupMs > 30000 || !Number.isInteger(cleanupMs) || cleanupMs < 1 || cleanupMs > 5000) throw Error("Invalid launcher deadlines");
+  const record = event => { terminal = safeStatus(event); try { adapters.onStatus?.(terminal); } catch {} };
   const capture = createSecretCapture(), verify = createOidcVerifier(adapters), tokens = createTokenManager({ obtain: adapters.obtainToken, verify, now: adapters.now });
   const stop = async () => {
-    if (closed) return; closed = true;
+    if (stopping) return stopping;
+    if (stopped) return terminal;
+    closed = true; lifecycle.abort();
     capture.dispose(); tokens.dispose();
     const cleanup = [];
-    if (child) { child.stdout?.off("data", ingest); child.stderr?.off("data", ingest); child.off("error", failed); child.off("exit", failed); cleanup.push(Promise.resolve().then(() => adapters.stopSynthetic(child))); }
-    if (server) cleanup.push(server.stopRelay());
-    await Promise.allSettled(cleanup);
-    process.off("SIGINT", failed); process.off("SIGTERM", failed);
+    if (child && !childCleaned) { child.stdout?.off("data", ingest); child.stderr?.off("data", ingest); child.stdout?.resume(); child.stderr?.resume(); child.off("exit", childExit); cleanup.push(timed(() => adapters.stopSynthetic(child), cleanupMs, undefined, "PROCESS_CLEANUP_TIMEOUT").then(() => { childCleaned = true; })); }
+    if (server?.listening) cleanup.push(server.stopRelay());
+    process.off("SIGINT", onSigint); process.off("SIGTERM", onSigterm);
+    stopping = Promise.allSettled(cleanup).then(results => {
+      const failure = results.find(r => r.status === "rejected");
+      if (failure) { const error = new OperationalError(failure.reason?.code === "PROCESS_CLEANUP_TIMEOUT" ? "PROCESS_CLEANUP_TIMEOUT" : "PROCESS_CLEANUP_FAILED", terminal); record(error); throw error; }
+      stopped = true; child?.off("error", childError); if (!terminal) record({ code: "LAUNCHER_STOPPED" }); return terminal;
+    }).finally(() => { stopping = undefined; });
+    return stopping;
   };
-  const failed = () => { void stop().catch(() => {}); };
-  const ingest = chunk => { try { capture.ingest(chunk); } catch { failed(); } };
+  const failed = event => { record(event); void stop().catch(() => {}); };
+  const childExit = (exitCode, signal) => failed({ code: exitCode === 0 && !signal ? "LAUNCHER_CHILD_EXIT" : signal ? "PROCESS_INTERRUPTED" : "PROCESS_EXIT_NONZERO", exitCode, signal });
+  const childError = () => failed({ code: "PROCESS_START_FAILED" });
+  const interrupted = signal => failed({ code: "LAUNCHER_INTERRUPTED", signal: typeof signal === "string" ? signal : "SIGINT" });
+  const onSigint = () => interrupted("SIGINT"), onSigterm = () => interrupted("SIGTERM");
+  const ingest = chunk => { try { capture.ingest(chunk); } catch { failed({ code: "LAUNCHER_SECRET_CHANGED" }); } };
   try {
-    const identity = await adapters.readStripeIdentity();
+    process.once("SIGINT", onSigint); process.once("SIGTERM", onSigterm);
+    return await timed(async scope => {
+    const identity = await timed(s => adapters.readStripeIdentity(s), 10000, scope);
     if (identity.version !== "1.53.1" || identity.account_id !== ACCOUNT || identity.mode !== "test" ||
         !Array.isArray(identity.authorized_accounts) || identity.authorized_accounts.length !== 1 || identity.authorized_accounts[0].id !== ACCOUNT ||
         JSON.stringify(identity.authorized_accounts[0].modes) !== '["test"]') throw Error("Stripe Sandbox identity required");
-    const target = await verifyTarget(adapters.api); await tokens.get();
-    server = await startRelay({ origin: target.origin, deployment: target, verifyDestination: signal => verifyTarget(adapters.api, signal),
+    const target = await verifyTarget(adapters.api, selection, scope); await tokens.get(scope);
+    if (scope.aborted || closed) throw new OperationalError("OPERATION_ABORTED");
+    server = await startRelay({ origin: target.origin, deployment: target, verifyDestination: signal => verifyTarget(adapters.api, selection, signal), onDestinationFailure: () => failed({ code: "LAUNCHER_DESTINATION_FAILED" }),
       tokenProvider: tokens.get, verifyToken: tokens.verify, onAuthorizationFailure: tokens.invalidate, verifySignature: (raw, sig) => capture.verify(raw, sig), transport: adapters.transport, timeoutMs: adapters.timeoutMs || 20000 });
-    child = await adapters.spawnSynthetic({ args: listenArguments(server.address().port), stdio: ["ignore", "pipe", "pipe"], windowsHide: true });
-    child.stdout.on("data", ingest); child.stderr.on("data", ingest); child.once("error", failed); child.once("exit", failed);
-    process.once("SIGINT", failed); process.once("SIGTERM", failed);
-    return { port: server.address().port, secretReady: capture.ready, stop };
-  } catch { await stop(); throw Error("Local launcher preparation failed"); }
+    if (scope.aborted || closed) { await stop(); throw new OperationalError("OPERATION_ABORTED"); }
+    child = await adapters.spawnSynthetic({ args: listenArguments(server.address().port), stdio: ["ignore", "pipe", "pipe"], windowsHide: true }, scope);
+    if (scope.aborted || closed) { stopped = false; await stop(); throw new OperationalError("OPERATION_ABORTED"); }
+    child.stdout.on("data", ingest); child.stderr.on("data", ingest); child.on("error", childError); child.once("exit", childExit);
+    return { port: server.address().port, secretReady: capture.ready, stop, status: () => terminal, interrupt: signal => interrupted(signal) };
+    }, startupMs, adapters.signal ? AbortSignal.any([adapters.signal, lifecycle.signal]) : lifecycle.signal, "LAUNCHER_STARTUP_TIMEOUT");
+  } catch (cause) { await stop(); if (cause instanceof OidcValidationError || cause instanceof OperationalError) throw cause; throw new OperationalError("LAUNCHER_START_FAILED"); }
 }
 if (require.main === module) { process.stderr.write("Real Stripe listener is not enabled. Run local synthetic tests only.\n"); process.exitCode = 1; }
 module.exports = { APPROVED, ACCOUNT, EVENTS, verifyTarget, createOidcVerifier, createTokenManager, createSecretCapture, listenArguments, startSyntheticLauncher };

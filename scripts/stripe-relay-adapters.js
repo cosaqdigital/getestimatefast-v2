@@ -3,18 +3,24 @@
 const path = require("node:path");
 const fs = require("node:fs");
 const { PROJECT, TEAM } = require("./stripe-preview-relay");
-const { ACCOUNT, APPROVED, listenArguments } = require("./stripe-preview-launcher");
-function commands({ stripeExecutable, vercelEntry, runtimeDirectory, nodeExecutable = process.execPath }) {
+const { ACCOUNT, listenArguments } = require("./stripe-preview-launcher");
+const { selectDeployment } = require("./stripe-authorized-deployments");
+const { createOidcJwksLoader } = require("./stripe-oidc-validation");
+const { OperationalError, timed } = require("./stripe-operational-control");
+const privatePlans = new WeakMap();
+const nativeRunners = new WeakSet();
+function commands({ deploymentSelection, stripeExecutable, vercelEntry, runtimeDirectory, nodeExecutable = process.execPath }) {
+  const approved = selectDeployment(deploymentSelection);
   if (![stripeExecutable, vercelEntry, nodeExecutable, runtimeDirectory].every(p => typeof p === "string" && path.isAbsolute(p)) ||
       !stripeExecutable.toLowerCase().endsWith("stripe.exe") || !vercelEntry.endsWith(".js") || /\.(cmd|bat|ps1)$/i.test(nodeExecutable)) throw Error("Reviewed native executable paths required");
-  const spec = (file, args) => ({ file, args, options: { cwd: runtimeDirectory, shell: false, windowsHide: true, stdio: ["ignore", "pipe", "pipe"] } });
+  const spec = (file, args) => { const value = Object.freeze({ file, args: Object.freeze(args), options: Object.freeze({ cwd: runtimeDirectory, shell: false, windowsHide: true, stdio: Object.freeze(["ignore", "pipe", "pipe"]) }) }); privatePlans.set(value, { deploymentSelection, stripeExecutable, vercelEntry, nodeExecutable, runtimeDirectory }); return value; };
   const vercel = args => spec(nodeExecutable, [vercelEntry, ...args, "--scope", TEAM, "--non-interactive"]);
   return {
     version: () => spec(stripeExecutable, ["--version"]),
     selectSandbox: () => spec(stripeExecutable, ["switch", ACCOUNT, "--format", "json"]),
     identity: () => spec(stripeExecutable, ["whoami", "--format", "json"]),
     api(endpoint) {
-      if (!["/v9/projects/" + PROJECT, "/v4/aliases/" + APPROVED.alias, "/v13/deployments/" + APPROVED.id].includes(endpoint)) throw Error("Read-only target endpoint required");
+      if (!["/v9/projects/" + PROJECT, "/v4/aliases/" + approved.alias, "/v13/deployments/" + approved.id].includes(endpoint)) throw Error("Read-only target endpoint required");
       return vercel(["api", endpoint, "--method", "GET"]);
     },
     oidc: () => spec(nodeExecutable, [vercelEntry, "env", "run", "--environment", "development", "--project", PROJECT, "--scope", TEAM,
@@ -28,47 +34,65 @@ function cleanEnvironment(env) {
   const allowed = ["PATH", "Path", "SystemRoot", "SYSTEMROOT", "WINDIR", "TEMP", "TMP", "USERPROFILE", "APPDATA", "LOCALAPPDATA", "HOME", "COMSPEC", "PATHEXT"];
   return Object.fromEntries(allowed.filter(k => typeof env[k] === "string").map(k => [k, env[k]]));
 }
-function createPrivateProcessRunner({ mode, spawnMock, stopMock, env = {}, timeoutMs = 20000, maxBytes = 2097152 }) {
-  if (mode !== "synthetic" || typeof spawnMock !== "function" || typeof stopMock !== "function" || timeoutMs < 1 || timeoutMs > 20000) throw Error("Synthetic process adapters only");
+function makeProcessRunner({ mode, spawnMock, spawnReviewed, stopMock, env = {}, timeoutMs = 20000, cleanupTimeoutMs = 5000, maxBytes = 2097152 }) {
+  if (!["synthetic", "native"].includes(mode) || (typeof spawnMock !== "function" && typeof spawnReviewed !== "function") || typeof stopMock !== "function" || !Number.isInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 20000 || !Number.isSafeInteger(maxBytes) || maxBytes < 1 || maxBytes > 2097152 || !Number.isInteger(cleanupTimeoutMs) || cleanupTimeoutMs < 1 || cleanupTimeoutMs > 5000) throw Error("Private process adapters required");
   const owned = new Set(), stopping = new Map(); let disposed = false;
   const stop = async child => {
     if (stopping.has(child)) return stopping.get(child);
     if (!owned.has(child)) return;
-    const operation = Promise.resolve().then(() => stopMock(child)).then(() => owned.delete(child))
-      .catch(() => { throw Error("Private process termination unavailable"); }).finally(() => stopping.delete(child));
+    const operation = timed(() => stopMock(child), cleanupTimeoutMs, undefined, "PROCESS_CLEANUP_TIMEOUT").then(() => owned.delete(child))
+      .catch(e => { const error = new OperationalError(e?.code === "PROCESS_CLEANUP_TIMEOUT" ? "PROCESS_CLEANUP_TIMEOUT" : "PROCESS_CLEANUP_FAILED"); error.message = "Private process termination unavailable: " + error.code; throw error; }).finally(() => stopping.delete(child));
     stopping.set(child, operation); return operation;
   };
   const spawn = spec => {
     if (disposed || spec.options?.shell !== false || spec.options?.stdio?.join() !== "ignore,pipe,pipe") throw Error("Private subprocess required");
     if (!path.isAbsolute(spec.options.cwd || "") || fs.readdirSync(spec.options.cwd).some(n => /^\.env(?:\.|$)/i.test(n))) throw Error("Isolated runtime directory required");
-    const child = spawnMock(spec.file, [...spec.args], { ...spec.options, env: cleanEnvironment(env) }); owned.add(child); return child;
+    const child = spawnReviewed ? spawnReviewed(spec, cleanEnvironment(env)) : spawnMock(spec.file, [...spec.args], { ...spec.options, env: cleanEnvironment(env) }); child.on("error", () => {}); owned.add(child); return child;
   };
-  const capture = async spec => {
-    let child, chunks = [], total = 0, timer;
+  const capture = async (spec, signal) => {
+    let child, chunks = [], total = 0, timer, abort, onData, onStderr, onClose, onError, commandFailure;
     try {
+      if (signal?.aborted) throw new OperationalError("OPERATION_ABORTED");
       child = spawn(spec);
       const bytes = await new Promise((resolve, reject) => {
-        const fail = () => reject(Error("Private command unavailable"));
-        timer = setTimeout(fail, timeoutMs);
-        child.stdout.on("data", chunk => { total += chunk.length; if (total > maxBytes) return fail(); chunks.push(Buffer.from(chunk)); });
+        const fail = onError = () => reject(new OperationalError("PROCESS_START_FAILED"));
+        timer = setTimeout(() => reject(new OperationalError("PROCESS_TIMEOUT")), timeoutMs);
+        child.stdout.on("data", onData = chunk => { total += chunk.length; if (total > maxBytes) return fail(); chunks.push(Buffer.from(chunk)); });
         // Drain stderr without retaining or printing errors which may contain credentials.
-        child.stderr.on("data", () => {}); child.once("error", fail);
-        child.once("close", code => code === 0 ? resolve(Buffer.concat(chunks)) : fail());
+        child.stderr.on("data", onStderr = () => {}); child.once("error", fail);
+        child.once("close", onClose = (code, exitSignal) => code === 0 && !exitSignal ? resolve(Buffer.concat(chunks)) : reject(new OperationalError(exitSignal ? "PROCESS_INTERRUPTED" : "PROCESS_EXIT_NONZERO", { exitCode: code, signal: exitSignal })));
+        if (signal) { abort = () => reject(new OperationalError("OPERATION_ABORTED")); signal.addEventListener("abort", abort, { once: true }); if (signal.aborted) abort(); }
       });
       return bytes;
-    } catch { throw Error("Private command unavailable"); }
-    finally { clearTimeout(timer); chunks.forEach(b => b.fill(0)); if (child) { child.stdout.removeAllListeners("data"); child.stderr.removeAllListeners("data"); child.removeAllListeners("close"); await stop(child).catch(() => {}); } }
+    } catch (cause) { const error = cause instanceof OperationalError ? cause : new OperationalError("PROCESS_START_FAILED"); error.message = "Private command unavailable: " + error.code; commandFailure = error; throw error; }
+    finally { clearTimeout(timer); if (abort) signal.removeEventListener("abort", abort); chunks.forEach(b => b.fill(0)); if (child) { child.stdout.off("data", onData); child.stderr.off("data", onStderr); child.off("close", onClose); child.off("error", onError); try { await stop(child); } catch (cleanup) { if (commandFailure) { cleanup.commandCode = commandFailure.code; if (Number.isInteger(commandFailure.exitCode)) cleanup.exitCode = commandFailure.exitCode; if (commandFailure.signal) cleanup.signal = commandFailure.signal; } throw cleanup; } } }
   };
-  return { capture, spawn, stop, async dispose() { disposed = true; await Promise.allSettled([...owned].map(stop)); } };
+  return { capture, spawn, stop, async dispose() { disposed = true; const results = await Promise.allSettled([...owned].map(stop)); const failure = results.find(r => r.status === "rejected"); if (failure) throw failure.reason; }, ownedCount: () => owned.size };
+}
+function createPrivateProcessRunner(options) {
+  if (options?.mode !== "synthetic") throw Error("Synthetic process adapters only");
+  return makeProcessRunner(options);
+}
+function createNativeProcessRunner({ authorization, deploymentSelection, env = {}, timeoutMs = 10000, cleanupTimeoutMs = 5000 }) {
+  const { createNativeProcessController } = require("./stripe-native-processes");
+  const controller = createNativeProcessController({ authorization, selection: deploymentSelection, timeoutMs: cleanupTimeoutMs,
+    validatePlan(spec, grant) {
+      const metadata = privatePlans.get(spec);
+      if (!metadata || metadata.deploymentSelection !== deploymentSelection || metadata.stripeExecutable !== grant.stripeExecutable ||
+          metadata.vercelEntry !== grant.vercelEntry || metadata.nodeExecutable !== grant.nodeExecutable || metadata.runtimeDirectory !== grant.runtimeDirectory) throw Error("Reviewed scoped native plan required");
+      if (spec.args[0] === "switch" || (spec.args[0] === "listen" && grant.allowListener !== true)) throw Error("Native operation not authorized");
+    } });
+  const runner = makeProcessRunner({ mode: "native", spawnReviewed: controller.spawn, stopMock: controller.stop, env, timeoutMs, cleanupTimeoutMs });
+  nativeRunners.add(runner); return runner;
 }
 function createVercelAdapter({ mode, plan, runner }) {
-  if (mode !== "synthetic") throw Error("Real authentication is not approved");
-  const api = async endpoint => { let bytes; try { bytes = await runner.capture(plan.api(endpoint)); return JSON.parse(bytes.toString()); } catch { throw Error("Vercel identity read unavailable"); } finally { bytes?.fill(0); } };
-  const obtainToken = async () => { let bytes; try { bytes = await runner.capture(plan.oidc()); const value = bytes.toString().trim(); if (!/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(value)) throw Error(); return value; } catch { throw Error("Project OIDC unavailable"); } finally { bytes?.fill(0); } };
+  if (mode !== "synthetic" && !(mode === "native" && nativeRunners.has(runner))) throw Error("Real authentication is not approved");
+  const api = async (endpoint, signal) => { let bytes; try { bytes = await runner.capture(plan.api(endpoint), signal); return JSON.parse(bytes.toString()); } catch { throw Error("Vercel identity read unavailable"); } finally { bytes?.fill(0); } };
+  const obtainToken = async signal => { let bytes; try { bytes = await runner.capture(plan.oidc(), signal); const value = bytes.toString().trim(); if (!/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(value)) throw Error(); return value; } catch { throw Error("Project OIDC unavailable"); } finally { bytes?.fill(0); } };
   return { api, obtainToken };
 }
 function createStripeAdapter({ mode, plan, runner }) {
-  if (mode !== "synthetic") throw Error("Real Stripe listener is not approved");
+  if (mode !== "synthetic" && !(mode === "native" && nativeRunners.has(runner))) throw Error("Real Stripe listener is not approved");
   let active, starting = false;
   const parse = async spec => { let bytes; try { bytes = await runner.capture(spec); return JSON.parse(bytes.toString()); } finally { bytes?.fill(0); } };
   const readStripeIdentity = async () => {
@@ -86,24 +110,6 @@ function createStripeAdapter({ mode, plan, runner }) {
 }
 function createJwksLoader({ mode, transport, timeoutMs = 10000 }) {
   if (mode !== "synthetic" || typeof transport !== "function") throw Error("Synthetic JWKS transport required");
-  const json = async url => {
-    const controller = new AbortController(); let timer;
-    try {
-      return await Promise.race([(async () => {
-        const r = await transport(url, { method: "GET", redirect: "error", signal: controller.signal });
-        if (r.status !== 200 || r.redirected) throw Error();
-        let size = 0, chunks = [];
-        try { for await (const chunk of r.body) { size += chunk.length; if (size > 65536) throw Error(); chunks.push(Buffer.from(chunk)); } return JSON.parse(Buffer.concat(chunks).toString()); }
-        finally { chunks.forEach(b => b.fill(0)); }
-      })(), new Promise((_, reject) => { timer = setTimeout(() => { controller.abort(); reject(Error()); }, timeoutMs); })]);
-    } catch { throw Error("OIDC public key source unavailable"); } finally { clearTimeout(timer); }
-  };
-  return async issuer => {
-    if (!["https://oidc.vercel.com", "https://oidc.vercel.com/get-estimate-fast"].includes(issuer)) throw Error("Unapproved OIDC issuer");
-    const discovery = await json(issuer + "/.well-known/openid-configuration");
-    const uri = new URL(discovery.jwks_uri);
-    if (discovery.issuer !== issuer || uri.origin !== "https://oidc.vercel.com" || uri.username || uri.password || uri.search || uri.hash || !uri.pathname.includes("/.well-known/")) throw Error("OIDC discovery mismatch");
-    const jwks = await json(uri.href); if (!Array.isArray(jwks.keys) || jwks.keys.length > 32) throw Error("OIDC key set unavailable"); return jwks;
-  };
+  return createOidcJwksLoader({ transport, timeoutMs });
 }
-module.exports = { commands, cleanEnvironment, createPrivateProcessRunner, createVercelAdapter, createStripeAdapter, createJwksLoader };
+module.exports = { commands, cleanEnvironment, createPrivateProcessRunner, createNativeProcessRunner, createVercelAdapter, createStripeAdapter, createJwksLoader };

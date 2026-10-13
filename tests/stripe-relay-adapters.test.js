@@ -6,7 +6,13 @@ const { commands, cleanEnvironment, createPrivateProcessRunner, createVercelAdap
 const { ACCOUNT, listenArguments } = require("../scripts/stripe-preview-launcher");
 const runtimeDirectory = fs.mkdtempSync(path.join(os.tmpdir(), "gef-adapter-synthetic-"));
 test.after(() => fs.rmdirSync(runtimeDirectory));
-const plan = commands({ stripeExecutable: path.resolve("synthetic/stripe.exe"), vercelEntry: path.resolve("synthetic/vercel.js"), runtimeDirectory });
+const plan = commands({ deploymentSelection: "pr60-stage7", stripeExecutable: path.resolve("synthetic/stripe.exe"), vercelEntry: path.resolve("synthetic/vercel.js"), runtimeDirectory });
+test("read-only command plans require catalog selection and pin only the newly authorized deployment", () => {
+  const { selectDeployment } = require("../scripts/stripe-authorized-deployments"), target = selectDeployment("pr60-stage7");
+  assert(plan.api("/v13/deployments/" + target.id).args.includes("/v13/deployments/" + target.id));
+  assert.throws(() => plan.api("/v13/deployments/dpl_HAbtXDcwSPoVpTbPVjzZmCUMneHU"));
+  for (const deploymentSelection of [undefined, "dpl_other", { ...target }]) assert.throws(() => commands({ deploymentSelection, stripeExecutable: path.resolve("synthetic/stripe.exe"), vercelEntry: path.resolve("synthetic/vercel.js"), runtimeDirectory }));
+});
 function runnerFixture(outputs = [], extra = {}) {
   const calls = [], children = []; let stops = 0;
   const runner = createPrivateProcessRunner({ mode: "synthetic", env: { PATH: "synthetic-path", STRIPE_API_KEY: "synthetic-hidden", VERCEL_TOKEN: "synthetic-hidden", NODE_OPTIONS: "--require malicious", GETESTIMATEFAST_SUPABASE_SECRET_KEY: "synthetic-hidden" },
@@ -34,7 +40,7 @@ test("local dotenv files block execution before any child is created", async () 
 test("no real runner or authentication is enabled by default", () => { assert.throws(() => createPrivateProcessRunner({ mode: "real" })); assert.throws(() => createVercelAdapter({ mode: "real" })); assert.throws(() => createStripeAdapter({ mode: "real" })); });
 test("private stdout/stderr and provider failures never enter exceptions", async () => {
   const f = runnerFixture([{ stdout: "synthetic-private", stderr: "whsec_SyntheticOnlySecret", code: 1 }]);
-  await assert.rejects(f.runner.capture(plan.identity()), e => e.message === "Private command unavailable" && !JSON.stringify(e).includes("Secret")); await f.runner.dispose();
+  await assert.rejects(f.runner.capture(plan.identity()), e => e.code === "PROCESS_EXIT_NONZERO" && e.exitCode === 1 && !JSON.stringify(e).includes("Secret")); await f.runner.dispose();
 });
 test("private command timeout and output overflow close only owned children", async () => {
   const a = runnerFixture([], { timeoutMs: 20 }); await assert.rejects(a.runner.capture(plan.identity())); assert.equal(a.stops(), 1); await a.runner.dispose();
@@ -65,7 +71,7 @@ test("concurrent disposal joins one owned process termination", async () => {
 });
 test("termination failures are sanitized and retain ownership for explicit cleanup", async () => {
   let calls = 0; const f = runnerFixture([], { stopMock: async () => { if (++calls === 1) throw Error("whsec_SyntheticPrivateFailure"); } });
-  const child = f.runner.spawn(plan.version()); await assert.rejects(f.runner.stop(child), e => e.message === "Private process termination unavailable");
+  const child = f.runner.spawn(plan.version()); await assert.rejects(f.runner.stop(child), e => e.code === "PROCESS_CLEANUP_FAILED" && !e.message.includes("SyntheticPrivate"));
   await f.runner.dispose(); assert.equal(calls, 2);
 });
 for (const fields of [{ mode: "live" }, { account_id: "acct_other" }, { authorized_accounts: [{ id: ACCOUNT, modes: ["live", "test"] }] }]) test("wrong Stripe identity refuses startup without switching", async () => {
@@ -79,7 +85,7 @@ test("JWKS loader pins discovery, issuer and public-key origin, without sending 
   assert.equal((await load(issuer)).keys[0].kid, "synthetic"); assert.equal(calls[0].opts.redirect, "error"); assert.equal(calls[0].opts.headers, undefined);
   await assert.rejects(load("https://attacker.example"));
 });
-for (const status of [302, 401, 403, 503]) test("JWKS HTTP " + status + " cannot produce an accepted token", async () => { const load = createJwksLoader({ mode: "synthetic", transport: async () => new Response("synthetic-private", { status }) }); await assert.rejects(load("https://oidc.vercel.com"), /source unavailable/); });
+for (const status of [302, 401, 403, 503]) test("JWKS HTTP " + status + " cannot produce an accepted token", async () => { const load = createJwksLoader({ mode: "synthetic", transport: async () => new Response("synthetic-private", { status }) }); await assert.rejects(load("https://oidc.vercel.com"), e => e.code === (status === 302 ? "OIDC_SOURCE_REDIRECT" : "OIDC_SOURCE_HTTP")); });
 test("JWKS discovery rejects external targets, oversized data, and a hanging connection", async () => {
   const bad = createJwksLoader({ mode: "synthetic", transport: async () => new Response(JSON.stringify({ issuer: "https://oidc.vercel.com", jwks_uri: "https://attacker.example/.well-known/jwks" })) }); await assert.rejects(bad("https://oidc.vercel.com"));
   const large = createJwksLoader({ mode: "synthetic", transport: async () => new Response("a".repeat(65537)) }); await assert.rejects(large("https://oidc.vercel.com"));

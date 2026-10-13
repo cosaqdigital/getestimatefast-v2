@@ -9,7 +9,7 @@ const pair = crypto.generateKeyPairSync("rsa", { modulusLength: 2048 });
 const jwk = { ...pair.publicKey.export({ format: "jwk" }), kid: "synthetic-key", alg: "RS256", use: "sig" };
 const secret = "whsec_SyntheticOnly123456", payload = Buffer.from('{  "id":"evt_synthetic", "type":"customer.created", "livemode":false, "text":"é 🖌" }\n');
 const signature = () => Stripe.webhooks.generateTestHeaderString({ payload: payload.toString(), secret });
-const origin = "https://synthetic-relay-preview.vercel.app";
+const origin = APPROVED.origin;
 const deployment = { id: APPROVED.id, projectId: PROJECT, teamId: TEAM, origin, environment: "preview", branch: SANDBOX_BRANCH, sha: APPROVED.sha };
 function jwt(changes = {}, now = Date.now()) {
   const sec = Math.floor(now / 1000), env = changes.environment || "development";
@@ -95,14 +95,105 @@ test("unverified/manual destinations, retargeting and Production are refused", a
 });
 function apiFixture(change = {}) {
   const records = {
-    ["/v9/projects/" + PROJECT]: { id: PROJECT, accountId: TEAM, name: "getestimatefast-v2", ssoProtection: { deploymentType: "all_except_custom_domains" } },
+    ["/v9/projects/" + PROJECT]: { id: PROJECT, accountId: TEAM, name: "getestimatefast-v2", link: { type: "github", org: "cosaqdigital", repo: "getestimatefast-v2", repoId: 1211705834 }, ssoProtection: { deploymentType: "all_except_custom_domains" } },
     ["/v4/aliases/" + APPROVED.alias]: { projectId: PROJECT, alias: APPROVED.alias, deploymentId: APPROVED.id, redirect: null },
-    ["/v13/deployments/" + APPROVED.id]: { id: APPROVED.id, projectId: PROJECT, ownerId: TEAM, readyState: "READY", target: null, url: new URL(origin).host, alias: [APPROVED.alias], meta: { githubCommitRef: SANDBOX_BRANCH, githubCommitSha: APPROVED.sha }, gitSource: { sha: APPROVED.sha, repoId: 1211705834 }, ...change }
+    ["/v13/deployments/" + APPROVED.id]: { id: APPROVED.id, projectId: PROJECT, ownerId: TEAM, readyState: "READY", target: null, url: new URL(origin).host, alias: [APPROVED.alias], meta: { githubCommitRef: SANDBOX_BRANCH, githubCommitSha: APPROVED.sha }, gitSource: { type: "github", ref: SANDBOX_BRANCH, sha: APPROVED.sha, repoId: 1211705834 }, ...change }
   }; return async path => structuredClone(records[path]);
 }
 test("Vercel API project, alias and immutable deployment are verified instead of trusting caller metadata", async () => {
-  assert.equal((await verifyTarget(apiFixture())).origin, origin);
-  for (const change of [{ target: "production" }, { ownerId: "team_other" }, { projectId: "other" }, { url: "attacker.example" }, { readyState: "ERROR" }, { meta: { githubCommitRef: "main", githubCommitSha: APPROVED.sha } }]) await assert.rejects(verifyTarget(apiFixture(change)));
+  assert.equal((await verifyTarget(apiFixture(), "pr60-stage7")).origin, origin);
+  for (const change of [{ target: "production" }, { ownerId: "team_other" }, { projectId: "other" }, { url: "attacker.example" }, { readyState: "ERROR" }, { meta: { githubCommitRef: "main", githubCommitSha: APPROVED.sha } }]) await assert.rejects(verifyTarget(apiFixture(change), "pr60-stage7"));
+});
+
+const { selectDeployment } = require("../scripts/stripe-authorized-deployments");
+test("deployment selection requires a trusted explicit catalog key; retired ID and arbitrary objects are denied", async () => {
+  for (const key of [undefined, "", APPROVED.id, "dpl_HAbtXDcwSPoVpTbPVjzZmCUMneHU", { ...APPROVED }, "__proto__", "toString"]) {
+    assert.throws(() => selectDeployment(key));
+    await assert.rejects(verifyTarget(apiFixture(), key));
+  }
+  assert(Object.isFrozen(selectDeployment("pr60-stage7")));
+  assert.equal(APPROVED.id, "dpl_AbusK9zKzKP8Ddejvu6VgNyV6jsx");
+  await assert.rejects(startSyntheticLauncher(launcherFixture({ deploymentSelection: undefined }).adapters));
+});
+const targetFaults = [
+  ["deployment ID", "deployment", { id: "dpl_other" }],
+  ["SHA", "deployment", { meta: { githubCommitRef: SANDBOX_BRANCH, githubCommitSha: "a".repeat(40) } }],
+  ["Git source SHA", "deployment", { gitSource: { type: "github", ref: SANDBOX_BRANCH, repoId: APPROVED.repoId, sha: "a".repeat(40) } }],
+  ["branch", "deployment", { meta: { githubCommitRef: "main", githubCommitSha: APPROVED.sha } }],
+  ["team", "project", { accountId: "team_other" }],
+  ["project", "deployment", { projectId: "prj_other" }],
+  ["not READY", "deployment", { readyState: "BUILDING" }],
+  ["Production", "deployment", { target: "production" }],
+  ["missing environment", "deployment", { target: undefined }],
+  ["alias movement", "alias", { deploymentId: "dpl_other" }],
+  ["other immutable URL in same project", "deployment", { url: "getestimatefast-v2-other-get-estimate-fast.vercel.app" }],
+  ["alias as URL", "deployment", { url: APPROVED.alias }],
+  ["repository", "project", { link: { type: "github", org: "other", repo: "getestimatefast-v2", repoId: APPROVED.repoId } }],
+  ["repository ID", "deployment", { gitSource: { type: "github", ref: SANDBOX_BRANCH, repoId: 1, sha: APPROVED.sha } }],
+  ["SSO removed", "project", { ssoProtection: null }],
+  ["alias redirect", "alias", { redirect: "https://vercel.com/login" }],
+  ["HTTP redirect", "deployment", { status: 302, redirected: true }],
+  ["missing alias membership", "deployment", { alias: [] }]
+];
+function faultyApi(kind, change) {
+  const base = apiFixture();
+  return async route => { const v = await base(route); const matches = kind === "project" ? route.startsWith("/v9/") : kind === "alias" ? route.startsWith("/v4/") : route.startsWith("/v13/"); return matches ? { ...v, ...change } : v; };
+}
+for (const [name, kind, change] of targetFaults) test("authorized deployment verification denies " + name, async () => {
+  await assert.rejects(verifyTarget(faultyApi(kind, change), "pr60-stage7"), /Vercel target verification failed/);
+});
+for (const malformed of [null, [], "unexpected", {}, { error: { message: "synthetic-private-error" } }]) test("malformed/incomplete API document is rejected " + JSON.stringify(malformed), async () => {
+  await assert.rejects(verifyTarget(async () => malformed, "pr60-stage7"), /Vercel target verification failed/);
+});
+test("API errors and timeouts are bounded and sanitized even if transport ignores cancellation", async () => {
+  await assert.rejects(verifyTarget(async () => { throw Error("synthetic-private-error"); }, "pr60-stage7"), /^Error: Vercel target verification failed$/);
+  await assert.rejects(verifyTarget(async () => new Promise(() => {}), "pr60-stage7", undefined, 30), /Vercel target verification failed/);
+  const controller = new AbortController(); controller.abort(); let calls = 0;
+  await assert.rejects(verifyTarget(async () => { calls++; }, "pr60-stage7", controller.signal)); assert.equal(calls, 0);
+});
+test("relay rejects arbitrary same-project Preview metadata even with injected verifier", () => {
+  assert.throws(() => createRelay({ origin: "https://other.vercel.app", deployment: { ...deployment, origin: "https://other.vercel.app" }, verifyDestination: async () => deployment,
+    tokenProvider: async () => jwt(), verifyToken: async () => true, verifySignature: async () => true }));
+});
+test("API alias change during execution stops launcher, clears secret and never forwards", async () => {
+  const initial = apiFixture(); let changed = false, forwards = 0;
+  const f = launcherFixture({ api: async route => { const value = await initial(route); return changed && route.startsWith("/v4/") ? { ...value, deploymentId: "dpl_other" } : value; },
+    transport: async () => { forwards++; return new Response(null, { status: 200 }); } });
+  const run = await startSyntheticLauncher(f.adapters);
+  try {
+    f.child.stderr.write("Ready " + secret + "\n"); changed = true;
+    const response = await fetch("http://127.0.0.1:" + run.port + PATH, { method: "POST", headers: { "stripe-signature": signature() }, body: payload }).catch(() => null);
+    if (response) assert.equal(response.status, 503);
+    await new Promise(resolve => setTimeout(resolve, 30));
+    assert.equal(forwards, 0); assert.equal(run.secretReady(), false); assert.equal(f.killed(), 1);
+    await assert.rejects(fetch("http://127.0.0.1:" + run.port + PATH));
+  } finally { await run.stop(); }
+});
+test("target API failure during execution stops safely without forwarding", async () => {
+  const initial = apiFixture(); let failure = false, forwards = 0;
+  const f = launcherFixture({ api: route => { if (failure) throw Error("synthetic-private-error"); return initial(route); }, transport: async () => { forwards++; return new Response(null, { status: 200 }); } });
+  const run = await startSyntheticLauncher(f.adapters);
+  try {
+    f.child.stderr.write("Ready " + secret + "\n"); failure = true;
+    await fetch("http://127.0.0.1:" + run.port + PATH, { method: "POST", headers: { "stripe-signature": signature() }, body: payload }).catch(() => null);
+    await new Promise(resolve => setTimeout(resolve, 30)); assert.equal(forwards, 0); assert.equal(f.killed(), 1); assert.equal(run.secretReady(), false);
+  } finally { await run.stop(); }
+});
+test("caller mutation cannot silently change pinned deployment", async t => {
+  const mutable = { ...deployment }; const f = await fixture(t, { deployment: mutable }); mutable.id = "dpl_other"; mutable.origin = "https://other.vercel.app";
+  assert.equal((await f.send()).status, 204); assert.equal(f.calls[0].url, APPROVED.origin + PATH);
+});
+test("alias change while renewing OIDC blocks the send boundary and leaves relay fail-closed", async t => {
+  let changed = false, checks = 0;
+  const f = await fixture(t, { tokenProvider: async () => { changed = true; return jwt(); },
+    verifyDestination: async () => { checks++; return changed ? { ...deployment, id: "dpl_other" } : deployment; } });
+  assert.equal((await f.send()).status, 503); assert.equal(f.calls.length, 0); assert.equal(checks, 2);
+  assert.equal((await f.send()).status, 503); assert.equal(checks, 2);
+});
+test("startup identity mismatch fails before any token, loopback listener or child is requested", async () => {
+  let obtained = 0, spawned = 0;
+  const f = launcherFixture({ api: faultyApi("deployment", { id: "dpl_other" }), obtainToken: async () => { obtained++; return jwt(); }, spawnSynthetic: async () => { spawned++; } });
+  await assert.rejects(startSyntheticLauncher(f.adapters)); assert.equal(obtained, 0); assert.equal(spawned, 0);
 });
 test("whsec capture handles split chunks, stays private and is cleared on disposal", () => {
   const capture = createSecretCapture(); capture.ingest(Buffer.from("Ready signing secret: whse")); capture.ingest(Buffer.from("c_SyntheticOnly123456\n")); assert.equal(capture.ready(), true); assert.equal(capture.verify(payload, signature()), true);
@@ -114,7 +205,7 @@ test("listener arguments restrict four self-account test events and loopback wit
 });
 function launcherFixture(extra = {}) {
   const child = new EventEmitter(); child.stdout = new PassThrough(); child.stderr = new PassThrough(); let killed = 0;
-  const adapters = { mode: "synthetic", api: apiFixture(), obtainToken: async () => jwt(), loadJwks: async () => ({ keys: [jwk] }),
+  const adapters = { mode: "synthetic", deploymentSelection: "pr60-stage7", api: apiFixture(), obtainToken: async () => jwt(), loadJwks: async () => ({ keys: [jwk] }),
     readStripeIdentity: async () => ({ version: "1.53.1", account_id: ACCOUNT, mode: "test", authorized_accounts: [{ id: ACCOUNT, modes: ["test"] }] }),
     spawnSynthetic: async spec => { assert.equal(spec.windowsHide, true); assert.deepEqual(spec.stdio, ["ignore", "pipe", "pipe"]); return child; },
     stopSynthetic: async () => { killed++; child.stdout.destroy(); child.stderr.destroy(); }, transport: async () => new Response(null, { status: 200 }), ...extra };

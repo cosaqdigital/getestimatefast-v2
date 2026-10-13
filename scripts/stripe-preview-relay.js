@@ -1,9 +1,10 @@
 "use strict";
 const http = require("node:http");
 const { SANDBOX_BRANCH } = require("../api/_lib/stripe-policy");
-const PROJECT = "prj_kA6x5rt1MChiNSQpa6pShHoUSuOF", TEAM = "team_vRw9eJBijmUFe1SbbOFY5xZs";
+const { PROJECT, TEAM, assertAuthorizedTarget } = require("./stripe-authorized-deployments");
 const PATH = "/api/stripe-test-webhook", LIMIT = 262144;
 function validDestination(origin, d) {
+  assertAuthorizedTarget(d);
   const u = new URL(origin);
   if (u.protocol !== "https:" || !u.hostname.endsWith(".vercel.app") || u.username || u.password || u.search || u.hash || u.pathname !== "/" || u.port ||
       d?.projectId !== PROJECT || d?.teamId !== TEAM || d?.environment !== "preview" || d?.branch !== SANDBOX_BRANCH ||
@@ -29,8 +30,9 @@ function body(req, signal) {
     req.on("data", data); req.once("end", end); req.once("aborted", fail); req.once("error", fail); signal.addEventListener("abort", fail, { once: true });
   });
 }
-function createRelay({ origin, deployment, verifyDestination, tokenProvider, verifyToken, verifySignature, onAuthorizationFailure = () => {}, transport = fetch, timeoutMs = 20000 }) {
+function createRelay({ origin, deployment, verifyDestination, tokenProvider, verifyToken, verifySignature, onAuthorizationFailure = () => {}, onDestinationFailure = () => {}, transport = fetch, timeoutMs = 20000 }) {
   const target = validDestination(origin, deployment);
+  deployment = Object.freeze({ ...deployment }); // Caller mutation cannot change the pinned target.
   for (const fn of [verifyDestination, tokenProvider, verifyToken, verifySignature]) if (typeof fn !== "function") throw Error("Verified relay dependencies required");
   if (!Number.isInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 20000) throw Error("Invalid relay deadline");
   const shutdown = new AbortController(); let active = 0;
@@ -44,14 +46,23 @@ function createRelay({ origin, deployment, verifyDestination, tokenProvider, ver
     active++; let raw, token;
     const timer = new AbortController(), deadline = setTimeout(() => timer.abort(), timeoutMs);
     const signal = AbortSignal.any([timer.signal, shutdown.signal]);
+    const checkDestination = async () => {
+      try {
+        const verified = await bounded(verifyDestination(signal), signal);
+        if (validDestination(target, verified) !== target || verified.id !== deployment.id || verified.sha !== deployment.sha) throw Error("Destination changed");
+      } catch {
+        reply(503); shutdown.abort(); onDestinationFailure(); throw Error("Destination verification unavailable");
+      }
+    };
     try {
       raw = await body(req, signal);
       const signature = req.headers["stripe-signature"];
       if (typeof signature !== "string" || signature.length > 4096 || !await bounded(verifySignature(raw, signature), signal)) return reply(400);
-      const verified = await bounded(verifyDestination(signal), signal);
-      if (validDestination(target, verified) !== target || verified.id !== deployment.id || verified.sha !== deployment.sha) throw Error("Destination changed");
+      await checkDestination();
       token = await bounded(tokenProvider(signal), signal);
       if (typeof token !== "string" || !await bounded(verifyToken(token, signal), signal)) throw Error("Valid project OIDC required");
+      // Token/JWKS renewal may take time: revalidate alias and pinned identity at the send boundary.
+      await checkDestination();
       if (signal.aborted) throw Error("Relay stopped before forwarding");
       const response = await bounded(transport(target + PATH, { method: "POST", redirect: "error", signal,
         headers: { "content-type": "application/json", "stripe-signature": signature, "x-vercel-trusted-oidc-idp-token": token }, body: raw }), signal);
