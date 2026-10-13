@@ -1,4 +1,5 @@
 {
+  "git": { "deploymentEnabled": { "feat/stripe-sandbox-safety-20261012": false } },
   "rewrites": [
     {"source": "/professionals/:slug", "destination": "/api/public-profile?slug=:slug&format=html"}
   ],

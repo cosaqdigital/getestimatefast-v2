@@ -12,6 +12,7 @@ async function createSandbox(port=0,options={}){
  await db.exec("create schema storage;create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);");
  await db.exec(fs.readFileSync(path.join(root,"sql/us_portfolio_storage.sql"),"utf8"));
  await db.exec(fs.readFileSync(path.join(root,"sql/us_stripe_test_checkout.sql"),"utf8"));
+ if(options.stripeSafety) await db.exec(fs.readFileSync(path.join(root,"supabase/prepared-migrations/20261012055452_stripe_sandbox_safety.sql"),"utf8"));
  const asService=(sql,values=[])=>db.transaction(async tx=>{await tx.exec("set local role service_role");return tx.query(sql,values);});
  await db.query("insert into auth.users(id,email,email_confirmed_at) values($1,'contractor@example.invalid',now()),($2,'admin@example.invalid',now()),($3,'other@example.invalid',now())",[u(1),u(9),u(2)]);
  await db.query("insert into admin_users(user_id) values($1)",[u(9)]);
@@ -20,7 +21,7 @@ async function createSandbox(port=0,options={}){
  await db.query("insert into opportunity_previews(id,lead_id,service_category,public_summary,city,zip_code,published_by) values($1,$2,'Painting','SYNTHETIC SANDBOX REQUEST: interior painting for a sample room. No real customer.','Riverview','33569',$3)",[u(30),u(20),u(9)]);
  const objects=new Map(),nativeFetch=global.fetch,previousEnv={...process.env};let origin;
  const users={"synthetic-contractor":{id:u(1),email:"contractor@example.invalid",email_confirmed_at:new Date().toISOString()},"synthetic-admin":{id:u(9),email:"admin@example.invalid",email_confirmed_at:new Date().toISOString()},"synthetic-other":{id:u(2),email:"other@example.invalid",email_confirmed_at:new Date().toISOString()}};
- const response=(data,status=200)=>new Response(data===null?null:JSON.stringify(data),{status,headers:{"Content-Type":"application/json"}});
+ const response=(data,status=200)=>new Response(status===204?null:JSON.stringify(data),{status,headers:{"Content-Type":"application/json"}});
  global.fetch=async(input,options={})=>{
   const target=new URL(String(input));
   if(target.origin!==origin||!/^\/(rest|auth|storage)\/v1\//.test(target.pathname))return nativeFetch(input,options);
