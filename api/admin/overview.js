@@ -7,7 +7,7 @@ const SOURCES=Object.freeze({
  opportunities:["opportunity_previews","id",""],
  contractors:["contractor_profiles","user_id",""],
  active_contractors:["contractor_profiles","user_id","account_status=eq.active"],
- public_profiles:["contractor_public_profiles","user_id","published=eq.true"]
+ public_profiles:["contractor_public_profiles","contractor_id","published=eq.true"]
 });
 async function count(url,secret,table,column,filter){
  const uri=url+"/rest/v1/"+table+"?select="+column+(filter?"&"+filter:"");
