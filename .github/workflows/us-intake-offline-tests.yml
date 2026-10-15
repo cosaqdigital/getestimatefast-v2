@@ -32,7 +32,9 @@ jobs:
       - name: Synthetic API and routing tests
         run: node --test tests/us-durable-lead-intake.test.js tests/us-legacy-intake-routing.test.js tests/us-lead-outbox.test.js
   full-synthetic-suite:
-    runs-on: ubuntu-latest
+    # Native process guards intentionally require Windows; do not weaken them
+    # or skip their mocked lifecycle tests to make a Linux runner pass.
+    runs-on: windows-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
