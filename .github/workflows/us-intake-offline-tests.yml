@@ -19,6 +19,10 @@ on:
       - scripts/local-postgres.js
       - package.json
       - tests/helpers/offline-fetch.cjs
+      - tests/stripe-operational-controls.test.js
+      - tests/local-postgres-lifecycle.test.js
+      - tests/marketplace-pricing.test.js
+      - .github/workflows/us-intake-offline-tests.yml
 permissions:
   contents: read
 jobs:
@@ -32,9 +36,7 @@ jobs:
       - name: Synthetic API and routing tests
         run: node --test tests/us-durable-lead-intake.test.js tests/us-legacy-intake-routing.test.js tests/us-lead-outbox.test.js
   full-synthetic-suite:
-    # Native process guards intentionally require Windows; do not weaken them
-    # or skip their mocked lifecycle tests to make a Linux runner pass.
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4

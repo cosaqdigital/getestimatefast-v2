@@ -74,10 +74,11 @@ test("native mode cannot be enabled by env, unscoped, expired, production or arb
  assert.equal(assertNativeAuthorization(grant(),"pr60-stage7").id,APPROVED.id);
 });
 test("prepared native termination uses owned tree only and waits for close (OS calls mocked)",async()=>{
+ const platform=Object.getOwnPropertyDescriptor(process,'platform');
  const spawn=cp.spawn,exec=cp.execFile,c=child();c.pid=12345;c.exitCode=null;c.signalCode=null;let commands=0;
- try{cp.spawn=()=>c;cp.execFile=(file,args,options,cb)=>{commands++;assert(file.endsWith("taskkill.exe"));assert.deepEqual(args,["/PID","12345","/T","/F"]);assert.equal(options.shell,false);queueMicrotask(()=>{c.exitCode=0;c.emit("close",0,null);cb(null,Buffer.from("synthetic-private"),Buffer.from("synthetic-private"));});};
+ try{Object.defineProperty(process,'platform',{...platform,value:'win32'});cp.spawn=()=>c;cp.execFile=(file,args,options,cb)=>{commands++;assert(file.endsWith("taskkill.exe"));assert.deepEqual(args,["/PID","12345","/T","/F"]);assert.equal(options.shell,false);queueMicrotask(()=>{c.exitCode=0;c.emit("close",0,null);cb(null,Buffer.from("synthetic-private"),Buffer.from("synthetic-private"));});};
   const controller=createNativeProcessController({authorization:grant(),selection:"pr60-stage7",validatePlan:()=>{}});const owned=controller.spawn({file:process.execPath,args:[],options:{shell:false}},{});assert.equal((await controller.stop(owned)).exitCode,0);assert.equal(commands,1);await assert.rejects(controller.stop(child()));
- }finally{cp.spawn=spawn;cp.execFile=exec;c.stdout.destroy();c.stderr.destroy();}
+ }finally{Object.defineProperty(process,'platform',platform);cp.spawn=spawn;cp.execFile=exec;c.stdout.destroy();c.stderr.destroy();}
 });
 test("native command registry rejects cloned plans, hidden switch, unauthorized listener and fake native adapters",async()=>{
  const paths={stripeExecutable:path.resolve("synthetic/stripe.exe"),vercelEntry:path.resolve("synthetic/vercel.js"),nodeExecutable:process.execPath,runtimeDirectory:runtime},plan=commands({deploymentSelection:"pr60-stage7",...paths});
@@ -94,9 +95,21 @@ test("public JWKS cache serializes lookups, expires within 60 seconds and refuse
  now=60001;fail=true;await assert.rejects(cache.get("https://oidc.vercel.com"));assert.equal(loads,2);fail=false;await cache.get("https://oidc.vercel.com");assert.equal(loads,3);cache.dispose();await assert.rejects(cache.get("https://oidc.vercel.com"));
 });
 test("native cleanup timeout never claims a still-open child exited (OS calls mocked)",async()=>{
+ const platform=Object.getOwnPropertyDescriptor(process,'platform');
  const spawn=cp.spawn,exec=cp.execFile,c=child();c.pid=12345;c.exitCode=null;c.signalCode=null;
- try{cp.spawn=()=>c;cp.execFile=()=>{};const controller=createNativeProcessController({authorization:grant(),selection:"pr60-stage7",timeoutMs:20,validatePlan:()=>{}});controller.spawn({file:process.execPath,args:[],options:{shell:false}},{});await assert.rejects(controller.stop(c),e=>e.code==="PROCESS_CLEANUP_TIMEOUT");}
- finally{cp.spawn=spawn;cp.execFile=exec;c.stdout.destroy();c.stderr.destroy();}
+ try{Object.defineProperty(process,'platform',{...platform,value:'win32'});cp.spawn=()=>c;cp.execFile=()=>{};const controller=createNativeProcessController({authorization:grant(),selection:"pr60-stage7",timeoutMs:20,validatePlan:()=>{}});controller.spawn({file:process.execPath,args:[],options:{shell:false}},{});await assert.rejects(controller.stop(c),e=>e.code==="PROCESS_CLEANUP_TIMEOUT");}
+ finally{Object.defineProperty(process,'platform',platform);cp.spawn=spawn;cp.execFile=exec;c.stdout.destroy();c.stderr.destroy();}
+});
+
+test("native platform guard rejects non-Windows before any OS call",()=>{
+ const platform=Object.getOwnPropertyDescriptor(process,'platform'),spawn=cp.spawn;let calls=0;
+ try{
+  Object.defineProperty(process,'platform',{...platform,value:'linux'});
+  cp.spawn=()=>{calls++;throw Error('Unexpected OS call');};
+  const controller=createNativeProcessController({authorization:grant(),selection:'pr60-stage7',validatePlan:()=>{}});
+  assert.throws(()=>controller.spawn({file:process.execPath,args:[],options:{shell:false}},{}),/Reviewed Windows executable required/);
+  assert.equal(calls,0);
+ }finally{cp.spawn=spawn;Object.defineProperty(process,'platform',platform);}
 });
 test("aborted process capture creates no child and interruption keeps signal",async()=>{
  let spawns=0;const c=child(),runner=createPrivateProcessRunner({mode:"synthetic",spawnMock:()=>{spawns++;queueMicrotask(()=>c.emit("close",null,"SIGTERM"));return c;},stopMock:async()=>{c.stdout.destroy();c.stderr.destroy();}});
