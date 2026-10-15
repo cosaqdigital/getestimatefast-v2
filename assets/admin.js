@@ -4,6 +4,18 @@ const $ = id => document.getElementById(id);
 let token = "", page = 0, leadCount = 0, contractorPage = 0, contractorHasMore = false;
 const status = text => { $("status").textContent = text; };
 const loggedIn = yes => { $("login").hidden = yes; $("dashboard").hidden = !yes; $("logout").hidden = !yes; };
+async function refreshOverview(){
+ $("overviewStatus").textContent="Loading GetEstimateFast Development totals...";
+ try{
+  const overview=await api("overview");
+  const values=overview.counts||{};
+  for(const [element,key] of [["overviewAllLeads","leads"],["overviewNewLeads","new_leads"],["overviewOpportunities","opportunities"],["overviewContractors","contractors"],["overviewActive","active_contractors"],["overviewPublic","public_profiles"]]){
+   $(element).textContent=Number.isInteger(values[key])?new Intl.NumberFormat("en-US").format(values[key]):"—";
+  }
+  $("overviewStatus").textContent="Updated "+new Date().toLocaleString("en-US")+" · US Development";
+ }catch(error){$("overviewStatus").textContent="Summary unavailable: "+error.message;}
+}
+
 async function api(path, method = "GET", body) {
   const response = await fetch("/api/admin/" + path, { method, credentials:"same-origin", cache:"no-store",
     headers: { ...(token ? { Authorization: "Bearer " + token } : {}), ...(body ? { "Content-Type":"application/json" } : {}) },
@@ -255,7 +267,7 @@ $("loginForm").addEventListener("submit",async event=>{
   event.preventDefault(); status("Signing in...");
   try{
     const d=await api("login","POST",{email:$("email").value,password:$("password").value});
-    token=d.access_token; $("password").value="";loggedIn(true);page=0;status("");await load();
+    token=d.access_token; $("password").value="";loggedIn(true);page=0;status("");await Promise.all([load(),refreshOverview()]);
   }catch(e){status(e.message);}
 });
 $("logout").addEventListener("click",()=>{token="";loggedIn(false);status("Signed out. Note: existing token expires automatically.");});
@@ -336,6 +348,9 @@ function showArea(area) {
   if (area === "contractors") loadContractors().catch(e => status(e.message));
   else load().catch(e => status(e.message));
 }
+$("overviewRefresh").addEventListener("click",()=>refreshOverview());
+$("overviewGoLeads").addEventListener("click",()=>showArea("leads"));
+$("overviewGoPros").addEventListener("click",()=>showArea("contractors"));
 $("showLeads").addEventListener("click", () => showArea("leads"));
 $("showContractors").addEventListener("click", () => showArea("contractors"));
 $("contractorRefresh").addEventListener("click", () => loadContractors().catch(e => status(e.message)));
