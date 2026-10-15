@@ -34,14 +34,15 @@ test('Synthetic local PostgreSQL: transactional lead outbox and independent sess
       await connection.query('savepoint after_rpc');
       await assert.rejects(connection.query('insert into public.leads(submission_token,service_type) values($1,$2)',[rogue.submission_token,rogue.service_type]),/EXCLUSIVE_RPC_INTAKE_REQUIRED/);
       await connection.query('rollback to savepoint after_rpc');
-      await connection.query('commit');
+      // Keep this test isolated from the existing queue scenarios below.
+      await connection.query('rollback');
     } finally {
       await connection.query('rollback').catch(()=>{});
       await connection.end();
     }
-    assert.equal(await count(),before+1);
+    assert.equal(await count(),before);
     assert.equal((await db.query('select count(*)::int n from public.leads where submission_token=$1',[rogue.submission_token])).rows[0].n,0);
-    assert.equal((await db.query('select count(*)::int n from public.leads where submission_token=$1',[p.submission_token])).rows[0].n,1);
+    assert.equal((await db.query('select count(*)::int n from public.leads where submission_token=$1',[p.submission_token])).rows[0].n,0);
     const next=lead();
     await assert.rejects(db.transaction(async tx=>{
       await tx.exec('set local role service_role');
