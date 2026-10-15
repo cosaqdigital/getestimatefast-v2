@@ -100,7 +100,7 @@ create function public.gef_pending_attachment_cleanup() returns jsonb
 language sql security invoker set search_path=pg_catalog as $$
  select coalesce(jsonb_agg(id),'[]'::jsonb) from
  (select id from gef_attachments.batches where state<>'committed' and expires_at<clock_timestamp()
-   and (state<>'deleted' or expires_at>clock_timestamp()-interval '24 hours')
+   and (state<>'deleted' or coalesce(cleaned_at,expires_at)>clock_timestamp()-interval '7 days')
    order by (state='deleted'),coalesce(cleaned_at,expires_at) limit 50) due
 $$;
 revoke all on function public.gef_pending_attachment_cleanup() from public,anon,authenticated;
