@@ -8,14 +8,28 @@ test("local readiness uses SQL when the dependency's stderr readiness marker is 
 test("unavailable local startup has a bounded deadline and closes probes", async () => {
   let closed = 0; await assert.rejects(waitForLocalCluster({ start: () => new Promise(() => {}) }, () => ({ connect: async () => { throw Error("synthetic unavailable"); }, end: async () => { closed++; } }), 20), /deadline/); assert(closed > 0);
 });
-test("controlled two-cluster local PostgreSQL startup uses separate connections and closes both", { timeout: 60000 }, async () => {
+// Aggregate budget covers two native initializations and both bounded shutdowns
+// on Windows; it does not change per-operation startup/query/pg_ctl deadlines.
+test("controlled two-cluster local PostgreSQL startup uses separate connections and closes both", { timeout: 120000 }, async () => {
   const diagnostics = [];
   const results = await Promise.allSettled([0, 1].map(cluster => createLocalPostgres({ diagnostics: e => diagnostics.push({ cluster, ...e }) })));
   try {
     assert(results.every(r => r.status === "fulfilled"), "both independent disposable clusters started");
-    for (const r of results) assert.equal((await r.value.query("select 1 as synthetic_probe")).rows[0].synthetic_probe, 1);
+    for (const r of results) {
+      assert.equal((await r.value.query("select 1 as synthetic_probe")).rows[0].synthetic_probe, 1);
+      const proof=JSON.parse(fs.readFileSync(require('node:path').join(r.value.resource.directory,'test-resource.json'),'utf8'));
+      assert.equal(proof.state,'running');assert.equal(proof.controllerPid,process.pid);
+      assert.equal(proof.serverPid,r.value.resource.serverPid);
+      assert.equal(proof.port,r.value.resource.port);
+      assert(![56215,59178,50001,49176,56961].includes(proof.port));
+      assert(!/password|secret|token/i.test(JSON.stringify(proof)));
+    }
   } finally {
     await Promise.allSettled(results.filter(r => r.status === "fulfilled").map(r => r.value.close()));
+    for(const r of results.filter(r=>r.status==='fulfilled')){
+      const proof=JSON.parse(fs.readFileSync(require('node:path').join(r.value.resource.directory,'test-resource.json'),'utf8'));
+      assert.equal(proof.state,'stopped');assert.ok(proof.closedAt);
+    }
     fs.writeFileSync("test-output/postgres-phase5-startup-diagnostics.json", JSON.stringify({ clusters: 2, statuses: results.map(r => r.status), diagnostics }, null, 2));
   }
 });

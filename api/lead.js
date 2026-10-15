@@ -3,7 +3,6 @@ const { DEVELOPMENT_REF, protectedPreview } = require("./_lib/preview-target");
 // Reject accidental cross-platform database configuration.
 const PRODUCTION_REF = "wedsjubkttygxtpkopfj";
 const THANK_YOU_URL = "https://www.getestimatefast.com/thank-you.html";
-const DEFAULT_FROM_EMAIL = "GetEstimateFast <onboarding@resend.dev>";
 const MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024;
 const MAX_REQUEST_SIZE = 15 * 1024 * 1024;
 const MAX_ATTACHMENT_COUNT = 3;
@@ -32,9 +31,8 @@ module.exports = async function handler(req, res) {
     if (validationError) return sendErrorPage(res, 400, validationError);
 
     // Validate attachments before writing: an invalid upload cannot create an incomplete lead.
-    let attachments;
     try {
-      attachments = await collectAttachments(formData);
+      await collectAttachments(formData);
     } catch {
       return sendErrorPage(res, 413, "Check your attachments: JPG, PNG, WebP or PDF; up to three files of 5 MB each.");
     }
@@ -45,60 +43,14 @@ module.exports = async function handler(req, res) {
       return sendErrorPage(res, 503, "Requests are temporarily unavailable. Please try again later.");
     }
 
-    let record;
     try {
-      record = await persistLead(fields);
-    } catch (error) {
-      console.error("GetEstimateFast lead storage failed:", error?.message || "unknown");
+      await persistLead(fields);
+    } catch {
+      console.error("GetEstimateFast lead storage failed.");
       return sendErrorPage(res, 503, "We couldn't save your request. Please try again shortly.");
     }
-    // An existing token must be verified in the database before this succeeds.
-    if (record.duplicate) return redirectToThankYou(res);
-    const savedLeadId = record.id;
-
-    // Email is a secondary notification. A lead that is safely stored must never
-    // become an apparent failed request if Resend is unavailable.
-    if (!process.env.RESEND_API_KEY || !process.env.LEAD_TO_EMAIL) {
-      console.error("GetEstimateFast lead notification not configured; stored lead:", savedLeadId);
-      return redirectToThankYou(res);
-    }
-
-    const subject = buildSubject(fields);
-    fields["Request ID"] = savedLeadId;
-    const replyTo = firstValue(fields["Email Address"]);
-
-    try {
-      const response = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          from: process.env.LEAD_FROM_EMAIL || DEFAULT_FROM_EMAIL,
-          to: [process.env.LEAD_TO_EMAIL],
-          subject,
-          html: renderLeadEmail(subject, fields, attachments),
-          text: renderLeadText(subject, fields, attachments),
-          reply_to: replyTo || undefined,
-          attachments: attachments.map((file) => ({
-            filename: file.filename,
-            content: file.content
-          }))
-        })
-      });
-      if (!response.ok) {
-        // Never log provider response bodies: they can contain personal information.
-        console.error("GetEstimateFast notification failed after lead storage:", {
-          leadId: savedLeadId,
-          httpStatus: response.status
-        });
-      }
-    } catch {
-      console.error("GetEstimateFast notification transport failed after lead storage:", {
-        leadId: savedLeadId
-      });
-    }
+    // RPC confirms both the lead and its transactional outbox intent.
+    // Delivery is asynchronous and cannot change the customer receipt.
     return redirectToThankYou(res);
   } catch (error) {
     // Keep personal details, customer files and provider credentials out of server logs.
@@ -121,14 +73,15 @@ async function persistLead(fields) {
     apikey: key,
     ...(key.startsWith("sb_secret_") ? {} : { Authorization: "Bearer " + key })
   };
-  const response = await fetch(endpoint + "/rest/v1/leads?on_conflict=submission_token&select=id", {
+  const response = await fetch(endpoint + "/rest/v1/rpc/gef_persist_lead_and_notify", {
     method: "POST",
     headers: {
       ...dbHeaders,
-      "Content-Type": "application/json",
-      Prefer: "resolution=ignore-duplicates,return=representation"
+      "Content-Type": "application/json"
     },
-    body: JSON.stringify({
+    redirect: "error",
+    signal: AbortSignal.timeout(10000),
+    body: JSON.stringify({ p_lead: {
       submission_token: submissionToken,
       service_type: firstValue(fields["Service Type"]),
       status: "new", // Manual review before qualification or publishing.
@@ -147,29 +100,16 @@ async function persistLead(fields) {
         }
       },
       source: "getestimatefast.com"
-    })
+    } })
   });
   if (!response.ok) {
     throw new Error("Lead database insert returned HTTP " + response.status);
   }
-  const records = await response.json();
-  if (!Array.isArray(records)) throw new Error("Invalid lead database response");
-  if (records.length === 0) {
-    // DO NOTHING on the unique submission token returns no row. Confirm the
-    // original exists before issuing a success receipt.
-    const lookup = await fetch(
-      endpoint + "/rest/v1/leads?submission_token=eq." + encodeURIComponent(submissionToken) + "&select=id&limit=1",
-      { method: "GET", headers: dbHeaders, cache: "no-store" }
-    );
-    if (!lookup.ok) throw new Error("Lead duplicate lookup failed (HTTP " + lookup.status + ")");
-    const matches = await lookup.json();
-    if (!Array.isArray(matches) || !matches[0]?.id) {
-      throw new Error("Duplicate token is not verifiable in GetEstimateFast");
-    }
-    return { duplicate: true, id: matches[0].id };
+  const record = await response.json();
+  if (!record || typeof record.id !== "string" || !/^[a-f0-9-]{36}$/i.test(record.id) || typeof record.duplicate !== "boolean" || record.notification_queued !== true) {
+    throw new Error("Lead and notification intent are not verifiable");
   }
-  if (!records[0]?.id) throw new Error("Lead database returned no ID");
-  return { duplicate: false, id: records[0].id };
+  return { duplicate: record.duplicate, id: record.id };
 }
 
 // Pure, server-derived review marker; descriptions are never blocked by
@@ -302,71 +242,6 @@ function validateLead(fields) {
   return "";
 }
 
-function buildSubject(fields) {
-  const customerName = firstValue(fields["Full Name"]) || "Customer";
-  const serviceType = firstValue(fields["Service Type"]) || "Service Request";
-  const zip = firstValue(fields["ZIP Code"]) || "ZIP";
-
-  if (slugify(serviceType) === "house-cleaning") {
-    const detail =
-      firstValue(fields["Cleaning Type"]) ||
-      firstValue(fields["Cleaning Frequency"]) ||
-      firstValue(fields["Timeline"]) ||
-      "House Cleaning Request";
-
-    return `${customerName} - House Cleaning - ${zip} - ${detail}`;
-  }
-
-  const timeline = firstValue(fields["Timeline"]) || "New Request";
-  return `${customerName} - ${serviceType} - ${zip} - ${timeline}`;
-}
-
-function renderLeadEmail(subject, fields, attachments) {
-  const rows = Object.entries(fields)
-    .map(([key, value]) => {
-      const displayValue = Array.isArray(value) ? value.join(", ") : value;
-      return `<tr><td style="padding:10px 12px;border:1px solid #d9e3ee;font-weight:700;background:#f8fafc;">${escapeHtml(
-        key
-      )}</td><td style="padding:10px 12px;border:1px solid #d9e3ee;">${escapeHtml(displayValue)}</td></tr>`;
-    })
-    .join("");
-
-  const attachmentBlock = attachments.length
-    ? `<p style="margin:20px 0 0;color:#526275;"><strong>Attachments:</strong> ${attachments
-        .map((file) => escapeHtml(file.filename))
-        .join(", ")}</p>`
-    : "";
-
-  return `
-    <div style="font-family:Arial,Helvetica,sans-serif;color:#102237;background:#f5f8fb;padding:24px;">
-      <div style="max-width:760px;margin:0 auto;background:#ffffff;border:1px solid #d9e3ee;border-radius:18px;padding:24px;">
-        <h1 style="margin:0 0 8px;font-size:28px;line-height:1.15;">${escapeHtml(subject)}</h1>
-        <p style="margin:0 0 18px;color:#526275;">New lead received from GetEstimateFast.</p>
-        <table style="width:100%;border-collapse:collapse;font-size:15px;line-height:1.6;">
-          <tbody>${rows}</tbody>
-        </table>
-        ${attachmentBlock}
-      </div>
-    </div>
-  `;
-}
-
-function renderLeadText(subject, fields, attachments) {
-  const lines = [`${subject}`, "", "New lead received from GetEstimateFast.", ""];
-
-  Object.entries(fields).forEach(([key, value]) => {
-    const displayValue = Array.isArray(value) ? value.join(", ") : value;
-    lines.push(`${key}: ${displayValue}`);
-  });
-
-  if (attachments.length) {
-    lines.push("");
-    lines.push(`Attachments: ${attachments.map((file) => file.filename).join(", ")}`);
-  }
-
-  return lines.join("\n");
-}
-
 function redirectToThankYou(res) {
   res.statusCode = 303;
   // Keep Preview on the same deployment for a verifiable test.
@@ -411,13 +286,6 @@ function firstValue(value) {
 
 function isFileLike(value) {
   return typeof File !== "undefined" && value instanceof File;
-}
-
-function slugify(value) {
-  return String(value || "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
 }
 
 function escapeHtml(value) {

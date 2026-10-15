@@ -9,9 +9,10 @@ test("USD parsing rejects fractions beyond cents, floating numbers and negatives
  for(const v of [19.99,"1.005","-5","$10","1e3","0","NaN"])assert.throws(()=>parseUsd(v));
 });
 test("category, scope and urgency rules use exact integer rounding",()=>{
- assert.equal(quotePrice(rule,{...input,scope:"large",urgency:"urgent"},new Date("2026-10-09T12:00:00Z")).amount_cents,3599);
- assert.throws(()=>quotePrice(rule,{...input,scope:"unknown"}));
- assert.throws(()=>quotePrice(rule,{...input,category:"Flooring"}));
+ const at=new Date("2026-10-09T12:00:00Z");
+ assert.equal(quotePrice(rule,{...input,scope:"large",urgency:"urgent"},at).amount_cents,3599);
+ assert.throws(()=>quotePrice(rule,{...input,scope:"unknown"},at));
+ assert.throws(()=>quotePrice(rule,{...input,category:"Flooring"},at));
 });
 test("discount boundaries expire quotes and opportunity independently of SMS recipient count",()=>{
  const q=quotePrice(rule,input,new Date("2026-10-09T23:59:00Z"));assert.equal(q.quote_valid_until,"2026-10-10T00:00:00.000Z");

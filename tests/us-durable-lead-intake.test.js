@@ -52,7 +52,8 @@ async function harness(overrides={},mockFetch=()=>{throw Error("Unexpected exter
     for(const [key,value] of Object.entries(originalEnv)){if(value===undefined)delete process.env[key];else process.env[key]=value;}
   }
 }
-const okDb=call=>call.url.startsWith(DEV_URL)?dbReply([{id:LEAD_ID}]):dbReply({id:"synthetic-send"},200);
+const saved=(duplicate=false)=>dbReply({id:LEAD_ID,duplicate,notification_queued:true});
+const okDb=()=>saved();
 
 test("disabled persistence cannot send email or report success",async()=>{
  await harness({LEAD_PERSISTENCE_ENABLED:"false"},undefined,async({invoke,calls})=>{
@@ -79,47 +80,28 @@ test("prod environment cannot insert in development DB",async()=>{
    assert.equal((await invoke()).status,503);assert.equal(calls.length,0);
  });
 });
-test("persist before notification",async()=>{
+test("transactional RPC persists lead and queues notification; never sends inline",async()=>{
  await harness({},okDb,async({invoke,calls})=>{
-   const r=await invoke();assert.equal(r.status,303);assert.equal(calls.length,2);
-   assert.ok(calls[0].url.startsWith(DEV_URL+"/rest/v1/leads?"));
-   const data=JSON.parse(calls[0].options.body);
+   assert.equal((await invoke()).status,303);assert.equal(calls.length,1);
+   assert.equal(calls[0].url,DEV_URL+"/rest/v1/rpc/gef_persist_lead_and_notify");
+   const data=JSON.parse(calls[0].options.body).p_lead;
    assert.equal(data.submission_token,TOKEN);assert.equal(data.status,"new");
    assert.equal(data.details._platform_review.required,true);
-   assert.equal(calls[1].url,"https://api.resend.com/emails");
  });
 });
-test("DB failure prevents email and success",async()=>{
- await harness({},()=>dbReply({error:"failed"},503),async({invoke,calls})=>{
-   assert.equal((await invoke()).status,503);assert.equal(calls.length,1);
- });
+test("DB failure or unapplied migration prevents success and never falls back",async()=>{
+ await harness({},()=>dbReply({error:"synthetic"},404),async({invoke,calls})=>{assert.equal((await invoke()).status,503);assert.equal(calls.length,1);});
 });
-test("verified duplicate skips notification",async()=>{
- await harness({},call=>call.method==="GET"?dbReply([{id:LEAD_ID}],200):dbReply([]),async({invoke,calls})=>{
-   assert.equal((await invoke()).status,303);assert.deepEqual(calls.map(x=>x.method),["POST","GET"]);
- });
+test("verified duplicate RPC receipt succeeds without inline notification",async()=>{
+ await harness({},()=>saved(true),async({invoke,calls})=>{assert.equal((await invoke()).status,303);assert.equal(calls.length,1);});
 });
-test("unverified duplicate cannot report success",async()=>{
- await harness({},call=>call.method==="GET"?dbReply([],200):dbReply([]),async({invoke,calls})=>{
-   assert.equal((await invoke()).status,503);assert.deepEqual(calls.map(x=>x.method),["POST","GET"]);
- });
+test("unverified queue intent cannot report success",async()=>{
+ await harness({},()=>dbReply({id:LEAD_ID,duplicate:false,notification_queued:false}),async({invoke,calls})=>{assert.equal((await invoke()).status,503);assert.equal(calls.length,1);});
 });
-test("notification failure preserves successful persisted receipt and logs no PII",async()=>{
- await harness({},call=>call.url.includes("resend.com")?new Response("Synthetic private error body",{status:500}):dbReply([{id:LEAD_ID}]),async({invoke,calls,errors})=>{
-   assert.equal((await invoke()).status,303);assert.equal(calls.length,2);
-   assert.ok(errors.some(x=>String(x[0]).includes("notification failed after lead storage")));
-   assert.doesNotMatch(JSON.stringify(errors),/customer@example.invalid|SYNTHETIC_KEY_ONLY|Synthetic private error body/);
- });
-});
-test("network notification failure preserves persisted receipt",async()=>{
- await harness({},call=>call.url.includes("resend.com")?Promise.reject(Error("synthetic timeout")):dbReply([{id:LEAD_ID}]),async({invoke,errors})=>{
-   assert.equal((await invoke()).status,303);
-   assert.ok(errors.some(x=>String(x[0]).includes("notification transport failed")));
- });
-});
-test("missing notification config still acknowledges stored lead",async()=>{
- await harness({RESEND_API_KEY:null,LEAD_TO_EMAIL:null},okDb,async({invoke,calls})=>{
+test("provider outage/configuration cannot affect customer persisted receipt",async()=>{
+ await harness({RESEND_API_KEY:null,LEAD_TO_EMAIL:null},okDb,async({invoke,calls,errors})=>{
    assert.equal((await invoke()).status,303);assert.equal(calls.length,1);
+   assert.doesNotMatch(JSON.stringify(errors),/customer@example.invalid|SYNTHETIC_KEY_ONLY/);
  });
 });
 test("protected preview never accepts submissions",async()=>{

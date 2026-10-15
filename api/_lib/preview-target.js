@@ -13,7 +13,8 @@ const PREVIEW_BRANCHES = Object.freeze([
   "feat/review-already-submitted-20261012",
   "feat/stripe-sandbox-safety-20261012",
   "feat/us-intake-routing-20261014",
-  "feat/us-persisted-leads-20261014"
+  "feat/us-persisted-leads-20261014",
+  "feat/us-lead-notification-outbox-issue63-20261014"
 ]);
 function protectedPreview(env = process.env) {
   return env.VERCEL_ENV === "preview" && PREVIEW_BRANCHES.includes(env.VERCEL_GIT_COMMIT_REF);
