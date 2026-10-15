@@ -1,0 +1,56 @@
+"use strict";
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),crypto=require('node:crypto');
+const {PGlite}=require('@electric-sql/pglite');
+test('Private attachment SQL in isolated in-memory PostgreSQL (no external processes)',{timeout:90000},async t=>{
+ const db=new PGlite();
+ try {
+  await db.exec(`create role anon;create role authenticated;create role service_role bypassrls;
+   create table public.leads(id uuid primary key default gen_random_uuid(),submission_token uuid unique,service_type text,status text,full_name text,email text,phone text,city text,zip_code text,contact_method text,details jsonb,source text);
+   alter table public.leads enable row level security;grant select,insert on public.leads to service_role;
+   create schema storage;grant usage on schema storage to service_role,anon,authenticated;
+   create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);
+   create table storage.objects(bucket_id text,name text,metadata jsonb);alter table storage.objects enable row level security;
+   grant select on storage.objects to service_role,anon,authenticated;
+   create policy existing_broad_policy on storage.objects for select using(true);`);
+  for(const name of ['us-lead-notification-outbox','us-private-lead-attachments'])await db.exec(fs.readFileSync(require.resolve('../supabase/prepared-migrations/'+name+'.sql'),'utf8'));
+  const rpc=(name,args=[])=>db.transaction(async tx=>{await tx.exec('set local role service_role');return (await tx.query(`select public.${name}(${args.map((_,i)=>'$'+(i+1)).join(',')}) result`,args)).rows[0].result;});
+  const count=async table=>(await db.query('select count(*)::int n from '+table)).rows[0].n;
+  const make=()=>{const batch=crypto.randomUUID();return {batch,lead:{submission_token:crypto.randomUUID(),details:{}},objects:[{path:`${batch}/${crypto.randomUUID()}.jpg`,mime:'image/jpeg',size:8,sha256:'a'.repeat(64)}]};};
+  const reserve=x=>rpc('gef_reserve_attachment_batch',[x.batch,x.objects]);
+  const upload=async x=>{for(const o of x.objects)await db.query('insert into storage.objects values($1,$2,$3)',['gef-lead-attachments',o.path,{size:o.size,mimetype:o.mime}]);};
+  const commit=x=>rpc('gef_commit_attachment_batch',[x.batch,x.lead]);
+  let good,receipt;
+  await t.test('private bucket size/type and no public policy bypass',async()=>{assert.equal((await db.query('select public from storage.buckets')).rows[0].public,false);await db.exec("insert into storage.objects values('gef-lead-attachments','hidden',null),('other','visible',null)");for(const role of ['anon','authenticated']){const rows=await db.transaction(async c=>{await c.exec('set local role '+role);return (await c.query('select name from storage.objects')).rows;});assert.deepEqual(rows,[{name:'visible'}]);}});
+  await t.test('old inline insert fails closed and cannot enqueue twice',async()=>{await assert.rejects(db.query("insert into public.leads(submission_token) values($1)",[crypto.randomUUID()]),/EXCLUSIVE_RPC/);assert.equal(await count('gef_notifications.lead_outbox'),0);});
+  await t.test('missing Storage object rolls back lead and outbox',async()=>{const x=make();await reserve(x);await assert.rejects(commit(x),/UPLOAD_NOT_CONFIRMED/);assert.equal(await count('public.leads'),0);assert.equal(await count('gef_notifications.lead_outbox'),0);assert.equal(await count('gef_attachments.files'),0);});
+  await t.test('one transaction confirms all uploads, lead and outbox; quarantine default',async()=>{good=make();await reserve(good);await upload(good);receipt=await commit(good);assert.equal(receipt.attachments_complete,true);assert.equal(await count('public.leads'),1);assert.equal(await count('gef_notifications.lead_outbox'),1);assert.equal((await db.query('select scan_state from gef_attachments.files')).rows[0].scan_state,'quarantined');});
+  await t.test('replayed batch cannot publish again',async()=>{await assert.rejects(commit(good),/BATCH_UNAVAILABLE/);assert.equal(await count('gef_attachments.files'),1);});
+  await t.test('admin inventory exposes IDs and quarantine state, never paths or file content',async()=>{const rows=await rpc('gef_list_lead_attachments',[receipt.id]);assert.equal(rows.length,1);assert.deepEqual(Object.keys(rows[0]).sort(),['bytes','id','mime','scanState']);assert.equal(rows[0].scanState,'quarantined');assert.deepEqual(await rpc('gef_list_lead_attachments',[crypto.randomUUID()]),[]);});
+  await t.test('RPC marker does not survive commit: rollback to inline remains denied',async()=>{await assert.rejects(db.query('insert into public.leads(submission_token) values($1)',[crypto.randomUUID()]),/EXCLUSIVE_RPC/);assert.equal(await count('gef_notifications.lead_outbox'),1);});
+  await t.test('malicious duplicate token cannot add objects to prior lead',async()=>{const x=make();x.lead=good.lead;await reserve(x);await upload(x);await assert.rejects(commit(x),/DUPLICATE_ATTACHMENT_SUBMISSION/);assert.equal(await count('gef_attachments.files'),1);assert.equal(await count('gef_notifications.lead_outbox'),1);});
+  await t.test('partial upload cannot publish any metadata or lead',async()=>{const x=make();x.objects.push({...x.objects[0],path:`${x.batch}/${crypto.randomUUID()}.jpg`});await reserve(x);await upload({...x,objects:[x.objects[0]]});await assert.rejects(commit(x));assert.equal(await count('public.leads'),1);assert.equal(await count('gef_attachments.files'),1);});
+  await t.test('mismatched size or type cannot confirm',async()=>{const x=make();await reserve(x);await upload(x);await db.query("update storage.objects set metadata='{}' where name=$1",[x.objects[0].path]);await assert.rejects(commit(x),/UPLOAD_NOT_CONFIRMED/);});
+  await t.test('malformed paths cannot reserve',async()=>{const x=make();x.objects[0].path='../other';await assert.rejects(reserve(x),/INVALID_MANIFEST/);});
+  await t.test('committed batch never eligible for cleanup, even after deadline',async()=>{await db.query("update gef_attachments.batches set expires_at=clock_timestamp()-interval '1 hour' where id=$1",[good.batch]);await assert.rejects(rpc('gef_claim_attachment_cleanup',[good.batch]),/CLEANUP_DENIED/);});
+  await t.test('expired orphan recovered idempotently, cannot later finalize',async()=>{const x=make();await reserve(x);await assert.rejects(rpc('gef_claim_attachment_cleanup',[x.batch]),/CLEANUP_DENIED/);await db.query("update gef_attachments.batches set expires_at=clock_timestamp()-interval '1 hour' where id=$1",[x.batch]);assert.deepEqual(await rpc('gef_claim_attachment_cleanup',[x.batch]),x.objects.map(o=>o.path));await rpc('gef_finish_attachment_cleanup',[x.batch]);assert.deepEqual(await rpc('gef_claim_attachment_cleanup',[x.batch]),x.objects.map(o=>o.path));await assert.rejects(commit(x),/BATCH_UNAVAILABLE/);});
+  await t.test('Deleted tombstones remain discoverable for seven days after their latest cleanup',async()=>{
+    const x=make();await reserve(x);
+    await db.query("update gef_attachments.batches set expires_at=clock_timestamp()-interval '10 days' where id=$1",[x.batch]);
+    await rpc('gef_claim_attachment_cleanup',[x.batch]);
+    await rpc('gef_finish_attachment_cleanup',[x.batch]);
+    await db.query("update gef_attachments.batches set cleaned_at=clock_timestamp()-interval '6 days' where id=$1",[x.batch]);
+    let pending=await rpc('gef_pending_attachment_cleanup');
+    assert.ok(pending.includes(x.batch),'recently cleaned orphan still needs resweep');
+    await db.query("update gef_attachments.batches set cleaned_at=clock_timestamp()-interval '8 days' where id=$1",[x.batch]);
+    pending=await rpc('gef_pending_attachment_cleanup');
+    assert.equal(pending.includes(x.batch),false,'aged-out tombstone must not stay in pending inventory');
+    await rpc('gef_claim_attachment_cleanup',[x.batch]);
+    await rpc('gef_finish_attachment_cleanup',[x.batch]);
+    pending=await rpc('gef_pending_attachment_cleanup');
+    assert.ok(pending.includes(x.batch),'re-sweep renews the cleanup safety window');
+  });
+  await t.test('quarantined metadata inaccessible; clean file requires exact lead and attachment pair',async()=>{const file=(await db.query('select id from gef_attachments.files')).rows[0].id;assert.equal(await rpc('gef_admin_attachment',[receipt.id,file]),null);await db.query("update gef_attachments.files set scan_state='clean'");assert.ok((await rpc('gef_admin_attachment',[receipt.id,file])).path);assert.equal(await rpc('gef_admin_attachment',[crypto.randomUUID(),file]),null);});
+  await t.test('anon/authenticated cannot read metadata or call RPC',async()=>{for(const role of ['anon','authenticated'])for(const sql of ['select * from gef_attachments.files','select * from gef_attachments.batches','select public.gef_pending_attachment_cleanup()'])await assert.rejects(db.transaction(async c=>{await c.exec('set local role '+role);await c.exec(sql);}),/permission denied/);});
+  await t.test('transaction aborted after finalization leaves no partial publication',async()=>{const x=make();await reserve(x);await upload(x);await assert.rejects(db.transaction(async c=>{await c.exec('set local role service_role');await c.query('select public.gef_commit_attachment_batch($1,$2)',[x.batch,x.lead]);throw Error('synthetic interruption');}));assert.equal(await count('public.leads'),1);assert.equal(await count('gef_attachments.files'),1);});
+ }finally{await db.close();}
+});

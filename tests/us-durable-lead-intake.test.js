@@ -21,6 +21,7 @@ async function invoke(fieldOverrides={},opts={}) {
   };
   for(const [key,value] of Object.entries(values))if(value!==null&&value!==undefined)form.append(key,value);
   if(opts.invalidFile)form.append("Photo 1",new File(["invalid"],"unsupported.txt",{type:"text/plain"}));
+  if(opts.validFile)form.append("Photo 1",new File([Buffer.from([255,216,255,224,1,2,255,217])],"test.jpg",{type:"image/jpeg"}));
   const request=new Request("https://www.getestimatefast.com/api/lead",{method:"POST",body:form});
   const req=Readable.from([Buffer.from(await request.arrayBuffer())]);
   req.method="POST";
@@ -54,6 +55,13 @@ async function harness(overrides={},mockFetch=()=>{throw Error("Unexpected exter
 }
 const saved=(duplicate=false)=>dbReply({id:LEAD_ID,duplicate,notification_queued:true});
 const okDb=()=>saved();
+
+test("valid attachment fails closed without the dedicated rollout flag; no lead RPC or upload",async()=>{
+ const before=process.env.GETESTIMATEFAST_ATTACHMENTS_ENABLED;
+ delete process.env.GETESTIMATEFAST_ATTACHMENTS_ENABLED;
+ try {await harness({},undefined,async({invoke,calls})=>{assert.equal((await invoke({}, {validFile:true})).status,503);assert.equal(calls.length,0);});}
+ finally {if(before===undefined)delete process.env.GETESTIMATEFAST_ATTACHMENTS_ENABLED;else process.env.GETESTIMATEFAST_ATTACHMENTS_ENABLED=before;}
+});
 
 test("disabled persistence cannot send email or report success",async()=>{
  await harness({LEAD_PERSISTENCE_ENABLED:"false"},undefined,async({invoke,calls})=>{
