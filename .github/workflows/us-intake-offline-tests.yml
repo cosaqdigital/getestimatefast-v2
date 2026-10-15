@@ -10,6 +10,13 @@ on:
       - assets/service-landing.js
       - tests/us-durable-lead-intake.test.js
       - tests/us-legacy-intake-routing.test.js
+      - index.html
+      - for-professionals.html
+      - assets/pro-landing.css
+      - assets/platform.css
+      - assets/marketplace-portal.js
+      - tests/us-mvp-home-pro.test.js
+      - .github/workflows/us-intake-offline-tests.yml
 permissions:
   contents: read
 jobs:
@@ -21,4 +28,4 @@ jobs:
         with:
           node-version: '24'
       - name: Synthetic API and routing tests
-        run: node --test tests/us-durable-lead-intake.test.js tests/us-legacy-intake-routing.test.js
+        run: node --test tests/us-durable-lead-intake.test.js tests/us-legacy-intake-routing.test.js tests/us-mvp-home-pro.test.js
