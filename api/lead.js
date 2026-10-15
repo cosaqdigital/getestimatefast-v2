@@ -1,5 +1,7 @@
 const LAUNCH_CATALOG = require("../assets/launch-categories");
-const { protectedPreview } = require("./_lib/preview-target");
+const { DEVELOPMENT_REF, protectedPreview } = require("./_lib/preview-target");
+// Reject accidental cross-platform database configuration.
+const PRODUCTION_REF = "wedsjubkttygxtpkopfj";
 const THANK_YOU_URL = "https://www.getestimatefast.com/thank-you.html";
 const DEFAULT_FROM_EMAIL = "GetEstimateFast <onboarding@resend.dev>";
 const MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024;
@@ -7,8 +9,7 @@ const MAX_REQUEST_SIZE = 15 * 1024 * 1024;
 const MAX_ATTACHMENT_COUNT = 3;
 
 module.exports = async function handler(req, res) {
-  if (process.env.GETESTIMATEFAST_ISOLATED_BACKEND === "true" ||
-      protectedPreview()) {
+  if (process.env.GETESTIMATEFAST_ISOLATED_BACKEND === "true" || protectedPreview()) {
     return sendErrorPage(res, 503, "Public submissions and external email delivery are disabled in this isolated test environment.");
   }
   if (req.method !== "POST") {
@@ -16,96 +17,114 @@ module.exports = async function handler(req, res) {
     return sendErrorPage(res, 405, "This page only accepts form submissions.");
   }
 
-  if (!process.env.RESEND_API_KEY || !process.env.LEAD_TO_EMAIL) {
-    console.error("Missing RESEND_API_KEY or LEAD_TO_EMAIL environment variable.");
-    return sendErrorPage(res, 500, "Email delivery is not configured yet. Please try again shortly.");
-  }
-
-  let savedLeadId = null;
   try {
     const formData = await parseFormData(req);
     const fields = normalizeFields(formData);
 
     if (isSpamSubmission(fields)) {
       if (process.env.VERCEL_ENV === "preview") {
-        console.warn("Preview test rejected by honeypot; no lead was saved.");
         return sendErrorPage(res, 400, "Test submission blocked by anti-spam field. No request was saved.");
       }
       return redirectToThankYou(res);
     }
 
     const validationError = validateLead(fields);
-    if (validationError) {
-      return sendErrorPage(res, 400, validationError);
+    if (validationError) return sendErrorPage(res, 400, validationError);
+
+    // Validate attachments before writing: an invalid upload cannot create an incomplete lead.
+    let attachments;
+    try {
+      attachments = await collectAttachments(formData);
+    } catch {
+      return sendErrorPage(res, 413, "Check your attachments: JPG, PNG, WebP or PDF; up to three files of 5 MB each.");
     }
 
-    // Persistence is opt-in until an isolated GetEstimateFast database is provisioned.
-    // With enabled persistence, fail closed before emailing: never imply a request was saved.
-    if (process.env.LEAD_PERSISTENCE_ENABLED === "true") {
-      try {
-        const persistenceResult = await persistLead(fields);
-        if (persistenceResult.duplicate) return redirectToThankYou(res);
-        savedLeadId = persistenceResult.id;
-      } catch (persistError) {
-        console.error("GetEstimateFast lead storage failed:", persistError.message);
-        return sendErrorPage(res, 503, "We couldn't save your request right now. Please try again shortly.");
-      }
+    // Unlike the former opt-in behavior, a disabled persistence flag fails closed.
+    if (process.env.LEAD_PERSISTENCE_ENABLED !== "true") {
+      console.error("GetEstimateFast lead persistence is not enabled.");
+      return sendErrorPage(res, 503, "Requests are temporarily unavailable. Please try again later.");
     }
 
-    const attachments = await collectAttachments(formData);
+    let record;
+    try {
+      record = await persistLead(fields);
+    } catch (error) {
+      console.error("GetEstimateFast lead storage failed:", error?.message || "unknown");
+      return sendErrorPage(res, 503, "We couldn't save your request. Please try again shortly.");
+    }
+    // An existing token must be verified in the database before this succeeds.
+    if (record.duplicate) return redirectToThankYou(res);
+    const savedLeadId = record.id;
+
+    // Email is a secondary notification. A lead that is safely stored must never
+    // become an apparent failed request if Resend is unavailable.
+    if (!process.env.RESEND_API_KEY || !process.env.LEAD_TO_EMAIL) {
+      console.error("GetEstimateFast lead notification not configured; stored lead:", savedLeadId);
+      return redirectToThankYou(res);
+    }
+
     const subject = buildSubject(fields);
-    if (savedLeadId) fields["Request ID"] = savedLeadId;
+    fields["Request ID"] = savedLeadId;
     const replyTo = firstValue(fields["Email Address"]);
 
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        from: process.env.LEAD_FROM_EMAIL || DEFAULT_FROM_EMAIL,
-        to: [process.env.LEAD_TO_EMAIL],
-        subject,
-        html: renderLeadEmail(subject, fields, attachments),
-        text: renderLeadText(subject, fields, attachments),
-        reply_to: replyTo || undefined,
-        attachments: attachments.map((file) => ({
-          filename: file.filename,
-          content: file.content
-        }))
-      })
-    });
-
-    if (!response.ok) {
-      const errorBody = await response.text();
-      console.error("Resend API error:", response.status, errorBody);
-      if (savedLeadId) return redirectToThankYou(res);
-      return sendErrorPage(res, 502, "We couldn't deliver your request right now. Please try again in a moment.");
+    try {
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          from: process.env.LEAD_FROM_EMAIL || DEFAULT_FROM_EMAIL,
+          to: [process.env.LEAD_TO_EMAIL],
+          subject,
+          html: renderLeadEmail(subject, fields, attachments),
+          text: renderLeadText(subject, fields, attachments),
+          reply_to: replyTo || undefined,
+          attachments: attachments.map((file) => ({
+            filename: file.filename,
+            content: file.content
+          }))
+        })
+      });
+      if (!response.ok) {
+        // Never log provider response bodies: they can contain personal information.
+        console.error("GetEstimateFast notification failed after lead storage:", {
+          leadId: savedLeadId,
+          httpStatus: response.status
+        });
+      }
+    } catch {
+      console.error("GetEstimateFast notification transport failed after lead storage:", {
+        leadId: savedLeadId
+      });
     }
-
     return redirectToThankYou(res);
   } catch (error) {
-    console.error("Lead submission failed:", error);
-    if (savedLeadId) return redirectToThankYou(res);
-    return sendErrorPage(res, 500, "We couldn't send your request right now. Please go back and try again in a moment.");
+    // Keep personal details, customer files and provider credentials out of server logs.
+    console.error("GetEstimateFast request processing failed:", error?.name || "unknown");
+    return sendErrorPage(res, 500, "We couldn't process your request. Please check your form and try again.");
   }
 };
-
 async function persistLead(fields) {
   const endpoint = String(process.env.GETESTIMATEFAST_SUPABASE_URL || "").replace(/\/$/, "");
   const key = process.env.GETESTIMATEFAST_SUPABASE_SECRET_KEY;
-  if (!endpoint || !/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(endpoint) || !key) {
-    throw new Error("Independent database environment is not configured");
+  const expectedRef = process.env.VERCEL_ENV === "production" ? PRODUCTION_REF : DEVELOPMENT_REF;
+  if (endpoint !== `https://${expectedRef}.supabase.co` || !key) {
+    throw new Error("Independent GetEstimateFast database is not configured for this environment");
   }
 
   const rawToken = firstValue(fields["Submission Token"]);
   const submissionToken = /^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(rawToken) ? rawToken : null;
+  if (!submissionToken) throw new Error("Missing valid lead submission token");
+  const dbHeaders = {
+    apikey: key,
+    ...(key.startsWith("sb_secret_") ? {} : { Authorization: "Bearer " + key })
+  };
   const response = await fetch(endpoint + "/rest/v1/leads?on_conflict=submission_token&select=id", {
     method: "POST",
     headers: {
-      apikey: key,
-      ...(key.startsWith("sb_secret_") ? {} : { Authorization: "Bearer " + key }),
+      ...dbHeaders,
       "Content-Type": "application/json",
       Prefer: "resolution=ignore-duplicates,return=representation"
     },
@@ -135,8 +154,21 @@ async function persistLead(fields) {
   }
   const records = await response.json();
   if (!Array.isArray(records)) throw new Error("Invalid lead database response");
-  if (records.length === 0 && submissionToken) return { duplicate: true };
-  if (!records[0] || !records[0].id) throw new Error("Lead database returned no ID");
+  if (records.length === 0) {
+    // DO NOTHING on the unique submission token returns no row. Confirm the
+    // original exists before issuing a success receipt.
+    const lookup = await fetch(
+      endpoint + "/rest/v1/leads?submission_token=eq." + encodeURIComponent(submissionToken) + "&select=id&limit=1",
+      { method: "GET", headers: dbHeaders, cache: "no-store" }
+    );
+    if (!lookup.ok) throw new Error("Lead duplicate lookup failed (HTTP " + lookup.status + ")");
+    const matches = await lookup.json();
+    if (!Array.isArray(matches) || !matches[0]?.id) {
+      throw new Error("Duplicate token is not verifiable in GetEstimateFast");
+    }
+    return { duplicate: true, id: matches[0].id };
+  }
+  if (!records[0]?.id) throw new Error("Lead database returned no ID");
   return { duplicate: false, id: records[0].id };
 }
 
@@ -233,6 +265,12 @@ function validateLead(fields) {
     if (!firstValue(fields[field])) {
       return `Please complete the ${field.toLowerCase()} field and try again.`;
     }
+  }
+
+  // Each supported browser form must generate a stable UUID for safe retries.
+  const submissionToken = firstValue(fields["Submission Token"]);
+  if (!/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(submissionToken)) {
+    return "We couldn't verify your request. Reload the form and try again.";
   }
 
   // No service/category keyword filter here. Unlisted and older service categories
