@@ -2,7 +2,8 @@
   "git": {
     "deploymentEnabled": {
       "feat/stripe-sandbox-safety-20261012": false,
-      "feat/us-intake-routing-20261014": false
+      "feat/us-intake-routing-20261014": false,
+      "feat/us-persisted-leads-20261014": false
     }
   },
   "rewrites": [
