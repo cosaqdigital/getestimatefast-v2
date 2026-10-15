@@ -42,7 +42,7 @@ begin
   end if;
   insert into gef_notifications.lead_outbox(lead_id) values(new.id);
   return new;
-end $;
+end $$;
 revoke all on function gef_notifications.enqueue_lead() from public, anon, authenticated;
 grant execute on function gef_notifications.enqueue_lead() to service_role;
 create trigger gef_lead_notification_intent after insert on public.leads
