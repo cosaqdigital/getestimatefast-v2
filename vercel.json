@@ -4,7 +4,8 @@
       "feat/stripe-sandbox-safety-20261012": false,
       "feat/us-intake-routing-20261014": false,
       "feat/us-persisted-leads-20261014": false,
-      "feat/us-lead-notification-outbox-issue63-20261014": false
+      "feat/us-lead-notification-outbox-issue63-20261014": false,
+      "feat/us-private-attachments-issue64-20261015": false
     }
   },
   "rewrites": [

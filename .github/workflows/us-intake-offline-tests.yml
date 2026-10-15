@@ -6,6 +6,11 @@ on:
   pull_request:
     paths:
       - api/lead.js
+      - api/_lib/lead-attachments.js
+      - api/admin/lead-attachments.js
+      - tests/us-private-attachments.test.js
+      - tests/us-private-attachments-postgres.test.js
+      - supabase/prepared-migrations/us-private-lead-attachments.sql
       - assets/platform-forms.js
       - assets/service-landing.js
       - tests/us-durable-lead-intake.test.js
@@ -33,8 +38,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - run: npm ci
       - name: Synthetic API and routing tests
-        run: node --test tests/us-durable-lead-intake.test.js tests/us-legacy-intake-routing.test.js tests/us-lead-outbox.test.js
+        run: node --require ./tests/helpers/offline-fetch.cjs --test tests/us-durable-lead-intake.test.js tests/us-legacy-intake-routing.test.js tests/us-lead-outbox.test.js tests/us-private-attachments.test.js
   full-synthetic-suite:
     runs-on: ubuntu-latest
     timeout-minutes: 15

@@ -1,11 +1,10 @@
 const LAUNCH_CATALOG = require("../assets/launch-categories");
 const { DEVELOPMENT_REF, protectedPreview } = require("./_lib/preview-target");
+const {validateFiles, persistAttachments} = require('./_lib/lead-attachments');
 // Reject accidental cross-platform database configuration.
 const PRODUCTION_REF = "wedsjubkttygxtpkopfj";
 const THANK_YOU_URL = "https://www.getestimatefast.com/thank-you.html";
-const MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024;
 const MAX_REQUEST_SIZE = 15 * 1024 * 1024;
-const MAX_ATTACHMENT_COUNT = 3;
 
 module.exports = async function handler(req, res) {
   if (process.env.GETESTIMATEFAST_ISOLATED_BACKEND === "true" || protectedPreview()) {
@@ -31,8 +30,9 @@ module.exports = async function handler(req, res) {
     if (validationError) return sendErrorPage(res, 400, validationError);
 
     // Validate attachments before writing: an invalid upload cannot create an incomplete lead.
+    let attachments;
     try {
-      await collectAttachments(formData);
+      attachments = await validateFiles(formData);
     } catch {
       return sendErrorPage(res, 413, "Check your attachments: JPG, PNG, WebP or PDF; up to three files of 5 MB each.");
     }
@@ -44,7 +44,7 @@ module.exports = async function handler(req, res) {
     }
 
     try {
-      await persistLead(fields);
+      await persistLead(fields, attachments);
     } catch {
       console.error("GetEstimateFast lead storage failed.");
       return sendErrorPage(res, 503, "We couldn't save your request. Please try again shortly.");
@@ -53,12 +53,13 @@ module.exports = async function handler(req, res) {
     // Delivery is asynchronous and cannot change the customer receipt.
     return redirectToThankYou(res);
   } catch (error) {
+    if(error?.code==='PAYLOAD_TOO_LARGE')return sendErrorPage(res,413,"Request exceeds the upload limit.");
     // Keep personal details, customer files and provider credentials out of server logs.
     console.error("GetEstimateFast request processing failed:", error?.name || "unknown");
     return sendErrorPage(res, 500, "We couldn't process your request. Please check your form and try again.");
   }
 };
-async function persistLead(fields) {
+async function persistLead(fields, attachments = []) {
   const endpoint = String(process.env.GETESTIMATEFAST_SUPABASE_URL || "").replace(/\/$/, "");
   const key = process.env.GETESTIMATEFAST_SUPABASE_SECRET_KEY;
   const expectedRef = process.env.VERCEL_ENV === "production" ? PRODUCTION_REF : DEVELOPMENT_REF;
@@ -73,6 +74,16 @@ async function persistLead(fields) {
     apikey: key,
     ...(key.startsWith("sb_secret_") ? {} : { Authorization: "Bearer " + key })
   };
+  const payload = { p_lead: {
+    submission_token: submissionToken,
+    service_type: firstValue(fields["Service Type"]), status: "new",
+    full_name: firstValue(fields["Full Name"]), email: firstValue(fields["Email Address"]),
+    phone: firstValue(fields["Phone Number"]), city: firstValue(fields["City"]), zip_code: firstValue(fields["ZIP Code"]),
+    contact_method: firstValue(fields["Preferred contact method"]) || null,
+    details: {...fields,_platform_review:{required:true,reason:manualReviewReason(fields),original_service:firstValue(fields["Service Type"]) }},
+    source: "getestimatefast.com"
+  }};
+  if(attachments.length) return persistAttachments(payload.p_lead, attachments);
   const response = await fetch(endpoint + "/rest/v1/rpc/gef_persist_lead_and_notify", {
     method: "POST",
     headers: {
@@ -81,26 +92,7 @@ async function persistLead(fields) {
     },
     redirect: "error",
     signal: AbortSignal.timeout(10000),
-    body: JSON.stringify({ p_lead: {
-      submission_token: submissionToken,
-      service_type: firstValue(fields["Service Type"]),
-      status: "new", // Manual review before qualification or publishing.
-      full_name: firstValue(fields["Full Name"]),
-      email: firstValue(fields["Email Address"]),
-      phone: firstValue(fields["Phone Number"]),
-      city: firstValue(fields["City"]),
-      zip_code: firstValue(fields["ZIP Code"]),
-      contact_method: firstValue(fields["Preferred contact method"]) || null,
-      details: {
-        ...fields,
-        _platform_review: {
-          required: true,
-          reason: manualReviewReason(fields),
-          original_service: firstValue(fields["Service Type"])
-        }
-      },
-      source: "getestimatefast.com"
-    } })
+    body: JSON.stringify(payload)
   });
   if (!response.ok) {
     throw new Error("Lead database insert returned HTTP " + response.status);
@@ -141,7 +133,7 @@ function readRequestBody(req) {
     req.on("data", (chunk) => {
       total += chunk.length;
       if (total > MAX_REQUEST_SIZE) {
-        reject(new Error("Request payload exceeds size limit"));
+        reject(Object.assign(new Error("Request payload exceeds size limit"),{code:'PAYLOAD_TOO_LARGE'}));
         req.pause();
         return;
       }
@@ -171,27 +163,6 @@ function normalizeFields(formData) {
   }
 
   return normalized;
-}
-
-async function collectAttachments(formData) {
-  const attachments = [];
-
-  for (const [, rawValue] of formData.entries()) {
-    if (!isFileLike(rawValue)) continue;
-    if (!rawValue.size || rawValue.size <= 0) continue;
-    if (rawValue.size > MAX_ATTACHMENT_SIZE) throw new Error("Attachment exceeds size limit");
-    if (attachments.length >= MAX_ATTACHMENT_COUNT) throw new Error("Too many attachments");
-    if (!["image/jpeg", "image/png", "image/webp", "application/pdf"].includes(rawValue.type)) throw new Error("Unsupported attachment type");
-
-    const arrayBuffer = await rawValue.arrayBuffer();
-    attachments.push({
-      filename: rawValue.name || "attachment",
-      content: Buffer.from(arrayBuffer).toString("base64"),
-      size: rawValue.size
-    });
-  }
-
-  return attachments;
 }
 
 function isSpamSubmission(fields) {

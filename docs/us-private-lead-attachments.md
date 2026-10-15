@@ -1,0 +1,64 @@
+# Issue #64 — private US lead attachments (not deployed)
+
+Base: PR #65, `835be3289dd588d7846b67dae5a1f0b334e8dc08`. This is a dependent draft against `feat/us-lead-notification-outbox-issue63-20261014`, not main. No hosted SQL, bucket creation, uploads, emails, environment changes or deployments were performed. Existing inconclusive local processes/directories remain preserved. No Brazil platform code, data or services are involved.
+
+## Contract and failure handling
+
+`api/lead.js` validates at most three files, 5 MiB each, with a 15 MiB **total multipart body** limit. Three full-size files plus multipart overhead exceed that body limit. Vercel Functions may reject a request earlier at their platform body limit (commonly 4.5 MB); this work does not increase that limit or promise 15 MiB uploads on Vercel. A separately reviewed staged-upload route or a compatible backend is required before advertising larger hosted uploads. No public Storage upload/signing endpoint was added.
+
+Validation checks allowed extension, declared MIME, signature/trailer, dangerous double extensions, path separators, empty files and common active PDF/HTML/SVG payloads. Original filenames are discarded and never persisted. These checks are NOT a full image/PDF parser or antivirus. Polyglots, compressed/obfuscated PDF actions and malformed decoder payloads may survive. Therefore every file is **quarantined**, including valid JPG/PDF fixtures. Administrative signing rejects quarantined/rejected files. No browser inline rendering or permanent public URLs are provided.
+
+1. Backend generates a random batch UUID and separate random object UUIDs. Paths contain no PII, submission token or lead identifier.
+2. `gef_reserve_attachment_batch` durably records the entire manifest (path, MIME, bytes and SHA-256) before uploading. Each request has its own batch. No public API reveals that manifest.
+3. Upload sequentially, without upsert, to private bucket `gef-lead-attachments`. Each HTTP request has an eight-second timeout and rejects redirects. Max three uploads. Including reserve/finalize, the successful path has at most five HTTP operations (~40 seconds plus parsing); configure a separately approved runtime limit above that ceiling or lower application limits. No automatic retry or inline mail.
+4. `gef_commit_attachment_batch` locks the batch, enforces its two-minute commit window, invokes the lead/outbox RPC and verifies every Storage object's presence, size and MIME. Metadata references the persisted lead and batch. All metadata, lead, outbox intent and committed state are **one PostgreSQL transaction**. Storage is outside this transaction. Receipt only succeeds when all uploads are confirmed. `attachments_complete` means durable storage, NOT malware clearance.
+5. A duplicate submission token aborts this transaction: a visitor who knows/reuses a token can never append, replace, sign, list or adopt files on the original lead. The API returns a generic failure, no old lead/path. A successful upload whose acknowledgement was lost may already be committed; do not delete immediately or retry finalization blindly. Customer support must resolve ambiguous receipts through authorized metadata inspection. No-attachment duplicate behavior from #65 is preserved.
+6. Missing migration, bucket, manifest, Storage confirmation or feature flag fails closed. Existing no-file submissions keep using the transactional outbox RPC. Notification worker is unchanged; it sends only the lead ID. The outbox is visible to the worker only after the attachment commit transaction completes; no attachment fetching or emailing occurs in the worker.
+
+## Recovery, retention and cost bounds
+
+`POST /api/admin/lead-attachments` authenticates an existing admin through the server-side `admin_users` flow; ordinary users are denied. Body max 1 KiB. Actions:
+
+- `pending`: up to 50 expired noncommitted batch IDs, no filenames or PII.
+- `list` + leadId: up to three attachment IDs, MIME, size and quarantine state; no object path or contents.
+- `recover` + batchId: atomically fences an expired batch (10-minute quarantine interval), deletes only its exact reserved paths via **Storage API**, then records `deleted`. A committed batch is never eligible. Cleanup is idempotent; deleted batches can be reswept to catch a delayed Storage completion. Failed deletion retains the ledger for recovery. No Storage metadata rows are deleted directly.
+- `sign` + leadId + attachmentId: lookup requires that exact pair, committed batch and `clean` scan verdict. Issues a 60-second, forced-download URL with `Cache-Control: no-store`; validates the returned host/path. URL is a temporary bearer capability: recipients must not share it or log query strings. Existing signed links may remain valid until their TTL elapses.
+
+Recovery requires authenticated explicit operator calls; no Cron, automatic cleanup, recursive directory deletion or global process handling is configured. Operators enumerate pending batches and repeat failed recoveries manually. At activation, require a documented sweep cadence, e.g. hourly, including deleted tombstones for 24 hours after expiry. Keep orphan tombstones for seven days; never expire them before delayed-write risk has been reviewed. The ten-minute grace exceeds normal client request/commit deadlines, but a provider could finish an aborted upload later: resweeping and monitoring remain necessary.
+
+Reservation serializes its capacity check and stops at **200 nondeleted batches**, including committed batches: at most 600 application-owned objects / ~3 GiB payload, plus tombstones, metadata and any delayed duplicate transport. This is an application cap, not a provider billing guarantee or a substitute for rate limiting. Bucket max object size and MIME list are also set. Before activation, separately approve WAF/rate limiting, monthly spend/egress alerts and an operator retention workflow. Recommended committed retention: 30 days or shorter if business/legal requirements dictate; a separately authorized erasure procedure must revoke access, remove exact Storage keys, and then remove associated metadata in that order. Never cascade-delete leads or SQL-delete `storage.objects`. Committed automatic deletion is deliberately not enabled; the cap stops intake rather than silently losing evidence.
+
+## Scan/release and activation blockers
+
+There is deliberately **no production scanner, scan-state update HTTP endpoint or automatic quarantine release**. A separate trusted scanner/review integration must check the stored object's digest and metadata, record an auditable clean verdict and reject dangerous content before `scan_state` can change. The test suite updates synthetic fixtures only to exercise the clean path. Do not release real objects using the SQL Editor or merely because magic-byte validation passed. Until scanner/release and retention procedures are approved and tested, this feature is not ready for real-file activation; admin download remains safely unavailable for normal newly uploaded objects.
+
+`GETESTIMATEFAST_ATTACHMENTS_ENABLED` defaults off. Runtime requires `VERCEL_ENV=development` and the exact US Development HTTPS endpoint `cpjsbijgijeyrwjpuciv`; Production and Preview are rejected even if the flag is set. Existing admin auth additionally needs its independently configured Development/isolated backend and confirmed admin identity. No environment values were read or changed. Production support requires a separate code review, identity gate, activation approval and hosted acceptance tests. Auto-deploy is false for this branch and it is in the Preview protection list.
+
+## Prepared SQL, permissions and prior P1
+
+Supabase CLI is unavailable locally; SQL is a clearly labeled **unapplied proposal** in `supabase/prepared-migrations/`, not an invented migration-history entry. Generate the real migration using `supabase migration new` after inspecting CLI help in an approved environment. Apply only after separate authorization and schema compatibility review.
+
+`us-private-lead-attachments.sql` creates private schema `gef_attachments`, batches/files tables, two indexes, RLS, seven SECURITY INVOKER RPCs restricted to service_role, a private limited bucket and one **restrictive** Storage policy. That policy prevents PUBLIC-derived client access to this bucket even in the presence of broad permissive policies. Service-role bypass remains privileged and backend-only; no secret is sent to clients. Custom non-BYPASSRLS users cannot bypass the restrictive policy. Hosted advisors and actual Storage metadata/API compatibility are pending; local tests model Storage catalogs, not the hosted service. Pinning the SDK is inherited; no new dependency or lockfile change.
+
+Review of #65 found a P1: unconditional trigger enqueueing alongside old inline send. The revised prepared outbox SQL now requires an RPC transaction-local marker before any lead insert can enqueue, and clears the marker immediately after insert. Legacy direct inserts fail closed and cannot create worker intents. This marker is an exclusive trusted backend path contract, not an authorization boundary for a compromised service key. The worker is unchanged. If the old SQL was ever installed, stop intake/delivery and reconcile any overlap intents under a **new authorization** before enabling the worker. Do not assume old releases fail closed around email: verify exclusive API routing, freeze inline delivery during upgrade, then activate the reviewed RPC API; never overlap worker activation with an inline rollback.
+
+## Rollout / rollback (requires separate approval)
+
+1. Keep intake/file flag/worker off; inspect isolated Development schema, Storage policies, actual project identity and admin setup without financial data. Review any existing outbox overlap.
+2. Under separate DDL/bucket authorization, install revised outbox SQL then attachment proposal atomically per package. Existing installed #65 schemas need a separately reviewed replacement function patch, not blindly rerunning CREATE statements. No package is automatically applied by CI.
+3. Approve scanner/release, retention, rate limiting, cost and hosting body/runtime limits. Test with authorized fictional fixtures only: denial for anon/user, duplicate races, timeout/ambiguous commit, cleanup, scan rejection, 60-second signed download and revoke behavior.
+4. Enable Development only after hosted acceptance; Production requires a later reviewed change and explicit authorization. Worker remains separately gated and ID-only.
+5. Rollback: disable attachment intake first, stop new reservations, preserve ledgers and committed objects, verify in-flight writes/ambiguous commits. Roll back API while keeping default flag off; do not restore inline email with worker active. Do not DROP schema/bucket or cascade-delete leads. Resume only authorized ledger recovery; erasure/uninstall requires an exact reviewed object manifest and new authorization.
+
+## Evidence and limits
+
+Synthetic API/Storage mocks and in-memory PostgreSQL exercise private policies, upload/DB failures, duplicate tokens, metadata FK integrity, quarantine, signing, expiry/recovery and transactional rollback. Full `npm test` uses concurrency 2 and the inherited journaled PostgreSQL harness for preexisting suites; it does not adopt old resources or reuse historical ports/directories. Tests and final counts are recorded in the PR. No hosted integration or antivirus effectiveness claim follows from these synthetic results.
+
+Official references reviewed: [Storage access control](https://supabase.com/docs/guides/storage/security/access-control), [signed URLs](https://supabase.com/docs/reference/javascript/storage-from-createsignedurl), [Storage limits](https://supabase.com/docs/guides/storage/uploads/file-limits), [Vercel Functions limits](https://vercel.com/docs/functions/limitations). Changelog reviewed on 2026-10-15: the announced November TLS cipher removal does not require disabling certificate checks or changing this Node 24 HTTPS client.
+
+Local evidence on 2026-10-15: full concurrent suite **389/389**, 403.73 seconds, no failures/cancellations/skips. After the final admin inventory addition and explicit SDK no-retry checks, focused suite **59/59**, 15.11 seconds. Final CI runs the complete suite again. All seven journaled native clusters from the full local run are `stopped`; ports were released by the harness, directories preserved. Syntax checks and `git diff --check` passed. Test output and node_modules are ignored; no dependency versions changed.
+
+Prepared SQL SHA-256 (review identity only, not execution authorization):
+
+- `us-private-lead-attachments.sql`: `1514957f6f1e65e50e7530b965ab5184e57e97d654906d6367c8df3e5a08361e`
+- `us-lead-notification-outbox.sql`: `3f3d5f444570bfc06c7fa3ecca4b0bd36ecdb6823ebf66195f4847fdf4011d73`
