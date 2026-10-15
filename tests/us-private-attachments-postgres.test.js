@@ -33,6 +33,22 @@ test('Private attachment SQL in isolated in-memory PostgreSQL (no external proce
   await t.test('malformed paths cannot reserve',async()=>{const x=make();x.objects[0].path='../other';await assert.rejects(reserve(x),/INVALID_MANIFEST/);});
   await t.test('committed batch never eligible for cleanup, even after deadline',async()=>{await db.query("update gef_attachments.batches set expires_at=clock_timestamp()-interval '1 hour' where id=$1",[good.batch]);await assert.rejects(rpc('gef_claim_attachment_cleanup',[good.batch]),/CLEANUP_DENIED/);});
   await t.test('expired orphan recovered idempotently, cannot later finalize',async()=>{const x=make();await reserve(x);await assert.rejects(rpc('gef_claim_attachment_cleanup',[x.batch]),/CLEANUP_DENIED/);await db.query("update gef_attachments.batches set expires_at=clock_timestamp()-interval '1 hour' where id=$1",[x.batch]);assert.deepEqual(await rpc('gef_claim_attachment_cleanup',[x.batch]),x.objects.map(o=>o.path));await rpc('gef_finish_attachment_cleanup',[x.batch]);assert.deepEqual(await rpc('gef_claim_attachment_cleanup',[x.batch]),x.objects.map(o=>o.path));await assert.rejects(commit(x),/BATCH_UNAVAILABLE/);});
+  await t.test('Deleted tombstones remain discoverable for seven days after their latest cleanup',async()=>{
+    const x=make();await reserve(x);
+    await db.query("update gef_attachments.batches set expires_at=clock_timestamp()-interval '10 days' where id=$1",[x.batch]);
+    await rpc('gef_claim_attachment_cleanup',[x.batch]);
+    await rpc('gef_finish_attachment_cleanup',[x.batch]);
+    await db.query("update gef_attachments.batches set cleaned_at=clock_timestamp()-interval '6 days' where id=$1",[x.batch]);
+    let pending=await rpc('gef_pending_attachment_cleanup');
+    assert.ok(pending.includes(x.batch),'recently cleaned orphan still needs resweep');
+    await db.query("update gef_attachments.batches set cleaned_at=clock_timestamp()-interval '8 days' where id=$1",[x.batch]);
+    pending=await rpc('gef_pending_attachment_cleanup');
+    assert.equal(pending.includes(x.batch),false,'aged-out tombstone must not stay in pending inventory');
+    await rpc('gef_claim_attachment_cleanup',[x.batch]);
+    await rpc('gef_finish_attachment_cleanup',[x.batch]);
+    pending=await rpc('gef_pending_attachment_cleanup');
+    assert.ok(pending.includes(x.batch),'re-sweep renews the cleanup safety window');
+  });
   await t.test('quarantined metadata inaccessible; clean file requires exact lead and attachment pair',async()=>{const file=(await db.query('select id from gef_attachments.files')).rows[0].id;assert.equal(await rpc('gef_admin_attachment',[receipt.id,file]),null);await db.query("update gef_attachments.files set scan_state='clean'");assert.ok((await rpc('gef_admin_attachment',[receipt.id,file])).path);assert.equal(await rpc('gef_admin_attachment',[crypto.randomUUID(),file]),null);});
   await t.test('anon/authenticated cannot read metadata or call RPC',async()=>{for(const role of ['anon','authenticated'])for(const sql of ['select * from gef_attachments.files','select * from gef_attachments.batches','select public.gef_pending_attachment_cleanup()'])await assert.rejects(db.transaction(async c=>{await c.exec('set local role '+role);await c.exec(sql);}),/permission denied/);});
   await t.test('transaction aborted after finalization leaves no partial publication',async()=>{const x=make();await reserve(x);await upload(x);await assert.rejects(db.transaction(async c=>{await c.exec('set local role service_role');await c.query('select public.gef_commit_attachment_batch($1,$2)',[x.batch,x.lead]);throw Error('synthetic interruption');}));assert.equal(await count('public.leads'),1);assert.equal(await count('gef_attachments.files'),1);});
