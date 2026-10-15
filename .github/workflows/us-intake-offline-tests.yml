@@ -10,6 +10,19 @@ on:
       - assets/service-landing.js
       - tests/us-durable-lead-intake.test.js
       - tests/us-legacy-intake-routing.test.js
+      - api/_lib/lead-notifications.js
+      - api/internal/lead-notifications.js
+      - api/admin/lead-notifications.js
+      - tests/us-lead-outbox.test.js
+      - tests/us-lead-outbox-postgres.test.js
+      - supabase/prepared-migrations/us-lead-notification-outbox.sql
+      - scripts/local-postgres.js
+      - package.json
+      - tests/helpers/offline-fetch.cjs
+      - tests/stripe-operational-controls.test.js
+      - tests/local-postgres-lifecycle.test.js
+      - tests/marketplace-pricing.test.js
+      - .github/workflows/us-intake-offline-tests.yml
 permissions:
   contents: read
 jobs:
@@ -21,4 +34,15 @@ jobs:
         with:
           node-version: '24'
       - name: Synthetic API and routing tests
-        run: node --test tests/us-durable-lead-intake.test.js tests/us-legacy-intake-routing.test.js
+        run: node --test tests/us-durable-lead-intake.test.js tests/us-legacy-intake-routing.test.js tests/us-lead-outbox.test.js
+  full-synthetic-suite:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci
+      - name: Complete synthetic suite (no hosted credentials)
+        run: npm test
