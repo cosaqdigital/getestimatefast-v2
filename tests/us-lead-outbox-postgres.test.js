@@ -13,6 +13,41 @@ test('Synthetic local PostgreSQL: transactional lead outbox and independent sess
   const count=async()=>Number((await db.query('select count(*) n from gef_notifications.lead_outbox')).rows[0].n);
   let receipt,job;
   await t.test('Insert and duplicate submission create exactly one intent',async()=>{const p=lead();receipt=await rpc('gef_persist_lead_and_notify',[p]);assert.equal(receipt.notification_queued,true);assert.equal(receipt.duplicate,false);const duplicate=await rpc('gef_persist_lead_and_notify',[p]);assert.equal(duplicate.id,receipt.id);assert.equal(duplicate.duplicate,true);assert.equal(await count(),1);});
+  await t.test('Legacy inline direct INSERT fails closed before email or outbox intent',async()=>{
+    const p=lead(),before=await count();
+    await assert.rejects(db.transaction(async tx=>{
+      await tx.exec('set local role service_role');
+      await tx.query('insert into public.leads(submission_token,service_type,status) values($1,$2,$3)',[p.submission_token,p.service_type,'new']);
+    }),/EXCLUSIVE_RPC_INTAKE_REQUIRED/);
+    assert.equal((await db.query('select count(*)::int n from public.leads where submission_token=$1',[p.submission_token])).rows[0].n,0);
+    assert.equal(await count(),before);
+  });
+  await t.test('RPC guard is cleared in same transaction before later direct INSERT',async()=>{
+    const p=lead(),rogue=lead(),before=await count();
+    const connection=await db.connect();
+    let receipt;
+    try{
+      await connection.query('begin');
+      await connection.query('set local role service_role');
+      receipt=(await connection.query('select public.gef_persist_lead_and_notify($1) result',[p])).rows[0].result;
+      assert.equal(receipt.notification_queued,true);
+      await connection.query('savepoint after_rpc');
+      await assert.rejects(connection.query('insert into public.leads(submission_token,service_type) values($1,$2)',[rogue.submission_token,rogue.service_type]),/EXCLUSIVE_RPC_INTAKE_REQUIRED/);
+      await connection.query('rollback to savepoint after_rpc');
+      await connection.query('commit');
+    } finally {
+      await connection.query('rollback').catch(()=>{});
+      await connection.end();
+    }
+    assert.equal(await count(),before+1);
+    assert.equal((await db.query('select count(*)::int n from public.leads where submission_token=$1',[rogue.submission_token])).rows[0].n,0);
+    assert.equal((await db.query('select count(*)::int n from public.leads where submission_token=$1',[p.submission_token])).rows[0].n,1);
+    const next=lead();
+    await assert.rejects(db.transaction(async tx=>{
+      await tx.exec('set local role service_role');
+      await tx.query('insert into public.leads(submission_token) values($1)',[next.submission_token]);
+    }),/EXCLUSIVE_RPC_INTAKE_REQUIRED/);
+  });
   await t.test('Lead/outbox rollback is atomic',async()=>{const p=lead();const c=await db.connect();try{await c.query('begin;set local role service_role');await c.query('select public.gef_persist_lead_and_notify($1)',[p]);await c.query('rollback');assert.equal(await count(),1);assert.equal((await db.query('select count(*)::int n from public.leads where submission_token=$1',[p.submission_token])).rows[0].n,0);}finally{await c.end();}});
   await t.test('Missing trigger cannot return successful receipt; insert is rolled back',async()=>{await db.exec('alter table public.leads disable trigger gef_lead_notification_intent');try{await assert.rejects(rpc('gef_persist_lead_and_notify',[lead()]),/NOTIFICATION_INTENT_UNVERIFIED/);assert.equal(await count(),1);}finally{await db.exec('alter table public.leads enable trigger gef_lead_notification_intent');}});
   await t.test('True lock contention: second independent session skips claimed row',async()=>{const a=await db.connect(),b=await db.connect();try{await a.query('begin;set local role service_role');job=(await a.query('select public.gef_claim_lead_notification() result')).rows[0].result;assert.ok(job.id);await b.query('begin;set local role service_role;set local statement_timeout=1000');assert.equal((await b.query('select public.gef_claim_lead_notification() result')).rows[0].result,null);await b.query('commit');await a.query('commit');assert.equal(await rpc('gef_claim_lead_notification'),null);}finally{await a.query('rollback');await b.query('rollback');await a.end();await b.end();}});

@@ -35,6 +35,8 @@ grant select, insert, update on gef_notifications.lead_outbox to service_role;
 create function gef_notifications.enqueue_lead() returns trigger
 language plpgsql security invoker set search_path=pg_catalog as $$
 begin
+  -- Only the transactional RPC may enqueue. A legacy inline-era insert must fail,
+  -- preventing two separate notification paths during rollout or rollback.
   if current_setting('gef_notifications.rpc_intake', true) is distinct from 'v1' then
     raise exception 'EXCLUSIVE_RPC_INTAKE_REQUIRED';
   end if;
@@ -53,6 +55,8 @@ language plpgsql security invoker set search_path=pg_catalog as $$
 declare v_id uuid; v_duplicate boolean:=false;
 begin
   if (p_lead->>'submission_token') is null then raise exception 'SUBMISSION_TOKEN_REQUIRED'; end if;
+  -- This transaction-local tag is private to a trusted service-role RPC invocation.
+  -- Clear it immediately after INSERT to avoid authorizing subsequent same-tx writes.
   perform set_config('gef_notifications.rpc_intake','v1',true);
   insert into public.leads(submission_token,service_type,status,full_name,email,phone,city,zip_code,contact_method,details,source)
   values((p_lead->>'submission_token')::uuid,p_lead->>'service_type','new',p_lead->>'full_name',p_lead->>'email',p_lead->>'phone',p_lead->>'city',p_lead->>'zip_code',p_lead->>'contact_method',coalesce(p_lead->'details','{}'::jsonb),'getestimatefast.com')
