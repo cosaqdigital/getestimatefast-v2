@@ -73,7 +73,7 @@ test("profile intake requires accurate category, explicit sharing consent and fi
  assert.match(validate({...fields,email:"customer@gmail.com"},profile,"synthetic"),/synthetic test/);
  assert.match(validate({...fields,phone:"8132223333"},profile,"synthetic"),/synthetic test/);
  assert.match(validate({...fields,website:"spam"},profile,"synthetic"),/Invalid/);
- assert.throws(()=>readFields(new URLSearchParams("zip=33569&zip=33570"))/);
+ assert.throws(()=>readFields(new URLSearchParams("zip=33569&zip=33570")));
 });
 test("public professional HTML provides no public direct phone/email and an explicit consent form",()=>{
  const html=profileHtml({profile:{

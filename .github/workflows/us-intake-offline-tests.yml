@@ -25,6 +25,14 @@ on:
       - assets/contractor-ux.js
       - assets/contractor-ux.css
       - tests/us-professional-ux.test.js
+      - tests/us-profile-origin-referrals.test.js
+      - api/profile-request.js
+      - api/_lib/profile-origin.js
+      - api/_lib/public-profile-html.js
+      - api/public-profile.js
+      - api/contractor/origin-leads.js
+      - api/contractor/opportunities.js
+      - supabase/prepared-migrations/us-profile-origin-referrals.sql
       - .github/workflows/us-intake-offline-tests.yml
 permissions:
   contents: read
@@ -37,4 +45,4 @@ jobs:
         with:
           node-version: '24'
       - name: Synthetic API and routing tests
-        run: node --test tests/us-durable-lead-intake.test.js tests/us-legacy-intake-routing.test.js tests/us-mvp-home-pro.test.js tests/us-admin-overview.test.js tests/us-professional-ux.test.js
+        run: node --test tests/us-durable-lead-intake.test.js tests/us-legacy-intake-routing.test.js tests/us-mvp-home-pro.test.js tests/us-admin-overview.test.js tests/us-professional-ux.test.js tests/us-profile-origin-referrals.test.js
