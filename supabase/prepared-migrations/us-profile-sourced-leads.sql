@@ -195,8 +195,11 @@ begin
 end;
 $body$;
 
+-- Alphabetically first BEFORE trigger: reject the origin owner before any
+-- preexisting quote checks or downstream paid-purchase assertions fire.
 drop trigger if exists prevent_origin_owner_purchase_trigger on gef_private.contact_purchases;
-create trigger prevent_origin_owner_purchase_trigger
+drop trigger if exists aaa_prevent_profile_owner_purchase on gef_private.contact_purchases;
+create trigger aaa_prevent_profile_owner_purchase
  before insert or update of contractor_id, opportunity_id
  on gef_private.contact_purchases
  for each row execute function gef_private.prevent_origin_owner_purchase();
