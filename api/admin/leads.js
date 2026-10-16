@@ -9,7 +9,7 @@ module.exports = async function handler(req, res) {
     if (status && !allowed.includes(status)) return json(res, 400, { error: "Invalid status" });
     const page = Math.max(0, Math.min(200, Number.parseInt(req.query.page, 10) || 0));
     const params = new URLSearchParams();
-    params.set("select", "id,created_at,service_type,full_name,email,phone,city,zip_code,contact_method,status,reviewed_at,admin_note,details");
+    params.set("select", "id,created_at,service_type,full_name,email,phone,city,zip_code,contact_method,status,reviewed_at,admin_note,details,source");
     params.set("order", "created_at.desc");
     params.set("limit", "25"); params.set("offset", String(page * 25));
     if (status) params.set("status", "eq." + status);

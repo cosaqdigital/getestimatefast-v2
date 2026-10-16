@@ -9,6 +9,10 @@ module.exports=async function handler(req,res){
   const {page}=filters;
   const profiles=await queryDb("contractor_profiles?user_id=eq."+encodeURIComponent(user.id)+"&select=account_status,email_verified_at,state_code,base_zip,service_radius_miles,service_categories&limit=1");
   const profile=profiles?.[0];if(!profile||profile.account_status!=="active"||!profile.email_verified_at||profile.state_code!=="FL")return json(res,403,{error:"Complete an active Florida contractor profile to browse opportunities."});
+  // Explicitly mark the owner's own published requests as free; these are not paid buyer slots.
+  const personal=await queryDb("rpc/gef_profile_origin_leads",{method:"POST",body:JSON.stringify({p_contractor:user.id})});
+  if(!Array.isArray(personal))throw Error("Invalid profile-origin listing");
+  const ownOpportunityIds=new Set(personal.map(o=>o.opportunity_id).filter(Boolean));
   // RPC restricts scope and never returns private contacts. Filter by exact centroid distance on the server.
   const filtered=[];const fetchedIds=new Set();
   for(let rpcPage=0;rpcPage<=100;rpcPage++){
@@ -18,6 +22,9 @@ module.exports=async function handler(req,res){
    if(process.env.GETESTIMATEFAST_MARKETPLACE_PREVIEW==="true"&&process.env.GETESTIMATEFAST_ISOLATED_BACKEND==="true"&&process.env.VERCEL_ENV!=="production"&&data.length){
     commercial=await queryDb("rpc/gef_commercial_previews",{method:"POST",body:JSON.stringify({p_ids:data.map(o=>o.opportunity_id)})});
    }
+   const sourceRows=data.length?await queryDb("rpc/gef_profile_source_flags",{method:"POST",body:JSON.stringify({p_opportunities:data.map(o=>o.opportunity_id)})}):[];
+   if(!Array.isArray(sourceRows))throw Error("Invalid profile origin source flags");
+   const sourceSet=new Set(sourceRows);
    const terms=new Map(commercial.map(c=>[c.opportunity_id,c]));
    for(const candidate of data){
     if(fetchedIds.has(candidate.opportunity_id))continue;
@@ -25,7 +32,8 @@ module.exports=async function handler(req,res){
     const t=terms.get(candidate.opportunity_id);
     const pricing=t?quotePrice({...t.rule,base_cents:Number(t.rule.base_cents),floor_cents:Number(t.rule.floor_cents)},{category:candidate.service_category,published_at:candidate.published_at,buyer_count:Number(t.buyer_count),scope:t.scope,urgency:t.urgency}):null;
     // Preserve an explicit public projection even if the upstream RPC adds columns later.
-    const safe={opportunity_id:candidate.opportunity_id,service_category:candidate.service_category,public_summary:candidate.public_summary,city:candidate.city,zip_code:candidate.zip_code,published_at:candidate.published_at,commercial:pricing};
+    const ownerFree=ownOpportunityIds.has(candidate.opportunity_id);
+    const safe={opportunity_id:candidate.opportunity_id,service_category:candidate.service_category,public_summary:candidate.public_summary,city:candidate.city,zip_code:candidate.zip_code,published_at:candidate.published_at,source_profile_request:sourceSet.has(candidate.opportunity_id),is_own_profile_request:ownerFree,commercial:ownerFree?{amount_cents:0,reason:"own_profile_request"}:pricing};
     if(matchesFilters(safe,profile,filters))filtered.push(safe);
    }
    if(data.length<25)break;

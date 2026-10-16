@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
+<title>Request a Free Estimate | GetEstimateFast</title>
+<link rel="stylesheet" href="/assets/marketplace.css">
+<style>
+body{background:#f2f6fa;color:#18364e}.request-shell{max-width:760px;margin:30px auto;padding:0 16px}
+.request-header{background:#153655;color:#fff;padding:20px max(calc((100vw - 1100px)/2),18px)}
+.request-header a{color:#fff;font-weight:800;text-decoration:none;font-size:20px}
+.request-card{background:#fff;border:1px solid #d8e3ea;border-radius:18px;padding:28px;box-shadow:0 10px 28px #143b5a0b}
+.request-intro{margin:0 0 18px;color:#597084}.request-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 18px}
+.request-grid label{display:grid;gap:5px;min-width:0}.request-grid .wide{grid-column:1/-1}
+.request-grid input,.request-grid select,.request-grid textarea{margin-top:0}
+.request-consent{display:flex;align-items:flex-start;gap:9px;font-weight:400;line-height:1.55;margin:15px 0}
+.request-consent input{margin-top:5px;width:auto;flex-shrink:0}
+#requestStatus{min-height:35px;font-weight:650;margin:15px 0}
+.request-muted{font-size:14px;color:#5b7281}
+.request-honeypot{position:absolute;left:-9999px}
+@media(max-width:650px){.request-grid{grid-template-columns:1fr}.request-card{padding:18px}}
+</style></head><body>
+<header class="request-header"><a href="/">GetEstimateFast</a></header>
+<main class="request-shell"><section class="request-card">
+<p class="eyebrow">Free project request</p>
+<h1>Request a Free Estimate</h1>
+<p class="request-intro">Tell us about your project. We'll review it and make your request available to the professional whose profile brought you here, as well as other local professionals on GetEstimateFast.</p>
+<p id="featuredProfile" class="request-muted" role="status">Checking the professional's public profile...</p>
+<form id="profileRequest" hidden>
+<div class="request-grid">
+<label class="wide">Service needed <select name="service" id="service" required><option value="">Choose a service</option></select></label>
+<label class="wide">Project description <textarea name="description" rows="4" minlength="20" maxlength="2000" placeholder="What needs to be done, and when?" required></textarea></label>
+<label>Full name <input name="fullName" maxlength="120" autocomplete="name" required></label>
+<label>Email <input name="email" type="email" maxlength="254" autocomplete="email" required></label>
+<label>Phone <input name="phone" type="tel" maxlength="35" autocomplete="tel" required></label>
+<label>Preferred contact <select name="contactMethod" required><option value="phone">Phone</option><option value="email">Email</option></select></label>
+<label>City <input name="city" maxlength="80" autocomplete="address-level2" required></label>
+<label>Florida ZIP Code <input name="zipCode" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" autocomplete="postal-code" required></label>
+</div>
+<label class="request-consent"><input name="marketplaceConsent" type="checkbox" required> I understand this request will be made available to the featured professional and may also be offered to other local professionals through GetEstimateFast.</label>
+<label class="request-consent"><input name="contactConsent" type="checkbox" required> I agree that the featured professional and other professionals who obtain access through GetEstimateFast may contact me about this specific request. This is not consent to marketing SMS.</label>
+<label class="request-consent"><input name="privacyConsent" type="checkbox" required> I have read the <a href="/profile-request-privacy.html" target="_blank" rel="noopener noreferrer">Privacy Notice</a>.</label>
+<label class="request-honeypot" aria-hidden="true">Website <input name="website" tabindex="-1" autocomplete="off"></label>
+<p class="request-muted">Free to submit. You are not obligated to hire any professional. GetEstimateFast does not guarantee a quote or availability.</p>
+<button id="submitRequest" type="submit">Send my free request</button>
+</form>
+<p id="requestStatus" role="status" aria-live="polite"></p>
+</section></main>
+<script src="/assets/profile-request.js" defer></script>
+</body></html>

@@ -1,0 +1,31 @@
+name: US Profile Origin Free Leads (offline)
+on:
+  pull_request:
+    paths:
+      - "api/profile-request.js"
+      - "api/_lib/profile-origin-policy.js"
+      - "api/contractor/profile-origin-leads.js"
+      - "api/_lib/public-profile-html.js"
+      - "api/public-profile.js"
+      - "assets/profile-request.js"
+      - "assets/profile-origin-dashboard.js"
+      - "request-estimate.html"
+      - "profile-request-privacy.html"
+      - "supabase/prepared-migrations/us-profile-sourced-leads.sql"
+      - "tests/us-profile-origin.test.js"
+      - "tests/us-profile-origin-pg.test.js"
+      - ".github/workflows/us-profile-origin-offline.yml"
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Install pinned dependencies for disposable PostgreSQL
+        run: npm ci --ignore-scripts
+      - name: Profile origin, privacy, free contact and PostgreSQL tests
+        run: node --test tests/us-profile-origin.test.js tests/us-profile-origin-pg.test.js

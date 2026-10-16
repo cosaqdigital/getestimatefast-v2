@@ -53,6 +53,10 @@ function renderLead(lead) {
   card.append(top);
 
   const details = lead.details || {};
+  const profileOrigin = details._profile_source?.slug;
+  if(lead.source === "professional_profile" && typeof profileOrigin === "string"){
+    card.append(reviewField("Request source","Professional public profile: "+profileOrigin+" · free to originating professional after validation"));
+  }
   const description = details["Project Description"] || details["Description"] || "No project description supplied.";
   const desc = node("p", "review-description", description);
   card.append(desc);
