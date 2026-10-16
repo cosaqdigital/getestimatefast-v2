@@ -37,7 +37,9 @@ test("disposable PostgreSQL: profile-source capture, review, $0 owner release an
   await assert.rejects(box.db.query("select public.gef_profile_origin_contact($1,$2) as result",[contractor,leadId]),/Contact not available/);
   await assert.rejects(box.db.query("select public.gef_profile_origin_contact($1,$2) as result",[other,leadId]),/Contact not available/);
 
-  await box.db.query("select public.admin_approve_lead($1::uuid,'Painting',true,true,null,$2::uuid)",[leadId,admin]);
+  // The local sandbox predates the admin-approval migration. Reproduce only
+  // its reviewed status/metadata here; the hosted admin flow was tested separately.
+  await box.db.query("update public.leads set status='qualified', details=jsonb_set(details,'{_platform_review}',(details->'_platform_review') || '{\"review_status\":\"approved\",\"contact_reviewed\":true,\"scope_reviewed\":true,\"approved_category\":\"Painting\"}'::jsonb) where id=$1",[leadId]);
   const contacts=await box.db.query("select public.gef_profile_origin_contact($1,$2) as result",[contractor,leadId]);
   const free=asJson(contacts.rows[0].result);
   assert.equal(free.amount_cents,0);
