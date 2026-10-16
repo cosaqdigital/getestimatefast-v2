@@ -1,0 +1,40 @@
+/* Standalone USA professional UX; preserves existing API and forms. */
+body.pro-simple{background:#f2f6fa;color:#17354e}
+body.pro-simple main{max-width:1080px;padding:0 18px}
+body.pro-simple #workspace{padding:0;border:0;background:transparent}
+body.pro-simple #workspace>section,body.pro-simple #workspace>div>section{border:1px solid #dae5ee;border-radius:16px;background:#fff;padding:23px;margin-bottom:18px}
+body.pro-simple .pro-welcome{display:flex;align-items:center;justify-content:space-between;padding:9px 3px 15px}
+body.pro-simple .pro-welcome strong{font-size:24px}
+body.pro-simple .pro-welcome p{margin:0;color:#607487;font-size:14px}
+body.pro-simple .pro-navigation{display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;padding:5px 0 17px;scrollbar-width:thin}
+body.pro-simple .pro-navigation a{flex:0 0 auto;border:1px solid #d2dfeb;background:#fff;color:#183e62;text-decoration:none;font-weight:750;border-radius:10px;padding:12px 17px;min-height:44px}
+body.pro-simple .pro-navigation a[data-active=true]{background:#153b60;color:#fff}
+body.pro-simple .pro-callout{padding:22px;border:1px solid #d5ede4;border-radius:13px;background:#edf8f3;margin-bottom:18px}
+body.pro-simple .pro-callout h2{margin-bottom:5px}
+body.pro-simple .pro-callout p{color:#476575}
+body.pro-simple .pro-link{display:inline-flex;margin:5px 9px 3px 0;padding:12px 16px;border-radius:9px;background:#da5717;color:white;text-decoration:none;font-weight:800}
+body.pro-simple .pro-link+ .pro-link{background:#174667}
+body.pro-simple #contractorDashboard .metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+body.pro-simple .pro-settings{max-width:810px;margin-inline:auto}
+body.pro-simple .pro-explain{color:#607387}
+body.pro-simple .pro-step{border:0;margin:10px 0;padding:0;min-width:0}
+body.pro-simple .pro-step legend{font-weight:800;font-size:19px;margin:12px 0;padding-bottom:5px}
+body.pro-simple .pro-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 16px}
+body.pro-simple .pro-grid>label{min-width:0}
+body.pro-simple .pro-grid>label:has(textarea){grid-column:1/-1}
+body.pro-simple .pro-controls{display:flex;align-items:center;gap:12px;margin-top:22px;flex-wrap:wrap}
+body.pro-simple .pro-controls small{margin-right:auto}
+body.pro-simple .pro-controls button{min-height:46px}
+body.pro-simple .pro-category-box{display:flex;flex-wrap:wrap;gap:8px;border:0;padding:8px 0;min-width:0}
+body.pro-simple .pro-category-box legend{width:100%;font-size:15px;font-weight:800;padding:0;margin:0 0 5px}
+body.pro-simple .pro-category{display:flex;gap:8px;align-items:center;background:#f9fbfc;padding:10px 12px;border:1px solid #cbd9e5;border-radius:11px;font-size:14px;cursor:pointer;font-weight:650;margin:0}
+body.pro-simple .pro-category.selected{background:#e6f6ee;border-color:#15916a;color:#075b40}
+body.pro-simple .pro-category input{margin:0;width:16px;height:16px;accent-color:#138461}
+body.pro-simple .pro-visually-hidden{position:absolute!important;width:1px!important;height:1px!important;clip-path:inset(50%)!important;overflow:hidden!important;white-space:nowrap!important}
+body.pro-simple .pro-optional{margin:17px 0;border:1px solid #d4e3ed;border-radius:12px;padding:15px;background:#fafcfd}
+body.pro-simple .pro-optional summary{font-weight:800;cursor:pointer;color:#24455f}
+body.pro-simple .pro-optional #smsPreferences{padding:12px 0 0;border:0;background:transparent;margin:0}
+body.pro-simple .pro-privacy{padding:13px 16px;background:#edf8f3;border-left:4px solid #19805d;border-radius:8px;font-size:14px;color:#17513f}
+body.pro-simple #message:empty{display:none}
+body.pro-simple #message:not(:empty){position:fixed;right:15px;top:80px;z-index:40;max-width:min(420px,calc(100% - 30px));padding:14px 16px;background:#fff;border:1px solid #d3e3ed;border-left:4px solid #d45c19;box-shadow:0 12px 34px #15344e20;border-radius:11px}
+@media(max-width:700px){body.pro-simple main{padding:0 11px}body.pro-simple #workspace>section,body.pro-simple #workspace>div>section{padding:18px}body.pro-simple .pro-grid{grid-template-columns:1fr}body.pro-simple .pro-callout .pro-link{width:100%;text-align:center;justify-content:center}body.pro-simple #contractorDashboard .metric-grid{grid-template-columns:1fr}body.pro-simple .pro-category{width:100%}body.pro-simple .pro-controls{display:grid;grid-template-columns:1fr 1fr}body.pro-simple .pro-controls small{grid-column:1/-1}body.pro-simple .pro-controls #saveProfile{grid-column:1/-1}}
