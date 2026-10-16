@@ -159,7 +159,7 @@ function renderLead(lead) {
       summary.addEventListener("input", update);confirmation.input.addEventListener("change", update);
       publish.addEventListener("click", async () => {
         publish.disabled = true;
-        try {await api("publish-opportunity","POST",{id:lead.id,summary:summary.value,confirmReviewed:confirmation.input.checked});status("Opportunity published without customer contact details.");await load();}
+        try {const result=await api("publish-opportunity","POST",{id:lead.id,summary:summary.value,confirmReviewed:confirmation.input.checked});status(result.commercial_terms_assigned?"Opportunity published and priced for other professionals. Origin professional gets the contact free.":"Opportunity published without customer contact details.");await load();}
         catch(e){status(e.message);update();}
       });
       editor.append(title,summary,confirmation.wrapper,publish);
