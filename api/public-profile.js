@@ -14,10 +14,11 @@ module.exports=async function handler(req,res){
    const slug=String(req.query?.slug||"");if(!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)||slug.length>80)return json(res,400,{error:"Invalid profile link"});
    const data=await rpc("gef_public_profile",{p_slug:slug});
    if(!data?.profile)return json(res,404,{error:"Profile not available"});
-   if(req.query?.format!=="html")return json(res,200,data);
+   const publicData={...data,profile:{...data.profile,public_phone:null,public_email:null}};
+   if(req.query?.format!=="html")return json(res,200,publicData);
    const {url}=config();res.statusCode=200;res.setHeader("Content-Type","text/html; charset=utf-8");res.setHeader("Cache-Control","no-store");res.setHeader("X-Content-Type-Options","nosniff");res.setHeader("Referrer-Policy","no-referrer");
    res.setHeader("Content-Security-Policy",`default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' ${url}; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'`);
-   return res.end(profileHtml(data,origin(),url));
+   return res.end(profileHtml(publicData,origin(),url));
   }
   const action=String(req.query?.action||"review");
   if(action==="review")return json(res,401,{error:"Continue with Google on the review invitation page to submit your review."});
