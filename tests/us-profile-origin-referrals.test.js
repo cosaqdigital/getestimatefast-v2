@@ -84,6 +84,7 @@ test("public professional HTML provides no public direct phone/email and an expl
  },reviews:[],review_summary:{approved_count:0}}, "https://test.example.invalid","https://storage.example.invalid",
  {token:"synthetic-signed-token",synthetic:true});
  assert(html.includes("Request a Free Estimate"));
+ assert(html.includes('href="/assets/profile-request.css"'));
  assert(html.includes('action="/api/profile-request"'));
  assert(html.includes('name="contact_consent"'));
  assert(!html.includes("owner@example.invalid")&&!html.includes("+18135550100")&&!html.includes("wa.me"));
