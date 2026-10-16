@@ -10,7 +10,7 @@ function page(res,code,message){
  res.setHeader("X-Content-Type-Options","nosniff");
  res.setHeader("Referrer-Policy","no-referrer");
  res.setHeader("Content-Security-Policy","default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'");
- res.end('<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Estimate request | GetEstimateFast</title><style>body{font:16px system-ui,sans-serif;background:#f2f6fa;color:#143450;margin:5vh auto;padding:20px;max-width:650px}.box{background:white;border:1px solid #dbe5ed;border-radius:16px;padding:26px}a{color:#b75017;font-weight:700}</style><div class="box"><h1>We could not submit your request</h1><p>'+ESC(message)+'</p><p><a href="javascript:history.back()">Return to the form</a></p></div></html>');
+ res.end('<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Estimate request | GetEstimateFast</title><style>body{font:16px system-ui,sans-serif;background:#f2f6fa;color:#143450;margin:5vh auto;padding:20px;max-width:650px}.box{background:white;border:1px solid #dbe5ed;border-radius:16px;padding:26px}a{color:#b75017;font-weight:700}</style><div class="box"><h1>We could not submit your request</h1><p>'+ESC(message)+'</p><p><a href="/">Return to GetEstimateFast</a></p></div></html>');
 }
 function redirect(res){
  res.statusCode=303;
@@ -23,7 +23,15 @@ async function readForm(req){
  if(!type.startsWith("application/x-www-form-urlencoded"))throw Error("Use the request form");
  let raw;
  if(typeof req.body==="string")raw=req.body;
- else{
+ else if(req.body && typeof req.body==="object" && !Buffer.isBuffer(req.body)){
+  const params=new URLSearchParams();
+  for(const [key,value] of Object.entries(req.body)){
+   if(Array.isArray(value)){for(const item of value)params.append(key,String(item));}
+   else if(typeof value==="string")params.append(key,value);
+   else throw Error("Invalid form field");
+  }
+  raw=params.toString();
+ }else{
   const chunks=[];let size=0;
   for await(const chunk of req){
    size+=chunk.length;
