@@ -105,7 +105,7 @@ begin
      where l.submission_token=p_token
        and o.contractor_id=v_owner
        and o.profile_slug=v_slug
-       and l.service_type=v_service
+       and l.details #>> '{_platform_review,original_service}' = v_service
        and lower(l.email)=lower(btrim(p_email));
     if v_lead is null then
       raise exception 'Submission token conflict';
@@ -124,13 +124,14 @@ create or replace function public.gef_profile_origin_leads(
 ) returns jsonb language sql stable set search_path to '' as $body$
   select coalesce(jsonb_agg(to_jsonb(x)),'[]'::jsonb)
   from (
-    select l.id as lead_id,l.created_at,l.service_type,l.city,l.zip_code,l.status,
+    select l.id as lead_id,opp.id as opportunity_id,l.created_at,l.service_type,l.city,l.zip_code,l.status,
            (l.status in ('qualified','published')
               and l.details #>> '{_platform_review,review_status}' = 'approved'
               and l.details #> '{_platform_review,contact_reviewed}' = 'true'::jsonb
             ) as contact_available
       from gef_private.profile_lead_origins o
       join public.leads l on l.id=o.lead_id
+      left join public.opportunity_previews opp on opp.lead_id=l.id
       join public.contractor_profiles cp on cp.user_id=o.contractor_id
      where o.contractor_id=p_contractor
        and cp.account_status='active'
