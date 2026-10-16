@@ -211,3 +211,16 @@ grant execute on function public.gef_create_profile_lead(text,uuid,text,text,tex
 grant execute on function public.gef_profile_origin_leads(uuid) to service_role;
 grant execute on function public.gef_profile_origin_contact(uuid,uuid) to service_role;
 revoke all on function gef_private.prevent_origin_owner_purchase() from public,anon,authenticated;
+
+-- A non-identifying disclosure for other contractors considering paid access.
+create or replace function public.gef_profile_source_flags(
+  p_opportunities uuid[]
+) returns jsonb language sql stable set search_path to '' as $body$
+  select coalesce(jsonb_agg(op.id),'[]'::jsonb)
+    from public.opportunity_previews op
+    join gef_private.profile_lead_origins s on s.lead_id=op.lead_id
+   where op.id=any(coalesce(p_opportunities,'{}'::uuid[]));
+$body$;
+
+revoke all on function public.gef_profile_source_flags(uuid[]) from public,anon,authenticated;
+grant execute on function public.gef_profile_source_flags(uuid[]) to service_role;

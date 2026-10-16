@@ -26,7 +26,9 @@ async function loadOpportunities(append=false){
   const price=document.createElement("p");
   price.textContent=item.is_own_profile_request?"Request from your profile: FREE ($0.00). Open My Profile Requests on Home to view approved contacts.":item.commercial?.amount_cents!=null?"Contact price: "+new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(item.commercial.amount_cents/100):item.commercial?.reason==="expired"?"Expired opportunity":"Contact price not configured";
   const purchase=document.createElement("button");purchase.type="button";purchase.disabled=true;purchase.textContent=item.is_own_profile_request?"Your own profile request — no payment":"Contact purchases are not enabled";
-  card.append(title,summary,date,price,purchase);
+  const attribution=document.createElement("p");
+  attribution.textContent=item.source_profile_request?"This request came through a public professional profile. That professional may already have free contact access.":"";
+  card.append(title,summary,date,attribution,price,purchase);
   el("opportunityCards").appendChild(card);
  }
  opportunityPage=page;

@@ -127,6 +127,7 @@ test("free entitlement never creates a paid contact purchase or wallet credit mo
  assert.match(sql,/gef_create_profile_lead/);
  assert.match(sql,/profile_lead_origins/);
  assert.match(sql,/gef_profile_origin_contact/);
+ assert.match(sql,/gef_profile_source_flags/);
  assert.match(sql,/amount_cents',0/);
  assert.match(sql,/before insert or update of contractor_id, opportunity_id/i);
  assert.match(sql,/raise exception 'Your own profile-generated contact is free/);
@@ -136,6 +137,8 @@ test("free entitlement never creates a paid contact purchase or wallet credit mo
 });
 test("private origin contact read is always linked to the authenticated user",()=>{
  const route=read("api/contractor/profile-origin-leads.js");
+ assert.match(read("api/contractor/opportunities.js"),/source_profile_request/);
+ assert.match(read("assets/contractor-portal.js"),/originating professional may already have free contact access/);
  assert.match(route,/userFor\(req,res\)/);
  assert.match(route,/p_contractor:contractor\.id/);
  assert.match(route,/gef_profile_origin_contact/);

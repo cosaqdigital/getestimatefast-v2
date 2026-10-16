@@ -22,6 +22,9 @@ module.exports=async function handler(req,res){
    if(process.env.GETESTIMATEFAST_MARKETPLACE_PREVIEW==="true"&&process.env.GETESTIMATEFAST_ISOLATED_BACKEND==="true"&&process.env.VERCEL_ENV!=="production"&&data.length){
     commercial=await queryDb("rpc/gef_commercial_previews",{method:"POST",body:JSON.stringify({p_ids:data.map(o=>o.opportunity_id)})});
    }
+   const sourceRows=data.length?await queryDb("rpc/gef_profile_source_flags",{method:"POST",body:JSON.stringify({p_opportunities:data.map(o=>o.opportunity_id)})}):[];
+   if(!Array.isArray(sourceRows))throw Error("Invalid profile origin source flags");
+   const sourceSet=new Set(sourceRows);
    const terms=new Map(commercial.map(c=>[c.opportunity_id,c]));
    for(const candidate of data){
     if(fetchedIds.has(candidate.opportunity_id))continue;
@@ -30,7 +33,7 @@ module.exports=async function handler(req,res){
     const pricing=t?quotePrice({...t.rule,base_cents:Number(t.rule.base_cents),floor_cents:Number(t.rule.floor_cents)},{category:candidate.service_category,published_at:candidate.published_at,buyer_count:Number(t.buyer_count),scope:t.scope,urgency:t.urgency}):null;
     // Preserve an explicit public projection even if the upstream RPC adds columns later.
     const ownerFree=ownOpportunityIds.has(candidate.opportunity_id);
-    const safe={opportunity_id:candidate.opportunity_id,service_category:candidate.service_category,public_summary:candidate.public_summary,city:candidate.city,zip_code:candidate.zip_code,published_at:candidate.published_at,is_own_profile_request:ownerFree,commercial:ownerFree?{amount_cents:0,reason:"own_profile_request"}:pricing};
+    const safe={opportunity_id:candidate.opportunity_id,service_category:candidate.service_category,public_summary:candidate.public_summary,city:candidate.city,zip_code:candidate.zip_code,published_at:candidate.published_at,source_profile_request:sourceSet.has(candidate.opportunity_id),is_own_profile_request:ownerFree,commercial:ownerFree?{amount_cents:0,reason:"own_profile_request"}:pricing};
     if(matchesFilters(safe,profile,filters))filtered.push(safe);
    }
    if(data.length<25)break;
