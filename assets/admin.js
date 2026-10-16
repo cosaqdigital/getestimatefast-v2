@@ -56,6 +56,11 @@ function renderLead(lead) {
   const description = details["Project Description"] || details["Description"] || "No project description supplied.";
   const desc = node("p", "review-description", description);
   card.append(desc);
+  if(lead.source==="professional_profile"||lead.origin_contractor_id){
+    const attribution=details._profile_referral?.origin_slug||"professional profile";
+    card.append(reviewField("Origin", "Public professional page: "+attribution));
+    card.append(node("p","review-muted","Origin professional receives this contact for free after publication. Other compatible professionals may purchase access under normal rules."));
+  }
   const original = details._platform_review?.original_service || details["Service Type"] || lead.service_type;
   if (original !== lead.service_type) card.append(reviewField("Original category", original));
   for (const key of ["Project Type", "Project Intent", "Timeline", "Cleaning Type", "Cleaning Frequency", "Job Size"]) {

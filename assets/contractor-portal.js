@@ -24,7 +24,7 @@ async function loadOpportunities(append=false){
   const date=document.createElement("small");
   date.textContent="Published: "+new Intl.DateTimeFormat("en-US",{dateStyle:"medium",timeZone:"America/New_York"}).format(new Date(item.published_at));
   const price=document.createElement("p");
-  price.textContent=item.commercial?.amount_cents!=null?"Contact price: "+new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(item.commercial.amount_cents/100):item.commercial?.reason==="expired"?"Expired opportunity":"Contact price not configured";
+  price.textContent=item.origin_free?"Free contact - from your public profile":item.commercial?.amount_cents!=null?"Contact price: "+new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(item.commercial.amount_cents/100):item.commercial?.reason==="expired"?"Expired opportunity":"Contact price not configured";
   const purchase=document.createElement("button");purchase.type="button";purchase.disabled=true;purchase.textContent="Contact purchases are not enabled";
   card.append(title,summary,date,price,purchase);
   el("opportunityCards").appendChild(card);

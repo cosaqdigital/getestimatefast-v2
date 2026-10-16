@@ -54,10 +54,38 @@ function categoryPicker(id,fieldId){
  return draw;
 }
 const drawServices=categoryPicker("categories","proServiceChoices"),drawPublic=categoryPicker("publicCategories","proPublicChoices");
+const referrals=make("section",undefined,"pro-referrals");referrals.id="myReferralsPanel";
+referrals.append(make("h2","Requests from my public profile"),
+ make("p","When you share your profile, customers can request an estimate. After administrative review and publication, you see the customer's contact here at no charge. No wallet credits are used."));
+const referralReload=make("button","Refresh my requests","secondary");referralReload.type="button";
+const referralList=make("div",undefined,"pro-referral-cards");
+referrals.append(referralReload,referralList);workspace.append(referrals);
+async function showReferrals(){
+ referralList.replaceChildren(make("p","Loading your profile requests..."));
+ try{
+  const result=await window.GetEstimateFastPortal.api("origin-leads");
+  referralList.replaceChildren();
+  if(!result.leads?.length){referralList.append(make("p","No requests from your profile yet. Share your public profile to invite estimate requests."));return;}
+  for(const lead of result.leads){
+   const card=make("article",undefined,"pro-referral-card");
+   card.append(make("h3",lead.service_type+" · "+lead.city+", "+lead.zip_code));
+   card.append(make("p","Status: "+(lead.contact_available?"Approved · Free contact ready":lead.status==="new"?"Waiting for GetEstimateFast review":lead.status==="qualified"?"Approved · Awaiting publication":"Not currently available")));
+   if(lead.contact_available && lead.customer){
+    card.append(make("p","Free access — $0.00. No credits deducted."));
+    const details=make("div",undefined,"pro-referral-contact");
+    details.append(make("p","Customer: "+lead.customer.name),make("p","Phone: "+lead.customer.phone),make("p","Email: "+lead.customer.email));
+    card.append(details);
+   }else card.append(make("p","Customer contact is private until the request has been approved and published."));
+   referralList.append(card);
+  }
+ }catch(e){referralList.replaceChildren(make("p",e?.message||"Could not load your profile requests."));}
+}
+referralReload.addEventListener("click",()=>showReferrals());
+
 // Reuse every existing module, showing one section at a time.
-const views={contractorDashboard:$("contractorDashboard"),opportunityPanel:$("opportunityPanel"),publicProfilePanel:$("publicProfilePanel"),accountSettingsPanel:settings,walletPanel:$("walletPanel"),purchasePanel:$("purchasePanel")};
+const views={contractorDashboard:$("contractorDashboard"),opportunityPanel:$("opportunityPanel"),myReferralsPanel:referrals,publicProfilePanel:$("publicProfilePanel"),accountSettingsPanel:settings,walletPanel:$("walletPanel"),purchasePanel:$("purchasePanel")};
 nav.replaceChildren();
-for(const [id,label] of [["contractorDashboard","Home"],["opportunityPanel","Opportunities"],["publicProfilePanel","Public profile"],["accountSettingsPanel","My details"],["walletPanel","Wallet"],["purchasePanel","Purchase history"]]){
+for(const [id,label] of [["contractorDashboard","Home"],["opportunityPanel","Opportunities"],["myReferralsPanel","My free requests"],["publicProfilePanel","Public profile"],["accountSettingsPanel","My details"],["walletPanel","Wallet"],["purchasePanel","Purchase history"]]){
  const link=make("a",label);link.href="#"+id;link.dataset.screen=id;nav.append(link);
 }
 nav.classList.add("pro-navigation");
@@ -66,19 +94,19 @@ workspace.prepend(welcome);
 for(const id of ["walletBalance","purchaseCount"]){const card=$(id)?.closest(".metric");if(card)card.hidden=true;}
 const dash=views.contractorDashboard;
 const callout=make("div",undefined,"pro-callout");callout.append(make("h2","Find local work that fits your business"),make("p","Explore requests near your ZIP Code. No purchase or payment is required in this Development preview."));
-for(const [id,label] of [["opportunityPanel","See opportunities"],["publicProfilePanel","Create my public profile"]]){const link=make("a",label,"pro-link");link.href="#"+id;callout.append(link);}
+for(const [id,label] of [["opportunityPanel","See opportunities"],["myReferralsPanel","My free profile requests"],["publicProfilePanel","Create my public profile"]]){const link=make("a",label,"pro-link");link.href="#"+id;callout.append(link);}
 dash.prepend(callout);
 const oldButtons=dash.querySelector(":scope > .actions");if(oldButtons)oldButtons.hidden=true;
 const oldHeadline=dash.querySelector(":scope > h1");if(oldHeadline)oldHeadline.hidden=true;
 // Collapse nonessential profile fields without resetting consent or changing publication status.
 const pub=views.publicProfilePanel,pubGrid=publicForm.querySelector(".form-grid");
 if(pubGrid){
- const optional=make("details",undefined,"pro-optional");optional.append(make("summary","Optional social links and public contact"));
+ const optional=make("details",undefined,"pro-optional");optional.append(make("summary","Optional profile details (not public contact information)"));
  const extra=make("div",undefined,"form-grid");optional.append(extra);
  for(const n of ["languages","social_links","public_email","public_phone"]){const label=pubGrid.querySelector('[name="'+n+'"]')?.closest("label");if(label)extra.append(label);}
  for(const n of ["publish_email","publish_phone"]){const label=publicForm.querySelector('[name="'+n+'"]')?.closest("label");if(label)extra.append(label);}
  const publish=publicForm.querySelector('input[name="published"]')?.closest("label");
- if(publish){publicForm.insertBefore(optional,publish);publicForm.insertBefore(make("p","Your email and phone stay private unless you explicitly opt in. Publishing your profile is optional.","pro-privacy"),publish);}
+ if(publish){publicForm.insertBefore(optional,publish);publicForm.insertBefore(make("p","Your phone and email are not shown on public profiles during this launch phase. Visitors request estimates through GetEstimateFast.","pro-privacy"),publish);}
 }
 const workTitle=[...publicForm.children].find(x=>x.tagName==="H3"&&x.textContent.trim()==="Work photos");
 const addWork=$("addPortfolio");
@@ -102,6 +130,7 @@ function go(id){
  for(const link of nav.querySelectorAll("a"))link.dataset.active=link.dataset.screen===dest?"true":"false";
  if(dest==="accountSettingsPanel"){drawServices();if(current!==dest)selectStep(1);}
  if(dest==="publicProfilePanel")drawPublic();
+ if(dest==="myReferralsPanel")showReferrals();
  current=dest;
 }
 document.addEventListener("click",e=>{
