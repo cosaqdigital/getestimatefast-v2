@@ -13,6 +13,7 @@ on:
       - "profile-request-privacy.html"
       - "supabase/prepared-migrations/us-profile-sourced-leads.sql"
       - "tests/us-profile-origin.test.js"
+      - "tests/us-profile-origin-pg.test.js"
       - ".github/workflows/us-profile-origin-offline.yml"
 permissions:
   contents: read
@@ -24,5 +25,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
-      - name: Profile origin, privacy, anti-purchase and authorization tests
-        run: node --test tests/us-profile-origin.test.js
+      - name: Install pinned dependencies for disposable PostgreSQL
+        run: npm ci --ignore-scripts
+      - name: Profile origin, privacy, free contact and PostgreSQL tests
+        run: node --test tests/us-profile-origin.test.js tests/us-profile-origin-pg.test.js
