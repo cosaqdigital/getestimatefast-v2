@@ -40,26 +40,84 @@ Read-only Development checks at `07:04:38Z` and again at `12:18:03Z` confirmed t
 
 [GitHub Actions run 39011900466](https://github.com/cosaqdigital/getestimatefast-v2/actions/runs/39011900466), job `117336024622`, completed successfully with **55 passed, 0 failed/cancelled/skipped**. Logs explicitly show the merge of `30590bb` into the PR base and both new regression tests passing. The earlier targeted red/green check produced 17 pass / 1 fail on the old runtime, then 18 pass / 0 fail with the correction.
 
-### Current blocker and exact next actions
+### Current administrator access checkpoint — recovery prepared, not activated
 
-The administrative screen `/admin.html` offers **Email + Password** for an existing Development administrator. Vercel authentication does not sign into the application. An initial secure `browserAuth` request timed out; the canonical app login was restored. On the next authorized attempt, `browserAuth` returned `submitted`, but the live UI displayed **Invalid credentials or access not authorized** and remained at the sign-in form.
+The Supabase console login is now **verified successful** after the owner's manual handoff on 2026-10-17. The authenticated dashboard shows `getestimatefast-development`, project `cpjsbijgijeyrwjpuciv`. The organization is named `Orcamentos Brasil`; the dashboard's `main PRODUCTION` badge describes this separate project's main branch. Neither label changes the verified Development project target.
 
-A restricted read-only query of Development Auth logs for `2026-10-17T12:24:00Z`–`12:27:00Z` identified the single attempt at **12:26:30Z**: endpoint `/token`, HTTP **400**, code **`invalid_credentials`**, message **Invalid login credentials**. The application handler maps an upstream non-2xx Auth response to its own HTTP 401 before querying administrator membership. Read-only account checks confirmed that the existing Development administrator is present in `admin_users`, has a confirmed email, is not banned or deleted, and uses the email provider. These observations do not identify which submitted credential was incorrect.
+A subsequent secure app sign-in was rejected at **2026-10-17T21:59:39Z**: Development Auth `/token`, HTTP **400**, **`invalid_credentials`**. A focused read-only log query covered `21:45:21Z`–`22:00:21Z`. This is upstream of the app's administrator membership check. Earlier attempts at `12:26:30Z` and `12:38:56Z` had the same result. Stop retrying the same ordinary sign-in path; Vercel access and Supabase dashboard access do not authenticate the application account.
 
-**The current blocker is valid sign-in to the existing Development application account.** No password reset, account creation, permission change, or administrative approval/publication was performed. The retained acceptance request was last checked at **12:37:13Z** and remained `new`, with **0** published previews. Continue with that same request after sign-in; do not redeploy or repeat the customer submission merely to resolve authentication.
+The verified existing administrator is `admin@getestimatefast.com`, Auth UUID `7f44765d-fd3a-4078-8a4f-d689eed39754`, with confirmed email and existing `admin_users` membership. Keep this account. Do not create another administrator or use historical synthetic-fixture password instructions for this real account.
 
+The retained lead was rechecked read-only at **21:37:38Z**: still `new`, exactly one marker match, zero published previews, correct profile origin, and originator wallet USD 0. No new request was submitted. No subsequent lead, publication, wallet, or payment mutation has occurred.
 
-**Follow-up attempt and recovery preparation:** a second user-provided credential attempt was rejected at **12:38:56Z** with the same Development Auth result: `/token`, HTTP **400**, `invalid_credentials`. A complete runtime tree and the administrator/professional login code were inspected: there is no existing password-recovery page, callback, or update-password handler for these accounts. The Google callback for customer reviews is unrelated. Historical fixture reports describe ephemeral passwords for synthetic accounts but do not establish that those historical UUIDs match the current administrator; do not apply their synthetic-reset instructions to this account by assumption.
+### Verified recovery prerequisites
 
-The official Development Auth Users page (`https://supabase.com/dashboard/project/cpjsbijgijeyrwjpuciv/auth/users`) was opened to prepare legitimate recovery of the existing account. It redirected to Supabase dashboard sign-in. The user selected email authentication through `browserAuth`; the request returned `submitted`, and the live page then showed an **hCaptcha challenge** with sign-in still pending. The console login is not yet verified. The current user handoff is to finish that human-verification step in the same shared browser tab. No recovery email, password change, privileged session generation, duplicate administrator, or permission change has been performed. Any password recovery must retain the verified existing account and Development scope, and password entry/change must remain under the owner's control.
+| Prerequisite | Observed state |
+| --- | --- |
+| App recovery implementation | No recovery page/handler existed in the deployed runtime. This revision prepares an isolated page and endpoint. |
+| Development SMTP | **Custom SMTP disabled**; the Emails page explicitly reports the built-in service. No provider credential was read or changed. |
+| Built-in SMTP recipient eligibility | Organization Team shows exactly one member, `cosaqdigital@gmail.com`; `admin@getestimatefast.com` is not a member. |
+| Reset email template | Subject `Reset your password`; the link uses `{{ .ConfirmationURL }}`. No hardcoded Site URL; no template edit needed. |
+| Site URL | `https://getestimatefast-v2-git-feat-google-rev-ed14c8-get-estimate-fast.vercel.app` |
+| Redirect allowlist | Exactly three existing review-auth callback URLs, listed below. No current admin recovery return URL. |
+| New recovery feature flag | Code defaults to disabled. No activation or configuration change was performed. |
 
-1. Complete sign-in using the existing Development administrator, through the secure browser authentication flow or the supported manual handoff. Never obtain credentials through chat, reset passwords, create duplicate administrators, or bypass application authentication to finish this test.
-2. Before publication, sign into the existing Cosaquevite Development professional account in a separate `/contractor-portal.html` tab. Open **My free requests** and verify that the pending request hides the customer contact. Keep that tab open.
-3. In the administrator tab, find the existing `new` request using marker `PR70-20261017-BROWSER-02`. Confirm Painting and the profile origin. Mark **Contact details reviewed** and **Service description and category reviewed**, then click **Approve request**. Switch the filter from `new` to `qualified`; the approved card disappears from `new`. Enter a fictional public summary without contact details or an exact address, check its review confirmation, and click **Publish opportunity**. Expected message: **Opportunity published and priced for other professionals. Origin professional gets the contact free.**
-4. In the professional tab, use **Refresh my requests** and verify the released contact with **Free access — $0.00. No credits deducted.** Repeat the refresh for another server read; a full page reload requires a new sign-in because the current application session is stored only in memory.
-5. Recheck this lead, its published preview, consent, and unchanged wallet/financial records in Development. Verify the eligible peer's priced opportunity and privacy without purchasing access. Actual purchases remain disabled by design in this preview.
+Existing allowlist entries, to preserve:
 
-This checkpoint update changes documentation only. The deployed runtime remains `30590bb`; this documentation update does not require another deployment or another customer submission. Production and Orçamentos Brasil remain outside the work.
+- `https://getestimatefast-v2-git-feat-google-rev-ed14c8-get-estimate-fast.vercel.app/api/reviews/auth-callback`
+- `https://getestimatefast-v2-git-feat-public-pro-47b1bd-get-estimate-fast.vercel.app/api/reviews/auth-callback`
+- `https://getestimatefast-v2-git-feat-review-alr-310073-get-estimate-fast.vercel.app/api/reviews/auth-callback`
+
+The [official SMTP documentation](https://supabase.com/docs/guides/auth/auth-smtp) confirms that the built-in service refuses recipients outside the organization's member addresses. Configure an owner-approved SMTP sender for this Development project before requesting recovery. Do not add an organization member to evade that delivery restriction. The existing [ConfirmationURL template](https://supabase.com/docs/guides/auth/auth-email-templates) supports the fixed, allowlisted redirect.
+
+### Prepared implementation
+
+New page `admin-recovery.html`, with separate same-origin `assets/admin-recovery.js` and `assets/admin-recovery.css`, calls `/api/admin/password-recovery`:
+
+| Operation | Behavior |
+| --- | --- |
+| `GET` | Read-only availability check. With a Bearer token, verifies live Auth, administrator membership, and the fixed existing UUID/email. |
+| `POST {"action":"request"}` | Explicitly requests the official Auth recovery email for the fixed administrator and fixed return URL. No caller-supplied email, UUID, token, or redirect is accepted in the body/query. |
+| `POST {"action":"complete","password":"…"}` + Bearer | Revalidates the existing administrator, then calls Auth's own-user password update using that user's token. No privileged password reset, role write, or user creation. |
+
+The endpoint requires **all** of: explicit `GETESTIMATEFAST_ADMIN_RECOVERY_ENABLED=true`, Vercel `preview`, branch `feat/us-admin-overview-20261015`, isolated backend enabled, the exact Development ref and URL, and the exact configured branch origin. Wrong or missing configuration returns disabled before any network operation. Requests must use the exact branch-alias Host; mutations additionally require the exact Origin. Opaque, foreign, and cross-site origins are rejected. The immutable deployment hostname is intentionally not this recovery endpoint's entry point.
+
+Password Auth operations use the project's public key; the existing administrator helper uses its server credential only for the membership read. A service-role key placed in the public-key variable is rejected. No password, token, raw upstream response, or exception text is logged.
+
+The page consumes only the recovery access token from the fragment, removes the entire fragment and query before any API call, and holds the token only in closure memory. It does not retain refresh tokens or use local/session storage, cookies for recovery-session storage, analytics, or third-party scripts. Server validation is required before enabling password input; `type=recovery` in the URL is only a UI hint. Passwords must match and satisfy the app's 8–256 character bounds plus Supabase's own policy. Secrets clear after success or page exit, and ambiguous request/update results do not auto-retry.
+
+Dedicated Vercel headers enforce no-store, no-referrer, self-only script/style/connect policy, no framing, and no native form fallback. Existing Git deployment settings, rewrites, redirects, login pages, and request-flow behavior are preserved. These source changes alone do **not** deploy or activate recovery.
+
+Focused server and UI tests are added to the existing offline GitHub Actions workflow, including its path triggers. All recovery tests use synthetic in-memory responses, never real recovery emails or password updates.
+
+Local combined verification on Node `v24.19.0`: **82 tests passed, 0 failed/cancelled/skipped** — 55 existing request-flow tests, 13 recovery server tests, and 14 recovery UI tests. The UI tests execute the actual script against an in-memory DOM/event adapter; they are not a hosted browser result. The local isolated runner reported nine passing files, so the non-isolated run below was used to verify the individual 82 test cases. Hosted recovery appearance, delivery, password change, and normal login remain pending.
+
+```sh
+node --test --test-isolation=none tests/us-durable-lead-intake.test.js tests/us-legacy-intake-routing.test.js tests/us-mvp-home-pro.test.js tests/us-admin-overview.test.js tests/us-professional-ux.test.js tests/us-profile-origin-referrals.test.js tests/us-referral-auto-pricing.test.js tests/us-admin-password-recovery.test.js tests/us-admin-recovery-ui.test.js
+```
+
+### Activation plan — requires owner approval and SMTP details
+
+1. Obtain the owner's choice of an existing SMTP sending service and its verified sender. Only the provider name and non-secret sender/settings belong in chat or this record. The owner must enter any SMTP password/API key through an appropriate secure configuration or manual handoff; never paste it into chat, source, tests, or logs. No new paid service or new credential is authorized by this preparation.
+2. Configure that approved SMTP sender in **`cpjsbijgijeyrwjpuciv` only**. Keep the current Site URL, existing review callback entries, Auth users, roles, and protections.
+3. Add exactly this recovery redirect:
+   `https://getestimatefast-v2-git-feat-us-admin-o-10fae9-get-estimate-fast.vercel.app/admin-recovery.html`.
+4. Activate `GETESTIMATEFAST_ADMIN_RECOVERY_ENABLED=true` only for this approved Preview branch and explicitly deploy the reviewed PR revision to the existing `get-estimate-fast/getestimatefast-v2` project. Git autodeploy is disabled. Verify the new commit, Preview environment, branch, and Development target. No Production promotion or merge.
+5. Open the branch-alias recovery page in an authenticated Vercel browser session and verify availability **before** sending an email. Keep Deployment Protection enabled. Request **one** recovery email to the fixed administrator only after the owner authorizes that send.
+6. The owner opens the newest recovery email and manually enters, confirms, and submits the new password. Never automate the new credential or relay the recovery URL/token through chat. Then verify ordinary application sign-in with the owner through the secure authentication flow.
+7. After recovery, disable the temporary recovery flag with the appropriate Preview redeployment. Remove only the added recovery redirect when no pending link is needed. Record actual activation, delivery, change, and sign-in outcomes; do not infer them from unit tests.
+
+No recovery email, SMTP setup, redirect change, new credential, live password reset, account/role change, or new deployment has been performed in this preparation. The active request runtime remains `30590bb`.
+
+### Continue acceptance after administrator access
+
+1. Before publication, sign into the existing Cosaquevite Development professional account (`cosaqueviteusa@gmail.com`, contractor `3c02828a-30b5-4ab4-aa79-480f7ead5ec6`) in a separate `/contractor-portal.html` tab. Open **My free requests** and verify that the pending request hides customer contact. Keep that tab open.
+2. In `/admin.html`, find the retained `new` request by marker `PR70-20261017-BROWSER-02`. Confirm Painting and profile origin. Mark **Contact details reviewed** and **Service description and category reviewed**, then **Approve request**. Switch the filter to `qualified`.
+3. Enter a fictional public summary without contact details or exact address, confirm its review, and **Publish opportunity**. Suggested summary: `TEST ONLY: Interior painting of one room in Riverview. Synthetic QA request for validating the Development workflow; no real customer or work involved.` Expected message: **Opportunity published and priced for other professionals. Origin professional gets the contact free.**
+4. In the professional tab, use **Refresh my requests** and verify **Free access — $0.00. No credits deducted.** Repeat the refresh for another server read; a full page reload requires a new sign-in because the current application session is stored only in memory.
+5. Recheck the same lead, its one published preview, consent, and unchanged wallet/financial records in Development. Verify an eligible peer's priced listing and privacy without purchasing. Actual purchases remain disabled in this preview.
+
+Production and Orçamentos Brasil application/database resources remain outside the work.
 
 ## Historical evidence below
 
