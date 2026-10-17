@@ -1,7 +1,7 @@
 "use strict";
 const net=require("node:net");
 const {queryDb,config}=require("./admin/_auth");
-const {mode,verify,validate,readFields,limitHash}=require("./_lib/profile-origin");
+const {mode,verify,validate,readFields,limitHash,requestOriginAllowed}=require("./_lib/profile-origin");
 const ESC=s=>String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function page(res,code,message){
  res.statusCode=code;
@@ -48,10 +48,9 @@ async function handler(req,res){
  const activeMode=mode();
  if(!activeMode)return page(res,503,"Profile estimate requests are not enabled here.");
  try{
-  const origin=String(req.headers.origin||"");
-  if(origin){let url;try{url=new URL(origin)}catch{return page(res,403,"Request origin not allowed.");}
-   if(url.protocol!=="https:"||url.host!==req.headers.host)return page(res,403,"Request origin not allowed.");
-  }
+  // Use exact trusted Preview deployment / branch hosts, never broad vercel.app.
+  if(!requestOriginAllowed(req.headers.origin,req.headers.host))
+    return page(res,403,"Request origin not allowed.");
   const fields=readFields(await readForm(req));
   if(!fields.profile_slug||!fields.profile_token)return page(res,400,"Please open the professional's public page again.");
   const referral=verify(fields.profile_token,fields.profile_slug);

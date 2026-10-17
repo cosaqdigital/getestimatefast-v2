@@ -69,7 +69,48 @@ function validate(fields,profile,activeMode){
  }
  return "";
 }
+// Vercel serves one protected Preview through both a deployment URL and a
+// branch alias. Both are first-party, but Origin and Host may differ between
+// those exact runtime-configured domains. Never trust arbitrary vercel.app hosts
+// or client-supplied X-Forwarded-Host headers.
+function trustedHost(value){
+ if(typeof value!=="string"||!value||value.length>300)return null;
+ try{
+  const candidate=new URL(value.includes("://")?value:"https://"+value);
+  if(candidate.protocol!=="https:"||candidate.username||candidate.password||
+     candidate.pathname!=="/"||candidate.search||candidate.hash||candidate.port)return null;
+  return candidate.hostname.toLowerCase();
+ }catch{return null;}
+}
+function allowedHosts(env=process.env){
+ const allowed=new Set();
+ const activeMode=mode(env);
+ if(activeMode==="synthetic"){
+  for(const value of [env.VERCEL_URL,env.VERCEL_BRANCH_URL,env.GETESTIMATEFAST_PUBLIC_ORIGIN]){
+   const hostname=trustedHost(value);
+   // A project/team-specific suffix limits accepted domains to this US Preview.
+   if(hostname&&/^getestimatefast-v2-[a-z0-9-]+-get-estimate-fast\.vercel\.app$/.test(hostname))
+    allowed.add(hostname);
+  }
+ }else if(activeMode==="live"){
+  allowed.add("www.getestimatefast.com");
+  allowed.add("getestimatefast.com");
+ }
+ return allowed;
+}
+function requestOriginAllowed(origin,requestHost,env=process.env){
+ if(origin===undefined||origin===null||origin==="")return true; // Existing form compatibility
+ if(typeof origin!=="string")return false;
+ let parsed;
+ try{parsed=new URL(origin);}catch{return false;}
+ if(parsed.protocol!=="https:"||parsed.origin!==origin||parsed.username||parsed.password||
+    parsed.pathname!=="/"||parsed.search||parsed.hash||parsed.port)return false;
+ const hosts=allowedHosts(env);
+ const requested=trustedHost(requestHost);
+ return Boolean(requested&&hosts.has(requested)&&hosts.has(parsed.hostname.toLowerCase()));
+}
+
 function limitHash(ip,env=process.env){
  return crypto.createHmac("sha256",secret(env)).update("GetEstimateFast-US:profile-request:rate:"+ip).digest("hex");
 }
-module.exports={mode,sign,verify,validate,readFields,limitHash};
+module.exports={mode,sign,verify,validate,readFields,limitHash,requestOriginAllowed};

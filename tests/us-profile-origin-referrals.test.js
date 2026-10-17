@@ -4,7 +4,7 @@ const assert=require("node:assert/strict");
 const {Readable}=require("node:stream");
 const fs=require("node:fs");
 const path=require("node:path");
-const {mode,sign,verify,readFields,validate}=require("../api/_lib/profile-origin");
+const {mode,sign,verify,readFields,validate,requestOriginAllowed}=require("../api/_lib/profile-origin");
 const {profileHtml}=require("../api/_lib/public-profile-html");
 const estimateHandler=require("../api/profile-request");
 const originHandler=require("../api/contractor/origin-leads");
@@ -64,6 +64,23 @@ test("origin tokens are signed, bound to the actual public profile, and time-lim
  assert.equal(mode({...e,GETESTIMATEFAST_SUPABASE_URL:"https://other.supabase.co"}),null);
  assert.equal(mode({...e,VERCEL_ENV:"production"}),null);
  assert.equal(mode(e),"synthetic");
+});
+test("official deployment and branch Preview hosts can safely differ",()=>{
+ const e={...env(),
+  VERCEL_URL:"getestimatefast-v2-azmwy2ut2-get-estimate-fast.vercel.app",
+  VERCEL_BRANCH_URL:"getestimatefast-v2-git-feat-us-admin-o-10fae9-get-estimate-fast.vercel.app",
+  GETESTIMATEFAST_PUBLIC_ORIGIN:"https://getestimatefast-v2-git-feat-us-admin-o-10fae9-get-estimate-fast.vercel.app"};
+ const deployOrigin="https://"+e.VERCEL_URL,branchOrigin="https://"+e.VERCEL_BRANCH_URL;
+ assert.equal(requestOriginAllowed(deployOrigin,e.VERCEL_BRANCH_URL,e),true);
+ assert.equal(requestOriginAllowed(branchOrigin,e.VERCEL_URL,e),true);
+ assert.equal(requestOriginAllowed(deployOrigin,e.VERCEL_URL,e),true);
+ assert.equal(requestOriginAllowed("https://attacker.example.com",e.VERCEL_URL,e),false);
+ assert.equal(requestOriginAllowed("https://getestimatefast-v2-evil-other-team.vercel.app",e.VERCEL_URL,e),false);
+ assert.equal(requestOriginAllowed(branchOrigin,"attacker.example.com",e),false);
+ assert.equal(requestOriginAllowed("https://getestimatefast-v2-azmwy2ut2-get-estimate-fast.vercel.app.evil.com",e.VERCEL_URL,e),false);
+ assert.equal(requestOriginAllowed("null",e.VERCEL_URL,e),false);
+ assert.equal(requestOriginAllowed("http://"+e.VERCEL_URL,e.VERCEL_URL,e),false);
+ assert.equal(requestOriginAllowed(branchOrigin,e.VERCEL_URL,{...e,GETESTIMATEFAST_ISOLATED_BACKEND:"false"}),false);
 });
 test("profile intake requires accurate category, explicit sharing consent and fictional preview data",()=>{
  const e=env(),good=input(),fields=readFields(new URLSearchParams(good));
@@ -126,6 +143,28 @@ test("valid synthetic profile request creates one reviewed US lead, with server-
   assert.equal(calls.length,4);
   assert(!calls.some(c=>c.url.includes("resend.com")));
   assert.equal(logs.length,0);
+ });
+});
+test("signed synthetic form POST accepts two exact preview aliases while retaining all intake protections",async()=>{
+ await withEnv({
+  VERCEL_URL:"getestimatefast-v2-azmwy2ut2-get-estimate-fast.vercel.app",
+  VERCEL_BRANCH_URL:"getestimatefast-v2-git-feat-us-admin-o-10fae9-get-estimate-fast.vercel.app",
+  GETESTIMATEFAST_PUBLIC_ORIGIN:"https://getestimatefast-v2-git-feat-us-admin-o-10fae9-get-estimate-fast.vercel.app"
+ },async({setFetch,calls})=>{
+  setFetch((url,opts)=>{
+   if(url.includes("/contractor_public_profiles?"))return j([profile]);
+   if(url.includes("/contractor_profiles?"))return j([{user_id:uuid}]);
+   if(url.includes("/rpc/gef_public_request_allowed"))return j(true);
+   if(url.includes("/leads?on_conflict="))return j([{id:"33333333-3333-4333-8333-333333333333",origin_contractor_id:uuid}],201);
+   throw Error("Unexpected remote call");
+  });
+  const req=nodeReq("/api/profile-request","POST",input(),{
+   host:"getestimatefast-v2-azmwy2ut2-get-estimate-fast.vercel.app",
+   origin:"https://getestimatefast-v2-git-feat-us-admin-o-10fae9-get-estimate-fast.vercel.app"
+  });
+  const r=await responseFor(estimateHandler,req);
+  assert.equal(r.status,303);
+  assert.equal(calls.length,4);
  });
 });
 test("rate limit blocks write, wrong owner and duplicate token are rejected",async()=>{
