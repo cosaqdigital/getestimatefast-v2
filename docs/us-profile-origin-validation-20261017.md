@@ -1,8 +1,64 @@
 # PR 70 — profile-origin Development validation, 2026-10-17
 
-**Current status: hosted acceptance NOT complete. Vercel login is resolved.** An authenticated browser opened the professional profile and submitted the synthetic form, which failed with `Request origin not allowed.` The page's referrer policy conflicts with its native same-origin POST. The runtime correction and regression tests in this revision still require an explicit Preview deployment and a new browser walkthrough.
+**Current status: hosted customer submission PASSED. Administrative approval/publication and professional free-access acceptance are still pending.** The corrected Preview is deployed and the native browser form created exactly one retained Development request. Continue with that existing request; do not submit another copy.
 
-## Follow-up: authenticated browser reproduction and policy correction
+## Current hosted checkpoint
+
+| Item | Verified result |
+| --- | --- |
+| Runtime commit | `30590bbed2b636db6043bff7b93da99a4b78033b` |
+| Source branch | `feat/us-admin-overview-20261015` |
+| Vercel project/team | `getestimatefast-v2` / `get-estimate-fast` |
+| Deployment ID | `dpl_DMfJZFoDJfJZkkRVFiv5mmYWSLrn` |
+| Environment/status | **Preview / READY**, 31-second build |
+| Deployment | https://getestimatefast-v2-r5b30kgf9-get-estimate-fast.vercel.app |
+| Vercel evidence | https://vercel.com/get-estimate-fast/getestimatefast-v2/DMfJZFoDJfJZkkRVFiv5mmYWSLrn |
+| UI receipt | `/profile-request-received.html` — **Thank you! Your estimate request is in review.** |
+
+The user explicitly authorized browser fallback to publish this exact correction as Preview. The existing authenticated Vercel dashboard was used to create the deployment from the PR source branch; the UI showed commit `30590bb`, Preview, and then Ready. No Production promotion, merge, protection change, or shared bypass link was performed. The branch still has automatic Git deployments disabled.
+
+After deployment, the browser opened `/professionals/cosaquevitecorp` on this exact deployment. The live DOM confirmed `same-origin`, a relative `/api/profile-request` action, and method `post`. Painting was selected, the prefilled fictional customer details were retained, and sharing consent was checked. The actual submit button led to the successful receipt above.
+
+### Retained acceptance request
+
+| Field | Value |
+| --- | --- |
+| Lead UUID | `451743d1-2cf3-46f7-8e0a-bbf45388ca0d` |
+| Description marker | `PR70-20261017-BROWSER-02` |
+| Created | `2026-10-17T07:04:14.221985Z` |
+| Source | `professional_profile` |
+| Origin | `cosaquevitecorp` / contractor `3c02828a-30b5-4ab4-aa79-480f7ead5ec6` |
+| Category | `Painting` |
+| Consent | `true`, version `profile-request-v1` |
+| Current status | `new` |
+| Published previews for this lead | `0` |
+| Matching acceptance requests | **Exactly 1** |
+
+Read-only Development checks at `07:04:38Z` and again at `12:18:03Z` confirmed this record and no duplication. The originator wallet remains USD 0 across all balances. Global ledger rows remain 7, global contact purchases 1, originator purchases 0, payment intents 0, and test checkout orders 0 — identical to the `07:00:56.310938Z` baseline. The single global purchase and seven ledger rows predate this acceptance test.
+
+### Automated evidence for the deployed correction
+
+[GitHub Actions run 39011900466](https://github.com/cosaqdigital/getestimatefast-v2/actions/runs/39011900466), job `117336024622`, completed successfully with **55 passed, 0 failed/cancelled/skipped**. Logs explicitly show the merge of `30590bb` into the PR base and both new regression tests passing. The earlier targeted red/green check produced 17 pass / 1 fail on the old runtime, then 18 pass / 0 fail with the correction.
+
+### Current blocker and exact next actions
+
+The administrative screen `/admin.html` offers **Email + Password** for an existing Development administrator. Vercel authentication does not sign into the application. A secure `browserAuth` request timed out without a confirmed result; after the automation session restarted, the original tab was unavailable. A fresh canonical admin page showed **Administrator sign in**, with no positive authenticated signal. No administrative or professional action was performed by the agent after the successful customer submission.
+
+1. Complete sign-in using the existing Development administrator, through the secure browser authentication flow or the supported manual handoff. Never obtain credentials through chat, reset passwords, create duplicate administrators, or bypass application authentication to finish this test.
+2. Before publication, sign into the existing Cosaquevite Development professional account in a separate `/contractor-portal.html` tab. Open **My free requests** and verify that the pending request hides the customer contact. Keep that tab open.
+3. In the administrator tab, find the existing `new` request using marker `PR70-20261017-BROWSER-02`. Confirm Painting and the profile origin. Mark **Contact details reviewed** and **Service description and category reviewed**, then click **Approve request**. Switch the filter from `new` to `qualified`; the approved card disappears from `new`. Enter a fictional public summary without contact details or an exact address, check its review confirmation, and click **Publish opportunity**. Expected message: **Opportunity published and priced for other professionals. Origin professional gets the contact free.**
+4. In the professional tab, use **Refresh my requests** and verify the released contact with **Free access — $0.00. No credits deducted.** Repeat the refresh for another server read; a full page reload requires a new sign-in because the current application session is stored only in memory.
+5. Recheck this lead, its published preview, consent, and unchanged wallet/financial records in Development. Verify the eligible peer's priced opportunity and privacy without purchasing access. Actual purchases remain disabled by design in this preview.
+
+This checkpoint update changes documentation only. The deployed runtime remains `30590bb`; this documentation update does not require another deployment or another customer submission. Production and Orçamentos Brasil remain outside the work.
+
+## Historical evidence below
+
+The following sections describe earlier stages and their then-current blockers. Their instructions to deploy or resubmit are superseded by the current checkpoint above.
+
+**Pre-deployment status (historical): hosted acceptance was NOT complete; Vercel login was resolved.** An authenticated browser opened the professional profile and submitted the synthetic form, which failed with `Request origin not allowed.` The page's referrer policy conflicts with its native same-origin POST. The runtime correction and regression tests in this revision still require an explicit Preview deployment and a new browser walkthrough.
+
+## Earlier investigation: authenticated browser reproduction and policy correction
 
 ### Observed in the hosted browser
 
@@ -39,7 +95,7 @@ The earlier 53-test GitHub Actions result below belongs to revision `683d388`, b
 
 Baseline at `2026-10-17T06:52:43.830939Z` and a post-attempt check at approximately `06:53:19Z` both showed zero profile-origin leads and zero originator leads. The originator wallet remained USD 0 across paid, refund, promotional, and available balances; global ledger rows 7, contact purchases 1, originator purchases 0, payment intents 0, test checkout orders 0. All these counts were unchanged. No acceptance-request UUID was created. These checks used read-only transactions against `cpjsbijgijeyrwjpuciv` only.
 
-### Exact continuation from this revision
+### Continuation recorded before deployment (superseded by the current checkpoint)
 
 1. Check this revision's GitHub Actions result, then explicitly deploy this PR source branch to **Preview** in the existing **getestimatefast-v2** Vercel project. `vercel.json` has automatic Git deployments disabled for `feat/us-admin-overview-20261015`; a push alone does not update the hosted runtime. Verify the deployment commit, branch, environment, and isolated Development backend before testing.
 2. Keep Deployment Protection enabled. The current Vercel connector lists only `orcamento-brasil` and fails to access the GetEstimateFast deployment. Do not deploy into that other project. Use authorized access to the correct project; if the tool policy requires approval for a browser fallback, obtain that specific approval after the patch is ready.
