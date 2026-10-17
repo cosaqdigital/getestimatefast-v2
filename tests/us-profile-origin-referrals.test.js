@@ -219,6 +219,92 @@ test("unauthenticated visitor never gets origin contacts",async()=>{
   assert.equal(r.status,401);
  });
 });
+
+test("retry succeeds only for an existing token bound to the same profile source and owner",async()=>{
+ for(const existing of [
+  {id:token,origin_contractor_id:uuid,source:"professional_profile"},
+  {id:token,origin_contractor_id:"44444444-4444-4444-8444-444444444444",source:"professional_profile"},
+  {id:token,origin_contractor_id:uuid,source:"getestimatefast.com"},
+  null
+ ]){
+  await withEnv({},async({setFetch,calls})=>{
+   setFetch(url=>{
+    if(url.includes("/contractor_public_profiles?"))return j([profile]);
+    if(url.includes("/contractor_profiles?"))return j([{user_id:uuid}]);
+    if(url.includes("/rpc/gef_public_request_allowed"))return j(true);
+    if(url.includes("/leads?on_conflict="))return j([]);
+    if(url.includes("/leads?submission_token="))return j(existing?[existing]:[]);
+    throw Error("Unexpected outbound call");
+   });
+   const result=await responseFor(estimateHandler,nodeReq("/api/profile-request","POST",input()));
+   const valid=existing?.origin_contractor_id===uuid&&existing?.source==="professional_profile";
+   assert.equal(result.status,valid?303:409);
+   assert.equal(calls.filter(c=>c.method==="POST"&&c.url.includes("/leads?")).length,1);
+   assert(!calls.some(c=>/resend|stripe|zenvia/.test(c.url)));
+  });
+ }
+});
+
+test("a distinct submission token remains a separate legitimate request with the same contact details",async()=>{
+ await withEnv({},async({setFetch})=>{
+  const saved=new Map();
+  setFetch((url,opts)=>{
+   if(url.includes("/contractor_public_profiles?"))return j([profile]);
+   if(url.includes("/contractor_profiles?"))return j([{user_id:uuid}]);
+   if(url.includes("/rpc/gef_public_request_allowed"))return j(true);
+   if(url.includes("/leads?on_conflict=")){
+    const record=JSON.parse(opts.body);
+    assert(!saved.has(record.submission_token));
+    saved.set(record.submission_token,record);
+    return j([{id:record.submission_token,origin_contractor_id:uuid}],201);
+   }
+   throw Error("Unexpected outbound call");
+  });
+  for(const submission_token of [token,"33333333-3333-4333-8333-333333333333"]){
+   assert.equal((await responseFor(estimateHandler,nodeReq("/api/profile-request","POST",{...input(),submission_token}))).status,303);
+  }
+  assert.equal(saved.size,2);
+ });
+});
+
+test("external origins are rejected by the actual intake handler before database access",async()=>{
+ await withEnv({VERCEL_URL:"getestimatefast-v2-qa-get-estimate-fast.vercel.app"},async({setFetch,calls})=>{
+  setFetch(()=>{throw Error("No database access permitted")});
+  const req=nodeReq("/api/profile-request","POST",input(),{
+   host:"getestimatefast-v2-qa-get-estimate-fast.vercel.app",origin:"https://attacker.example.com"
+  });
+  assert.equal((await responseFor(estimateHandler,req)).status,403);
+  assert.equal(calls.length,0);
+ });
+});
+
+test("origin contacts ignore forged owner identifiers and require consent plus a published preview",async()=>{
+ await withEnv({},async({setFetch,calls})=>{
+  const missingPreview="33333333-3333-4333-8333-333333333331";
+  const missingConsent="33333333-3333-4333-8333-333333333332";
+  setFetch(url=>{
+   if(url.includes("/auth/v1/user"))return j({id:uuid,email_confirmed_at:"2026-01-01"});
+   if(url.includes("/contractor_profiles?"))return j([{account_status:"active",email_verified_at:"2026-01-01"}]);
+   if(url.includes("/leads?"))return j([
+    {id:missingPreview,status:"published",email:"hidden-preview@example.invalid",details:{_profile_referral:{customer_share_accepted:true}}},
+    {id:missingConsent,status:"published",email:"hidden-consent@example.invalid",details:{_profile_referral:{customer_share_accepted:false}}}
+   ]);
+   if(url.includes("/opportunity_previews?"))return j([{id:token,lead_id:missingConsent}]);
+   throw Error("Unexpected outbound call");
+  });
+  const req=nodeReq("/api/contractor/origin-leads","GET");
+  req.headers.authorization="Bearer test123";
+  req.query={contractor_id:"44444444-4444-4444-8444-444444444444",origin_contractor_id:"44444444-4444-4444-8444-444444444444"};
+  const result=await responseFor(originHandler,req);
+  assert.equal(result.status,200);
+  assert(JSON.parse(result.body).leads.every(l=>l.customer===null&&!l.contact_available));
+  assert(!result.body.includes("@example.invalid"));
+  const lookup=calls.find(c=>c.url.includes("/leads?"));
+  assert(lookup.url.includes("origin_contractor_id=eq."+uuid));
+  assert(!lookup.url.includes(req.query.contractor_id));
+  assert(calls.every(c=>c.method==="GET"));
+ });
+});
 test("SQL preserves buyer capacity and blocks charging the source professional",()=>{
  const sql=fs.readFileSync(path.join(__dirname,"../supabase/prepared-migrations/us-profile-origin-referrals.sql"),"utf8");
  assert.match(sql,/origin_contractor_id/);
