@@ -7,6 +7,7 @@ const path=require("node:path");
 const {mode,sign,verify,readFields,validate,requestOriginAllowed}=require("../api/_lib/profile-origin");
 const {profileHtml}=require("../api/_lib/public-profile-html");
 const estimateHandler=require("../api/profile-request");
+const publicProfileHandler=require("../api/public-profile");
 const originHandler=require("../api/contractor/origin-leads");
 const ref="cpjsbijgijeyrwjpuciv";
 const uuid="11111111-1111-4111-8111-111111111111",token="22222222-2222-4222-8222-222222222222";
@@ -312,4 +313,50 @@ test("SQL preserves buyer capacity and blocks charging the source professional",
  assert.match(sql,/gef_no_paid_origin_contact/);
  assert.match(sql,/gef_private\.contact_purchases/);
  assert.doesNotMatch(sql,/grant\s+.+\s+to\s+(anon|authenticated)/i);
+});
+
+test("public profile response preserves the origin of its native same-origin form POST",async()=>{
+ const previewHost="getestimatefast-v2-git-feat-us-admin-o-10fae9-get-estimate-fast.vercel.app";
+ await withEnv({
+  GETESTIMATEFAST_MARKETPLACE_PREVIEW:"true",
+  GETESTIMATEFAST_PUBLIC_ORIGIN:"https://"+previewHost,
+  GETESTIMATEFAST_SMS_MODE:"dry_run",
+  GETESTIMATEFAST_STRIPE_TEST_CHECKOUT_APPROVED:"false"
+ },async({setFetch,calls})=>{
+  setFetch((url,opts)=>{
+   assert(url.startsWith("https://"+ref+".supabase.co/rest/v1/"));
+   if(url.endsWith("/rpc/gef_public_profile")){
+    assert.equal(opts.method,"POST");
+    assert.deepEqual(JSON.parse(opts.body),{p_slug:profile.slug});
+    return j({profile:{
+     slug:profile.slug,display_name:"Sample Contractor",headline:"Quality paint",
+     about:"Painting contractor",city:"Riverview",state_code:"FL",zip_code:"33569",
+     radius_miles:25,categories:["Painting"],languages:["English"],portfolio:[]
+    },reviews:[]});
+   }
+   if(url.includes("/contractor_public_profiles?"))return j([{contractor_id:uuid}]);
+   throw Error("Unexpected outbound call");
+  });
+  const req=nodeReq("/professionals/"+profile.slug,"GET",{}, {host:previewHost});
+  req.query={slug:profile.slug,format:"html"};
+  const result=await responseFor(publicProfileHandler,req);
+  assert.equal(result.status,200);
+  assert.equal(result.headers["referrer-policy"],"same-origin");
+  const policies=[...result.body.matchAll(/<meta\b[^>]*name="referrer"[^>]*content="([^"]+)"[^>]*>/g)].map(match=>match[1]);
+  assert.deepEqual(policies,["same-origin"]);
+  assert.match(result.body,/<form\b[^>]*action="\/api\/profile-request"[^>]*method="post"/);
+  assert.match(result.headers["content-security-policy"],/(?:^|;\s*)form-action 'self'(?:;|$)/);
+  assert.equal(calls.length,2);
+ });
+});
+test("opaque null Origin is rejected by the intake handler before database access",async()=>{
+ const previewHost="getestimatefast-v2-qa-get-estimate-fast.vercel.app";
+ await withEnv({VERCEL_URL:previewHost},async({setFetch,calls})=>{
+  setFetch(()=>{throw Error("No database access permitted for an opaque origin")});
+  const req=nodeReq("/api/profile-request","POST",input(),{host:previewHost,origin:"null"});
+  const result=await responseFor(estimateHandler,req);
+  assert.equal(result.status,403);
+  assert.match(result.body,/Request origin not allowed\./);
+  assert.equal(calls.length,0);
+ });
 });

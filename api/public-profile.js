@@ -26,7 +26,7 @@ module.exports=async function handler(req,res){
     if(!owner[0]?.contractor_id)return json(res,404,{error:"Profile not available"});
     referral={token:sign(slug,owner[0].contractor_id),synthetic:mode()==="synthetic"};
    }
-   const {url}=config();res.statusCode=200;res.setHeader("Content-Type","text/html; charset=utf-8");res.setHeader("Cache-Control","no-store");res.setHeader("X-Content-Type-Options","nosniff");res.setHeader("Referrer-Policy","no-referrer");
+   const {url}=config();res.statusCode=200;res.setHeader("Content-Type","text/html; charset=utf-8");res.setHeader("Cache-Control","no-store");res.setHeader("X-Content-Type-Options","nosniff");res.setHeader("Referrer-Policy","same-origin");
    res.setHeader("Content-Security-Policy",`default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' ${url}; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'`);
    return res.end(profileHtml(safe,origin(),url,referral));
   }

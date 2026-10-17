@@ -1,5 +1,57 @@
 # PR 70 — profile-origin Development validation, 2026-10-17
 
+**Current status: hosted acceptance NOT complete. Vercel login is resolved.** An authenticated browser opened the professional profile and submitted the synthetic form, which failed with `Request origin not allowed.` The page's referrer policy conflicts with its native same-origin POST. The runtime correction and regression tests in this revision still require an explicit Preview deployment and a new browser walkthrough.
+
+## Follow-up: authenticated browser reproduction and policy correction
+
+### Observed in the hosted browser
+
+- Signed in interactively to Vercel using the existing account. Deployment Protection remains enabled. No shareable bypass link was created; the attempted share-link operation was rejected by automatic approval review, and interactive authentication was used instead.
+- Opened the exact branch alias `/professionals/cosaquevitecorp` on the existing `972cf1b` runtime. Selected **Painting**, retained the synthetic customer details, accepted the displayed sharing consent, and submitted through **Send My Free Estimate Request**.
+- Synthetic description marker: `PR70-20261017-BROWSER-01`.
+- The browser navigated to `/api/profile-request` and displayed **We could not submit your request** and **Request origin not allowed.** This is an actual hosted form failure after login, not an authentication redirect.
+- A fresh DOM read of the hosted profile confirmed a relative form action `/api/profile-request`, method `post`, and `<meta name="referrer" content="no-referrer">`.
+- The browser tooling did not expose a network request capture. The precise outgoing `Origin` header was not directly observed.
+
+### Root cause and minimal correction
+
+`api/public-profile.js` sets `Referrer-Policy: no-referrer`, and `api/_lib/public-profile-html.js` repeats that policy in a meta element. For a native non-CORS POST, the [Fetch Standard, section 3.2](https://fetch.spec.whatwg.org/#origin-header), specifies an opaque serialized `Origin` value of `null` under `no-referrer`. The intake handler correctly rejects the literal string `"null"`. This source-level conflict explains the observed error; the corrected hosted POST remains the required acceptance check.
+
+This revision changes only those two policy values to `same-origin`. The native form can then preserve its origin when submitting to its own site. Referrer information remains withheld for cross-origin destinations. The exact configured host allowlist, rejection of external/opaque origins, signed profile attribution, synthetic-only mode, and CSP `form-action 'self'` are retained.
+
+### Regression evidence
+
+Added two cases to `tests/us-profile-origin-referrals.test.js`:
+
+1. Invoke the real public-profile handler with mocked Development backend responses and verify the actual HTTP policy, exactly one matching meta policy, native relative POST action, and self-only form CSP. The real preview preflight remains enabled.
+2. Invoke the real intake handler with literal `Origin: null`; require HTTP 403, the origin error message, and zero database calls.
+
+On Node v24.19.0, the new targeted suite against the old runtime produced **18 tests: 17 passed, 1 failed**, specifically `no-referrer` versus expected `same-origin`. After the two runtime replacements, **18 passed, 0 failed/cancelled/skipped** with both commands:
+
+```sh
+node tests/us-profile-origin-referrals.test.js
+node --test --test-isolation=none tests/us-profile-origin-referrals.test.js
+```
+
+The earlier 53-test GitHub Actions result below belongs to revision `683d388`, before this correction. A new full-suite result must be checked on this revision. These automated checks do not replace hosted acceptance.
+
+### Development read-only checks around this browser attempt
+
+Baseline at `2026-10-17T06:52:43.830939Z` and a post-attempt check at approximately `06:53:19Z` both showed zero profile-origin leads and zero originator leads. The originator wallet remained USD 0 across paid, refund, promotional, and available balances; global ledger rows 7, contact purchases 1, originator purchases 0, payment intents 0, test checkout orders 0. All these counts were unchanged. No acceptance-request UUID was created. These checks used read-only transactions against `cpjsbijgijeyrwjpuciv` only.
+
+### Exact continuation from this revision
+
+1. Check this revision's GitHub Actions result, then explicitly deploy this PR source branch to **Preview** in the existing **getestimatefast-v2** Vercel project. `vercel.json` has automatic Git deployments disabled for `feat/us-admin-overview-20261015`; a push alone does not update the hosted runtime. Verify the deployment commit, branch, environment, and isolated Development backend before testing.
+2. Keep Deployment Protection enabled. The current Vercel connector lists only `orcamento-brasil` and fails to access the GetEstimateFast deployment. Do not deploy into that other project. Use authorized access to the correct project; if the tool policy requires approval for a browser fallback, obtain that specific approval after the patch is ready.
+3. Open a fresh profile page on the corrected preview, confirm the new policy, select Painting and submit the prefilled fictional example with consent. Require the actual receipt page and exactly one persisted lead; record its UUID.
+4. Use the existing Development administrator to approve and publish that lead through the UI, then the existing originator account to verify contact access under **My free requests**, USD 0 access, persistence after refresh, and unchanged wallet/financial records. Verify privacy and the eligible peer's priced listing without making any purchase.
+
+Application credentials have not yet been verified. Do not reset passwords or create duplicate accounts. The hosted submission, administrative approval/publication, and free professional access are still unfinished. Production and Orçamentos Brasil remain outside this work.
+
+## Earlier audit — retained as historical evidence
+
+The sections below record the earlier `683d388` audit, before interactive Vercel authentication and the browser reproduction described above. Its login blocker and no-runtime-fix conclusion are superseded by this follow-up; its rollback and 53-test results are historical evidence.
+
 **Status: hosted acceptance NOT complete.** The browser reached Vercel Login before the professional profile. No hosted form submission, admin approval, or professional login was performed. A passing rollback diagnostic is not a browser acceptance result.
 
 ## Confirmed starting point
@@ -63,13 +115,13 @@ git diff --check
 
 `git diff --check` passed. The full unrelated Stripe/local-Postgres test suite was not run. This change contains tests, the diagnostic script and this record only; it does not require a different application preview to exercise the same runtime code.
 
-## Exact blocker and next action
+## Earlier login blocker and next action (superseded)
 
 Navigating to the exact alias `/professionals/cosaquevitecorp` redirected to `https://vercel.com/login?...`; the observed heading was **Log in to Vercel**. No authenticated Vercel browser session exists in this chat. The CLI could refresh its existing credential and inspect deployment/configuration metadata, but that does not authenticate the browser. Protections were not disabled and no browser cookies or bypass tokens were injected.
 
 The original submission failure cannot be diagnosed or attributed to origin validation without reaching the form. Supabase log-source aggregation was available, but no new hosted form attempt exists to correlate; aggregate logs are not evidence of submission success.
 
-Minimum immediate action: sign into Vercel in the browser tab kept with this chat and tell the agent to continue. After access is restored, perform the form submission, capture its request/response and lead ID, and then validate admin/professional sessions. Application credentials are not yet verified; do not create duplicate administrators or reset passwords. Use the existing administrator and Development originator accounts.
+The immediate action at that earlier stage was to sign into Vercel in the browser tab kept with that chat. This login step is now complete; follow the current continuation above. After access is restored, perform the form submission, capture its request/response and lead ID, and then validate admin/professional sessions. Application credentials are not yet verified; do not create duplicate administrators or reset passwords. Use the existing administrator and Development originator accounts.
 
 Development destinations derived from repository routes:
 
@@ -78,4 +130,4 @@ Development destinations derived from repository routes:
 - [Professional portal](https://getestimatefast-v2-git-feat-us-admin-o-10fae9-get-estimate-fast.vercel.app/contractor-portal.html)
 - [Marketplace administration](https://getestimatefast-v2-git-feat-us-admin-o-10fae9-get-estimate-fast.vercel.app/marketplace-admin.html)
 
-Only the profile URL was attempted in the browser; the other destinations are code-derived and await hosted verification. Continue acceptance A–E after login. Do not mark this PR browser-validated based on the SQL diagnostic or test count.
+Only the profile URL was attempted in the browser; the other destinations are code-derived and await hosted verification. The current follow-up above supersedes this login-only continuation. Do not mark this PR browser-validated based on the SQL diagnostic or test count.
