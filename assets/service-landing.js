@@ -929,9 +929,28 @@ function setDynamicSubject() {
   document.getElementById("pageSourceInput").value = window.location.href;
 }
 
+function generateServiceSubmissionToken() {
+  const cryptoApi = window.crypto;
+  if (cryptoApi && typeof cryptoApi.randomUUID === "function") return cryptoApi.randomUUID();
+  if (!cryptoApi || typeof cryptoApi.getRandomValues !== "function") return "";
+  const bytes = new Uint8Array(16);
+  cryptoApi.getRandomValues(bytes);
+  bytes[6] = (bytes[6] & 15) | 64;
+  bytes[8] = (bytes[8] & 63) | 128;
+  const hex = Array.from(bytes, byte => byte.toString(16).padStart(2, "0")).join("");
+  return hex.slice(0, 8) + "-" + hex.slice(8, 12) + "-" + hex.slice(12, 16) + "-" + hex.slice(16, 20) + "-" + hex.slice(20);
+}
+
 function init() {
   if (!serviceConfig || !serviceForm) {
     return;
+  }
+  if (!serviceForm.querySelector('input[name="Submission Token"]')) {
+    const token = document.createElement("input");
+    token.type = "hidden";
+    token.name = "Submission Token";
+    token.value = generateServiceSubmissionToken();
+    serviceForm.appendChild(token);
   }
 
   renderProjectTypes();
