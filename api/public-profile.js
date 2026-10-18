@@ -1,6 +1,7 @@
 "use strict";
 const {json,method,readJson,queryDb,fail,config}=require("./admin/_auth");
 const {marketplaceReady,uuid}=require("./_lib/marketplace-access");
+const {mode,sign}=require("./_lib/profile-origin");
 const {identityHash,text}=require("./_lib/public-profile-policy");
 const {profileHtml}=require("./_lib/public-profile-html");
 const crypto=require("node:crypto"),net=require("node:net");
@@ -14,10 +15,20 @@ module.exports=async function handler(req,res){
    const slug=String(req.query?.slug||"");if(!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)||slug.length>80)return json(res,400,{error:"Invalid profile link"});
    const data=await rpc("gef_public_profile",{p_slug:slug});
    if(!data?.profile)return json(res,404,{error:"Profile not available"});
-   if(req.query?.format!=="html")return json(res,200,data);
-   const {url}=config();res.statusCode=200;res.setHeader("Content-Type","text/html; charset=utf-8");res.setHeader("Cache-Control","no-store");res.setHeader("X-Content-Type-Options","nosniff");res.setHeader("Referrer-Policy","no-referrer");
+   // The marketplace must be the contact channel at launch, even when an old
+   // profile previously opted in to showing phone/email or direct social links.
+   const safe={...data,profile:{...data.profile,public_phone:null,public_email:null,social_links:[]}};
+   if(req.query?.format!=="html")return json(res,200,safe);
+   let referral={};
+   if(mode()){
+    const owner=await queryDb("contractor_public_profiles?slug=eq."+encodeURIComponent(slug)+
+     "&published=eq.true&select=contractor_id&limit=1");
+    if(!owner[0]?.contractor_id)return json(res,404,{error:"Profile not available"});
+    referral={token:sign(slug,owner[0].contractor_id),synthetic:mode()==="synthetic"};
+   }
+   const {url}=config();res.statusCode=200;res.setHeader("Content-Type","text/html; charset=utf-8");res.setHeader("Cache-Control","no-store");res.setHeader("X-Content-Type-Options","nosniff");res.setHeader("Referrer-Policy","same-origin");
    res.setHeader("Content-Security-Policy",`default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' ${url}; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'`);
-   return res.end(profileHtml(data,origin(),url));
+   return res.end(profileHtml(safe,origin(),url,referral));
   }
   const action=String(req.query?.action||"review");
   if(action==="review")return json(res,401,{error:"Continue with Google on the review invitation page to submit your review."});

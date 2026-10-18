@@ -31,6 +31,22 @@ module.exports=async function handler(req,res){
    if(data.length<25)break;
    if(rpcPage===100)return json(res,503,{error:"Opportunity search reached a safety limit. Please try again later."});
   }
-  return json(res,200,{opportunities:filtered.slice(page*25,(page+1)*25),page,matching_total:filtered.length,note:"Approximate straight-line miles between ZIP centroids. Private customer contact details are not shared."});
+  // Mark the originating professional's own requests as FREE; other buyers
+  // continue to use ordinary, paid USD pricing. This query never returns PII.
+  if(filtered.length){
+   const ownLeads=await queryDb("leads?origin_contractor_id=eq."+encodeURIComponent(user.id)+
+     "&source=eq.professional_profile&status=eq.published&select=id&limit=1000");
+   let ownPreviewIds=new Set();
+   if(ownLeads.length){
+    const ownPreviews=await queryDb("opportunity_previews?lead_id=in.("+
+      ownLeads.map(x=>x.id).join(",")+")&select=id&limit=1000");
+    ownPreviewIds=new Set(ownPreviews.map(x=>x.id));
+   }
+   for(const item of filtered){
+    item.origin_free=ownPreviewIds.has(item.opportunity_id);
+    if(item.origin_free)item.commercial=null;
+   }
+  }
+  return json(res,200,{opportunities:filtered.slice(page*25,(page+1)*25),page,matching_total:filtered.length,note:"Approximate straight-line miles between ZIP centroids. Customer contacts are private unless available to the originating professional after publication."});
  }catch(error){fail(res,error);}
 };
