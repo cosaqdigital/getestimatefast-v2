@@ -238,3 +238,18 @@ textarea { min-height: 150px; resize: vertical; }
   .home-header .nav .nav-link { display: none; }
   .home-header .btn-header { width: auto; min-height: 40px; padding: 10px 14px; }
 }
+
+/* Operational MVP marketing changes: consumer and professional entry points only. */
+.home-hero-highlight{color:var(--accent-deep)}.home-honest-note{font-size:13px;color:var(--muted);margin:5px 0 0;line-height:1.6}
+#find-your-service{scroll-margin-top:105px}
+.home-header .btn-pro-header{min-height:42px;background:#fff;color:var(--navy);border:1px solid var(--line);box-shadow:none;padding:10px 16px}
+.home-header .btn-header{color:#fff;background:var(--accent);border-color:var(--accent);box-shadow:none}
+.pro-entry-panel{background:linear-gradient(135deg,var(--navy),#244a70);border-color:#244a70;color:#fff;display:grid;grid-template-columns:1.1fr .9fr;gap:26px;align-items:center}
+.pro-entry-copy h2{color:#fff}.pro-entry-copy>p:not(.eyebrow),.pro-entry-fine{color:#dbeaf7}
+.pro-entry-panel .eyebrow{background:rgba(50,130,108,.27);border-color:rgba(255,255,255,.2);color:#c8f5df}
+.pro-entry-fine{font-size:13px;margin:12px 0 0}.pro-entry-steps{display:grid;gap:10px}
+.pro-entry-steps>div{border:1px solid rgba(255,255,255,.2);border-radius:14px;background:rgba(255,255,255,.07);padding:15px}
+.pro-entry-steps strong{display:block;font-size:16px}.pro-entry-steps p{margin:5px 0 0;color:#dbeaf7;font-size:14px}
+@media(max-width:960px){.pro-entry-panel{grid-template-columns:1fr}}
+@media(max-width:640px){.home-header .brand{font-size:21px}.home-header .nav{gap:5px}
+.home-header .btn-pro-header,.home-header .btn-header{min-height:38px;padding:8px 9px;font-size:12px;width:auto;white-space:nowrap}}
