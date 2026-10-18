@@ -8,6 +8,7 @@ const { calculateMatch } = require("../_lib/florida-matching");
 const rpc = (name, body) => queryDb("rpc/" + name, { method: "POST", body: JSON.stringify(body) });
 function createHandler(dependencies = {}) { return async function handler(req, res) {
   if (!method(req, res, ["GET", "POST"])) return;
+  if (process.env.VERCEL_ENV === "production") return json(res, 404, { error: "Not found" });
   try {
     if (!marketplaceReady(req, res)) return;
     const user = await userFor(req, res); if (!user) return;
