@@ -4,6 +4,7 @@ const { testConfiguration, readRaw, processWebhook, clientFor } = require("./_li
 const { createRepository } = require("./_lib/stripe-repository");
 function createHandler(dependencies = {}) { return async function handler(req, res) {
   if (!method(req, res, ["POST"])) return;
+  if (process.env.VERCEL_ENV === "production") return json(res, 404, { error: "Not found" });
   let settings;
   try { settings = (dependencies.configuration || (() => testConfiguration("webhook")))(); } catch { return json(res, 503, { error: "Stripe test webhook is disabled" }); }
   let raw;
