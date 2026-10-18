@@ -1,6 +1,18 @@
 ﻿(function () {
   initServiceStarter();
 
+  function generateGuidedSubmissionToken() {
+    const cryptoApi = window.crypto;
+    if (cryptoApi && typeof cryptoApi.randomUUID === "function") return cryptoApi.randomUUID();
+    if (!cryptoApi || typeof cryptoApi.getRandomValues !== "function") return "";
+    const bytes = new Uint8Array(16);
+    cryptoApi.getRandomValues(bytes);
+    bytes[6] = (bytes[6] & 15) | 64;
+    bytes[8] = (bytes[8] & 63) | 128;
+    const hex = Array.from(bytes, byte => byte.toString(16).padStart(2, "0")).join("");
+    return hex.slice(0, 8) + "-" + hex.slice(8, 12) + "-" + hex.slice(12, 16) + "-" + hex.slice(16, 20) + "-" + hex.slice(20);
+  }
+
   const flow = window.flowConfig;
   if (!flow) return;
 
@@ -11,7 +23,7 @@
   const submissionToken = document.createElement("input");
   submissionToken.type = "hidden";
   submissionToken.name = "Submission Token";
-  submissionToken.value = window.crypto && window.crypto.randomUUID ? window.crypto.randomUUID() : "";
+  submissionToken.value = generateGuidedSubmissionToken();
   form.appendChild(submissionToken);
 
   const steps = Array.from(form.querySelectorAll(".step"));
@@ -23,13 +35,30 @@
   const catalog = window.GetEstimateFastLaunch;
   const standardServiceQuestions = Object.fromEntries((catalog ? catalog.categories : []).map(item => [item.slug, {title:item.question, options:item.options}]));
   const minimumOtherDescription = catalog ? catalog.MIN_OTHER_DESCRIPTION : 60;
+  // This US-only intake route is manual review, not an approved matching category.
+  standardServiceQuestions["bathroom-remodeling"] = {
+    title: "What type of bathroom remodeling work do you need?",
+    options: ["Full bathroom remodel", "Shower remodel", "Tub-to-shower conversion", "Vanity or fixtures", "Tile or waterproofing", "Other bathroom work"]
+  };
+  const approvedLandingSources = new Set(["bathroom-remodeling.html","bathroom-remodeling-riverview.html","flooring-installation.html","flooring-installation-riverview.html","painting.html","painting-riverview.html","kitchen-remodeling.html","kitchen-remodeling-riverview.html"]);
 
   ensureLeadEndpointDefaults();
+  captureOriginalLandingSource();
   prepareDynamicService();
   annotateFlow();
   bindInteractive();
   bindNavigation();
   showStep(getInitialStepIndex());
+
+  function captureOriginalLandingSource() {
+    const source = new URLSearchParams(window.location.search).get("source");
+    if (!approvedLandingSources.has(source)) return;
+    const field = document.createElement("input");
+    field.type = "hidden";
+    field.name = "Original Landing Page";
+    field.value = source;
+    form.appendChild(field);
+  }
 
   function prepareDynamicService() {
     if (flow.type !== "standard") return;
@@ -41,7 +70,8 @@
     const requested = slugify(params.get("service"));
     if (!requested) return;
 
-    const selected = serviceStep.options.find((option) => slugify(option) === requested);
+    const selected = serviceStep.options.find((option) => slugify(option) === requested)
+      || (requested === "bathroom-remodeling" ? "Bathroom Remodeling" : null);
     if (!selected) { window.location.replace("services.html"); return; }
 
     const serviceField = document.getElementById("field-0");
