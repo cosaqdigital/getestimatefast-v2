@@ -20,7 +20,12 @@ module.exports=async function handler(req,res){
   // The client cannot control user ID, verification, or approval.
   const existing=await queryDb(path+"&select=user_id,account_status&limit=1");
   if(existing[0]?.account_status==="suspended"||existing[0]?.account_status==="rejected")return json(res,403,{error:"This account cannot be edited"});
-  const record={user_id:user.id,display_name:name,business_name:business||null,contact_phone:phone,sms_phone_e164:smsPhone,contact_email:user.email,base_zip:zip,city,state_code:state,service_radius_miles:radius,service_categories:cats,bio:bio||null,updated_at:new Date().toISOString(),privacy_accepted_at:new Date().toISOString(),privacy_version:"preview-v1",terms_accepted_at:new Date().toISOString(),terms_version:"preview-v1",email_verified_at:user.email_confirmed_at};
+    const production=process.env.VERCEL_ENV==="production";
+  const privacyVersion=production?String(process.env.GETESTIMATEFAST_PRIVACY_VERSION||"").trim():"preview-v1";
+  const termsVersion=production?String(process.env.GETESTIMATEFAST_TERMS_VERSION||"").trim():"preview-v1";
+  if(production&&(!/^[A-Za-z0-9._-]{3,80}$/.test(privacyVersion)||!/^[A-Za-z0-9._-]{3,80}$/.test(termsVersion)))
+    return json(res,503,{error:"Terms and privacy versions are not configured for Production."});
+  const record={user_id:user.id,display_name:name,business_name:business||null,contact_phone:phone,sms_phone_e164:smsPhone,contact_email:user.email,base_zip:zip,city,state_code:state,service_radius_miles:radius,service_categories:cats,bio:bio||null,updated_at:new Date().toISOString(),privacy_accepted_at:new Date().toISOString(),privacy_version:privacyVersion,terms_accepted_at:new Date().toISOString(),terms_version:termsVersion,email_verified_at:user.email_confirmed_at};
   let response;
   // Never include account_status in a client-supplied update.
   if(existing.length)response=await queryDb(path,{method:"PATCH",headers:{Prefer:"return=representation"},body:JSON.stringify(record)});
