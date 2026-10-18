@@ -1,6 +1,7 @@
 const {json,method,queryDb,fail,userFor}=require("./_shared");
 const {parseFilters,matchesFilters}=require("../_lib/opportunity-filters");
 const {quotePrice}=require("../_lib/marketplace-pricing");
+const {marketplaceCommercialEnabled}=require("../_lib/marketplace-access");
 module.exports=async function handler(req,res){
  if(!method(req,res,["GET"]))return;
  try{
@@ -15,7 +16,7 @@ module.exports=async function handler(req,res){
    const data=await queryDb("rpc/list_contractor_opportunities",{method:"POST",body:JSON.stringify({p_contractor:user.id,p_page:rpcPage,p_city:null})});
    if(!Array.isArray(data))throw Error("Invalid opportunities response");
    let commercial=[];
-   if(process.env.GETESTIMATEFAST_MARKETPLACE_PREVIEW==="true"&&process.env.GETESTIMATEFAST_ISOLATED_BACKEND==="true"&&process.env.VERCEL_ENV!=="production"&&data.length){
+   if(marketplaceCommercialEnabled()&&data.length){
     commercial=await queryDb("rpc/gef_commercial_previews",{method:"POST",body:JSON.stringify({p_ids:data.map(o=>o.opportunity_id)})});
    }
    const terms=new Map(commercial.map(c=>[c.opportunity_id,c]));
