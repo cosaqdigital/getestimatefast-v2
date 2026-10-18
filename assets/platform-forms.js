@@ -23,13 +23,30 @@
   const catalog = window.GetEstimateFastLaunch;
   const standardServiceQuestions = Object.fromEntries((catalog ? catalog.categories : []).map(item => [item.slug, {title:item.question, options:item.options}]));
   const minimumOtherDescription = catalog ? catalog.MIN_OTHER_DESCRIPTION : 60;
+  // This US-only intake route is manual review, not an approved matching category.
+  standardServiceQuestions["bathroom-remodeling"] = {
+    title: "What type of bathroom remodeling work do you need?",
+    options: ["Full bathroom remodel", "Shower remodel", "Tub-to-shower conversion", "Vanity or fixtures", "Tile or waterproofing", "Other bathroom work"]
+  };
+  const approvedLandingSources = new Set(["bathroom-remodeling.html","bathroom-remodeling-riverview.html","flooring-installation.html","flooring-installation-riverview.html","painting.html","painting-riverview.html","kitchen-remodeling.html","kitchen-remodeling-riverview.html"]);
 
   ensureLeadEndpointDefaults();
+  captureOriginalLandingSource();
   prepareDynamicService();
   annotateFlow();
   bindInteractive();
   bindNavigation();
   showStep(getInitialStepIndex());
+
+  function captureOriginalLandingSource() {
+    const source = new URLSearchParams(window.location.search).get("source");
+    if (!approvedLandingSources.has(source)) return;
+    const field = document.createElement("input");
+    field.type = "hidden";
+    field.name = "Original Landing Page";
+    field.value = source;
+    form.appendChild(field);
+  }
 
   function prepareDynamicService() {
     if (flow.type !== "standard") return;
@@ -41,7 +58,8 @@
     const requested = slugify(params.get("service"));
     if (!requested) return;
 
-    const selected = serviceStep.options.find((option) => slugify(option) === requested);
+    const selected = serviceStep.options.find((option) => slugify(option) === requested)
+      || (requested === "bathroom-remodeling" ? "Bathroom Remodeling" : null);
     if (!selected) { window.location.replace("services.html"); return; }
 
     const serviceField = document.getElementById("field-0");
