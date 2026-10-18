@@ -1,6 +1,8 @@
 const THANK_YOU_URL = "https://www.getestimatefast.com/thank-you.html";
 const DEFAULT_FROM_EMAIL = "GetEstimateFast <onboarding@resend.dev>";
 const MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024;
+const MAX_REQUEST_SIZE = 15 * 1024 * 1024;
+const MAX_ATTACHMENT_COUNT = 3;
 
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
@@ -13,11 +15,16 @@ module.exports = async function handler(req, res) {
     return sendErrorPage(res, 500, "Email delivery is not configured yet. Please try again shortly.");
   }
 
+  let savedLeadId = null;
   try {
     const formData = await parseFormData(req);
     const fields = normalizeFields(formData);
 
     if (isSpamSubmission(fields)) {
+      if (process.env.VERCEL_ENV === "preview") {
+        console.warn("Preview test rejected by honeypot; no lead was saved.");
+        return sendErrorPage(res, 400, "Test submission blocked by anti-spam field. No request was saved.");
+      }
       return redirectToThankYou(res);
     }
 
@@ -26,8 +33,20 @@ module.exports = async function handler(req, res) {
       return sendErrorPage(res, 400, validationError);
     }
 
+    // Persistence is opt-in until an isolated GetEstimateFast database is provisioned.
+    // With enabled persistence, fail closed before emailing: never imply a request was saved.
+    if (process.env.LEAD_PERSISTENCE_ENABLED === "true") {
+      try {
+        savedLeadId = await persistLead(fields);
+      } catch (persistError) {
+        console.error("GetEstimateFast lead storage failed:", persistError.message);
+        return sendErrorPage(res, 503, "We couldn't save your request right now. Please try again shortly.");
+      }
+    }
+
     const attachments = await collectAttachments(formData);
     const subject = buildSubject(fields);
+    if (savedLeadId) fields["Request ID"] = savedLeadId;
     const replyTo = firstValue(fields["Email Address"]);
 
     const response = await fetch("https://api.resend.com/emails", {
@@ -53,15 +72,54 @@ module.exports = async function handler(req, res) {
     if (!response.ok) {
       const errorBody = await response.text();
       console.error("Resend API error:", response.status, errorBody);
+      if (savedLeadId) return redirectToThankYou(res);
       return sendErrorPage(res, 502, "We couldn't deliver your request right now. Please try again in a moment.");
     }
 
     return redirectToThankYou(res);
   } catch (error) {
     console.error("Lead submission failed:", error);
+    if (savedLeadId) return redirectToThankYou(res);
     return sendErrorPage(res, 500, "We couldn't send your request right now. Please go back and try again in a moment.");
   }
 };
+
+async function persistLead(fields) {
+  const endpoint = String(process.env.GETESTIMATEFAST_SUPABASE_URL || "").replace(/\/$/, "");
+  const key = process.env.GETESTIMATEFAST_SUPABASE_SECRET_KEY;
+  if (!endpoint || !/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(endpoint) || !key) {
+    throw new Error("Independent database environment is not configured");
+  }
+
+  const response = await fetch(endpoint + "/rest/v1/leads?select=id", {
+    method: "POST",
+    headers: {
+      apikey: key,
+      ...(key.startsWith("sb_secret_") ? {} : { Authorization: "Bearer " + key }),
+      "Content-Type": "application/json",
+      Prefer: "return=representation"
+    },
+    body: JSON.stringify({
+      service_type: firstValue(fields["Service Type"]),
+      full_name: firstValue(fields["Full Name"]),
+      email: firstValue(fields["Email Address"]),
+      phone: firstValue(fields["Phone Number"]),
+      city: firstValue(fields["City"]),
+      zip_code: firstValue(fields["ZIP Code"]),
+      contact_method: firstValue(fields["Preferred contact method"]) || null,
+      details: fields,
+      source: "getestimatefast.com"
+    })
+  });
+  if (!response.ok) {
+    throw new Error("Lead database insert returned HTTP " + response.status);
+  }
+  const records = await response.json();
+  if (!Array.isArray(records) || !records[0] || !records[0].id) {
+    throw new Error("Lead database returned no ID");
+  }
+  return records[0].id;
+}
 
 async function parseFormData(req) {
   const bodyBuffer = await readRequestBody(req);
@@ -78,8 +136,17 @@ async function parseFormData(req) {
 function readRequestBody(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];
-    req.on("data", (chunk) => chunks.push(chunk));
-    req.on("end", () => resolve(Buffer.concat(chunks)));
+    let total = 0;
+    req.on("data", (chunk) => {
+      total += chunk.length;
+      if (total > MAX_REQUEST_SIZE) {
+        reject(new Error("Request payload exceeds size limit"));
+        req.pause();
+        return;
+      }
+      chunks.push(chunk);
+    });
+    req.on("end", () => { if (total <= MAX_REQUEST_SIZE) resolve(Buffer.concat(chunks)); });
     req.on("error", reject);
   });
 }
@@ -111,7 +178,9 @@ async function collectAttachments(formData) {
   for (const [, rawValue] of formData.entries()) {
     if (!isFileLike(rawValue)) continue;
     if (!rawValue.size || rawValue.size <= 0) continue;
-    if (rawValue.size > MAX_ATTACHMENT_SIZE) continue;
+    if (rawValue.size > MAX_ATTACHMENT_SIZE) throw new Error("Attachment exceeds size limit");
+    if (attachments.length >= MAX_ATTACHMENT_COUNT) throw new Error("Too many attachments");
+    if (!["image/jpeg", "image/png", "image/webp", "application/pdf"].includes(rawValue.type)) throw new Error("Unsupported attachment type");
 
     const arrayBuffer = await rawValue.arrayBuffer();
     attachments.push({
@@ -125,7 +194,7 @@ async function collectAttachments(formData) {
 }
 
 function isSpamSubmission(fields) {
-  return Boolean(firstValue(fields.company) || firstValue(fields.website));
+  return Boolean(firstValue(fields.gef_hp_trap_47b) || firstValue(fields.company) || firstValue(fields.website));
 }
 
 function validateLead(fields) {
@@ -222,7 +291,8 @@ function renderLeadText(subject, fields, attachments) {
 
 function redirectToThankYou(res) {
   res.statusCode = 303;
-  res.setHeader("Location", THANK_YOU_URL);
+  // Keep Preview on the same deployment for a verifiable test.
+  res.setHeader("Location", process.env.VERCEL_ENV === "preview" ? "/thank-you.html" : THANK_YOU_URL);
   res.end();
 }
 
