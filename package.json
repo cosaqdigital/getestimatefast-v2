@@ -7,7 +7,7 @@
     "node": "24.x"
   },
   "scripts": {
-    "test": "node --test tests/*.test.js"
+    "test": "node --require ./tests/helpers/offline-fetch.cjs --test --test-concurrency=2 tests/*.test.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.117.3",
