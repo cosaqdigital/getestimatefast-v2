@@ -52,6 +52,10 @@ test('Closed commercial portal shows unavailable states, avoids commercial calls
   w.dispatchEvent(new w.CustomEvent('gef-signed-in'));
   w.dispatchEvent(new w.CustomEvent('gef-profile',{detail:{categories:['Painting'],profile:{display_name:'SYNTHETIC ONLY',account_status:'active',base_zip:'33569',city:'Riverview',contact_phone:'8135550100',service_categories:['Painting'],service_radius_miles:25},capabilities:{marketplace_enabled:false,profile_editing_enabled:false,payments_enabled:false}}}));
   assert.match(d.querySelector('#dashboardNotice').textContent,/not open yet/);assert.match(d.querySelector('#profileAvailability').textContent,/not open yet/);
+  assert.match(d.querySelector('.pro-hero h1').textContent,/Get More Local Service Leads/);
+  assert.ok(d.querySelector('.pro-hero-actions a[href="#accountSettingsPanel"]'));
+  assert.equal([...d.querySelectorAll('.pro-hero-actions a')].some(a=>/public profile/i.test(a.textContent)),false);
+  assert.match(d.querySelector('.pro-coming').textContent,/Coming soon to your account/);
   assert.equal(d.querySelector('#walletBalance').textContent,'—');assert.ok(d.querySelector('#publicProfileForm button').disabled);
   d.querySelector('a[data-screen="myReferralsPanel"]').click();assert.equal(calls.length,0);
   d.querySelector('.pro-referral-cards').textContent='SYNTHETIC PRIVATE CONTACT';
@@ -84,6 +88,6 @@ test('Customer homepage navigation and legal destinations exist; no Development 
   assert.ok(fs.existsSync(path.join(__dirname,'..',href.replace(/^\//,'').split(/[?#]/)[0])),'Missing local navigation target');
  }
  assert.ok(dom.window.document.querySelector('meta[name="viewport"]'));for(const p of ['privacy.html','terms.html'])assert.ok(fs.existsSync(path.join(__dirname,'..',p)));
- for(const p of ['admin.html','assets/admin.js','marketplace-admin.html','assets/marketplace-admin.js','assets/contractor-ux.js','assets/marketplace-portal.js'])assert.doesNotMatch(read(p),/cpjsbijgijeyrwjpuciv|Development preview|isolated preview backend|Isolated development only|Marketplace preview/);
+ for(const p of ['admin.html','assets/admin.js','marketplace-admin.html','assets/marketplace-admin.js','contractor-portal.html','assets/contractor-ux.js','assets/marketplace-portal.js'])assert.doesNotMatch(read(p),/cpjsbijgijeyrwjpuciv|Development preview|isolated preview backend|Isolated development only|Private Development preview|Marketplace preview/);
  }finally{dom.window.close();}
 });
