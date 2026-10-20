@@ -5,14 +5,14 @@ let token = "", page = 0, leadCount = 0, contractorPage = 0, contractorHasMore =
 const status = text => { $("status").textContent = text; };
 const loggedIn = yes => { $("login").hidden = yes; $("dashboard").hidden = !yes; $("logout").hidden = !yes; };
 async function refreshOverview(){
- $("overviewStatus").textContent="Loading GetEstimateFast Development totals...";
+ $("overviewStatus").textContent="Loading GetEstimateFast totals...";
  try{
   const overview=await api("overview");
   const values=overview.counts||{};
   for(const [element,key] of [["overviewAllLeads","leads"],["overviewNewLeads","new_leads"],["overviewOpportunities","opportunities"],["overviewContractors","contractors"],["overviewActive","active_contractors"],["overviewPublic","public_profiles"]]){
    $(element).textContent=Number.isInteger(values[key])?new Intl.NumberFormat("en-US").format(values[key]):"—";
   }
-  $("overviewStatus").textContent="Updated "+new Date().toLocaleString("en-US")+" · US Development";
+  $("overviewStatus").textContent="Updated "+new Date().toLocaleString("en-US")+" · GetEstimateFast US";
  }catch(error){$("overviewStatus").textContent="Summary unavailable: "+error.message;}
 }
 
