@@ -3,6 +3,8 @@ const { config, json, readJson, queryDb } = require("./_auth");
 
 const ORIGIN="https://www.getestimatefast.com";
 const HOST="www.getestimatefast.com";
+const STAGED_ORIGIN="https://getestimatefast-v2-get-estimate-fast.vercel.app";
+const STAGED_HOST="getestimatefast-v2-get-estimate-fast.vercel.app";
 const ADMIN_EMAIL="admin@getestimatefast.com";
 const MIN_PASSWORD_LENGTH=8;
 const MAX_PASSWORD_LENGTH=256;
@@ -16,12 +18,15 @@ function enabled(env=process.env){
  if(env.GETESTIMATEFAST_PUBLIC_ORIGIN!==ORIGIN)return false;
  try{config(env);return true;}catch{return false;}
 }
-function originAllowed(req){
- if(req.headers.host!==HOST)return false;
+function requestOrigin(req,env=process.env){
  const site=req.headers["sec-fetch-site"];
- if(site!==undefined&&site!=="same-origin")return false;
+ if(site!==undefined&&site!=="same-origin")return "";
+ const host=String(req.headers.host||"");
  const origin=req.headers.origin;
- return origin===ORIGIN||(req.method==="GET"&&origin===undefined);
+ if(host===HOST&&(origin===ORIGIN||(req.method==="GET"&&origin===undefined)))return ORIGIN;
+ if(env.GETESTIMATEFAST_ADMIN_PASSWORD_RESET_STAGED_TEST!=="true")return "";
+ if(host===STAGED_HOST&&(origin===STAGED_ORIGIN||(req.method==="GET"&&origin===undefined)))return STAGED_ORIGIN;
+ return "";
 }
 function bearer(req){
  const m=/^Bearer ([A-Za-z0-9._~-]+)$/.exec(String(req.headers.authorization||""));
@@ -44,7 +49,8 @@ module.exports=async function handler(req,res){
  res.setHeader("Referrer-Policy","no-referrer");
  if(!enabled())return reject(res,404,"recovery_disabled","Administrator password reset is not enabled.");
  if(!["GET","POST"].includes(req.method)){res.setHeader("Allow","GET, POST");return reject(res,405,"method_not_allowed","Method not allowed.");}
- if(!originAllowed(req))return reject(res,403,"origin_not_allowed","Request origin not allowed.");
+ const acceptedOrigin=requestOrigin(req);
+ if(!acceptedOrigin)return reject(res,403,"origin_not_allowed","Request origin not allowed.");
  if(Object.keys(req.query||{}).length||String(req.url||"").includes("?"))return reject(res,400,"invalid_request","Invalid password reset request.");
  try{
   if(req.method==="POST"&&String(req.headers["content-type"]||"").split(";")[0].trim().toLowerCase()!=="application/json")return reject(res,400,"invalid_request","A JSON request is required.");
@@ -53,7 +59,7 @@ module.exports=async function handler(req,res){
   if(req.method==="POST"&&body?.action==="request"){
    if(Object.keys(body).length!==1)return reject(res,400,"invalid_request","Invalid password reset request.");
    const {url,publishable}=config();
-   const redirectTo=ORIGIN+"/admin-reset-password.html";
+   const redirectTo=acceptedOrigin+"/admin-reset-password.html";
    const recovery=await fetch(url+"/auth/v1/recover?redirect_to="+encodeURIComponent(redirectTo),{
     method:"POST",redirect:"error",
     headers:{apikey:publishable,"Content-Type":"application/json","X-Supabase-Api-Version":"2024-01-01"},
