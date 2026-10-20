@@ -103,7 +103,7 @@ const oldMetrics=dash.querySelector(":scope > .metric-grid");if(oldMetrics)oldMe
 const linkTo=(id,label,cls="pro-action secondary")=>{const a=make("a",label,cls);a.href="#"+id;return a;};
 const hero=make("section",undefined,"pro-hero");
 const heroCopy=make("div",undefined,"pro-hero-copy");
-heroCopy.append(make("p","WELCOME TO GETESTIMATEFAST","pro-eyebrow"),make("h1","Get More Local Service Leads Near You"),make("p","Build your professional profile, set your service area and get ready for future home-service opportunities — all from one place.","pro-hero-text"));
+heroCopy.append(make("p","WELCOME TO GETESTIMATEFAST","pro-eyebrow"),make("h1","Get More Local Service Leads"),make("p","Build your professional profile, set your service area and get ready for future home-service opportunities — all from one place.","pro-hero-text"));
 const heroActions=make("div",undefined,"pro-hero-actions");
 heroActions.append(linkTo("accountSettingsPanel","Complete My Business Profile","pro-action primary"),linkTo("accountSettingsPanel","Set My Service Area"),linkTo("accountSettingsPanel","Review My Details"));
 heroCopy.append(heroActions);
