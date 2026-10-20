@@ -1,9 +1,17 @@
 (function () {
 "use strict";
 const $ = id => document.getElementById(id);
-let token = "", page = 0, leadCount = 0, contractorPage = 0, contractorHasMore = false;
+let token = "", page = 0, leadCount = 0, contractorPage = 0, contractorHasMore = false, sessionGeneration = 0, contractorLoad = 0;
 const status = text => { $("status").textContent = text; };
 const loggedIn = yes => { $("login").hidden = yes; $("dashboard").hidden = !yes; $("logout").hidden = !yes; };
+function clearSession() {
+  sessionGeneration++; contractorLoad++; token=""; loggedIn(false);
+  for(const id of ["rows","contractorRows"])$(id).replaceChildren();
+  for(const id of ["overviewAllLeads","overviewNewLeads","overviewOpportunities","overviewContractors","overviewActive","overviewPublic"])$(id).textContent="—";
+  $("overviewStatus").textContent="";$("smsProviderStatus").textContent="";
+  $("contractorView").setAttribute("aria-busy","false");
+  contractorPage=0;contractorHasMore=false;page=0;leadCount=0;
+}
 async function refreshOverview(){
  $("overviewStatus").textContent="Loading GetEstimateFast totals...";
  try{
@@ -17,11 +25,13 @@ async function refreshOverview(){
 }
 
 async function api(path, method = "GET", body) {
+  const generation=sessionGeneration;
   const response = await fetch("/api/admin/" + path, { method, credentials:"same-origin", cache:"no-store",
     headers: { ...(token ? { Authorization: "Bearer " + token } : {}), ...(body ? { "Content-Type":"application/json" } : {}) },
     body: body ? JSON.stringify(body) : undefined });
   const data = await response.json();
-  if (!response.ok) { if ([401,403].includes(response.status) && token) { token = ""; loggedIn(false); }
+  if(generation!==sessionGeneration)throw new Error("Session changed. Please sign in again.");
+  if (!response.ok) { if ([401,403].includes(response.status) && token) { clearSession(); }
     throw new Error(data.error || "Request failed"); }
   return data;
 }
@@ -275,7 +285,7 @@ $("loginForm").addEventListener("submit",async event=>{
     token=d.access_token; $("password").value="";loggedIn(true);page=0;status("");await Promise.all([load(),refreshOverview()]);
   }catch(e){status(e.message);}
 });
-$("logout").addEventListener("click",()=>{token="";loggedIn(false);status("Signed out. Note: existing token expires automatically.");});
+$("logout").addEventListener("click",()=>{clearSession();status("Signed out. Existing tokens expire automatically.");});
 $("checkSmsProvider").addEventListener("click",async()=>{const out=$("smsProviderStatus");out.textContent="Checking...";try{const d=await api("sms-provider-status");out.textContent="Provider: "+d.provider+" | Mode: "+d.mode+" | US route: "+(d.us_route_approved?"confirmed":"unconfirmed")+" | STOP handling: "+(d.reply_stop_verified?"verified":"unverified")+" | Credentials: "+(d.token_configured&&d.sender_configured?"configured":"incomplete")+" | Live SMS: DISABLED. Next: "+d.next_steps.join("; ");}catch(e){out.textContent=e.message;}});
 $("refresh").addEventListener("click",()=>load().catch(e=>status(e.message)));
 $("filter").addEventListener("change",()=>{page=0;load().catch(e=>status(e.message));});
@@ -289,9 +299,17 @@ function contractorCell(tr, value) {
   return td;
 }
 async function loadContractors() {
+  const request=++contractorLoad;
+  $("contractorRows").replaceChildren();
+  $("contractorView").setAttribute("aria-busy","true");
   const params = new URLSearchParams({page: String(contractorPage)});
   if ($("contractorFilter").value) params.set("status", $("contractorFilter").value);
-  const data = await api("contractors?" + params);
+  let data;
+  try {data=await api("contractors?" + params);}
+  catch(error){if(request===contractorLoad)$("contractorView").setAttribute("aria-busy","false");throw error;}
+  if(request!==contractorLoad)return;
+  $("contractorView").setAttribute("aria-busy","false");
+  if(!Array.isArray(data.contractors))throw Error("Contractor list is unavailable. Please refresh.");
   const tbody = $("contractorRows");
   tbody.replaceChildren();
   contractorHasMore = Boolean(data.has_more);
@@ -300,9 +318,11 @@ async function loadContractors() {
     contractorCell(tr, (p.business_name || p.display_name) + "\n" + p.display_name + "\n" + p.contact_email + "\n" + p.contact_phone);
     contractorCell(tr, p.city + ", " + p.state_code + " " + p.base_zip + "\n" + p.service_radius_miles + " miles\n" + (p.service_categories || []).join(", "));
     contractorCell(tr, "Status: " + p.account_status + "\nEmail verified: " + (p.email_verified_at ? "Yes" : "No") + "\nRegistered: " + new Date(p.created_at).toLocaleString());
+    [...tr.children].forEach((cell,index)=>cell.dataset.label=["Contractor","Service area","Registration"][index]);
 
     const review = document.createElement("td");
     const sel = document.createElement("select");
+    sel.setAttribute("aria-label","Account status");
     for (const next of ["pending_review", "active", "suspended", "rejected"]) {
       const op = document.createElement("option"); op.value = next; op.textContent = next;
       op.selected = next === p.account_status; sel.appendChild(op);
@@ -310,6 +330,7 @@ async function loadContractors() {
     if (p.account_status === "pending_review") sel.disabled = true;
     const note = document.createElement("textarea");
     note.rows = 2; note.maxLength = 1000; note.placeholder = "Required review reason (5+ characters)";
+    note.setAttribute("aria-label","Review reason");
     const save = document.createElement("button"); save.textContent = "Save decision"; save.type = "button";
     save.disabled = p.account_status === "pending_review";
     save.addEventListener("click", async () => {
@@ -325,8 +346,10 @@ async function loadContractors() {
     const historyButton = document.createElement("button");
     historyButton.type = "button"; historyButton.className = "secondary"; historyButton.textContent = "History";
     const eventsDisplay = document.createElement("div"); eventsDisplay.hidden = true;
+    eventsDisplay.setAttribute("aria-live","polite");
     historyButton.addEventListener("click", async () => {
       if (!eventsDisplay.hidden) { eventsDisplay.hidden=true; return; }
+      historyButton.disabled=true;
       try {
         const result = await api("contractor-history?user_id=" + encodeURIComponent(p.user_id));
         eventsDisplay.replaceChildren();
@@ -337,8 +360,9 @@ async function loadContractors() {
           eventsDisplay.appendChild(line);
         }
         eventsDisplay.hidden=false;
-      } catch(e) { status(e.message); }
+      } catch(e) { status(e.message); } finally {historyButton.disabled=false;}
     });
+    review.dataset.label="Review";
     review.append(sel, note, save, historyButton, eventsDisplay);
     tr.appendChild(review); tbody.appendChild(tr);
   }

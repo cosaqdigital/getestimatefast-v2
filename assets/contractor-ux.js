@@ -61,6 +61,7 @@ const referralReload=make("button","Refresh my requests","secondary");referralRe
 const referralList=make("div",undefined,"pro-referral-cards");
 referrals.append(referralReload,referralList);workspace.append(referrals);
 async function showReferrals(){
+ if(capabilities?.marketplace_enabled===false){referralList.replaceChildren(make("p","Profile requests and customer contacts are not open yet."));return;}
  referralList.replaceChildren(make("p","Loading your profile requests..."));
  try{
   const result=await window.GetEstimateFastPortal.api("origin-leads");
@@ -93,7 +94,7 @@ const welcome=make("div",undefined,"pro-welcome");welcome.append(make("strong","
 workspace.prepend(welcome);
 for(const id of ["walletBalance","purchaseCount"]){const card=$(id)?.closest(".metric");if(card)card.hidden=true;}
 const dash=views.contractorDashboard;
-const callout=make("div",undefined,"pro-callout");callout.append(make("h2","Find local work that fits your business"),make("p","Explore requests near your ZIP Code. No purchase or payment is required in this Development preview."));
+const callout=make("div",undefined,"pro-callout");callout.append(make("h2","Find local work that fits your business"),make("p","Explore requests near your ZIP Code. Purchases and payments are currently disabled."));
 for(const [id,label] of [["opportunityPanel","See opportunities"],["myReferralsPanel","My free profile requests"],["publicProfilePanel","Create my public profile"]]){const link=make("a",label,"pro-link");link.href="#"+id;callout.append(link);}
 dash.prepend(callout);
 const oldButtons=dash.querySelector(":scope > .actions");if(oldButtons)oldButtons.hidden=true;
@@ -121,7 +122,7 @@ if(reviewTitle){
  const opt=make("details",undefined,"pro-optional");opt.append(make("summary","Optional reviews and assistance"));
  let x=reviewTitle;while(x){const after=x.nextElementSibling;opt.append(x);x=after;}pub.append(opt);
 }
-let signedIn=false,hasProfile=null,current="";
+let signedIn=false,hasProfile=null,current="",capabilities=null;
 function go(id){
  if(!signedIn)return;
  const dest=hasProfile===false?"accountSettingsPanel":views[id]?id:"contractorDashboard";
@@ -142,11 +143,14 @@ document.addEventListener("click",e=>{
 });
 window.addEventListener("gef-signed-in",()=>{signedIn=true;hasProfile=null;current="";$("register").hidden=true;nav.hidden=true;for(const section of Object.values(views))section.hidden=true;});
 window.addEventListener("gef-profile",e=>{
+ capabilities=e.detail?.capabilities||null;
+ referralReload.disabled=capabilities?.marketplace_enabled===false;
+ if(capabilities?.marketplace_enabled===false)referralList.replaceChildren(make("p","Profile requests and customer contacts are not open yet."));
  const p=e.detail?.profile,wasReady=hasProfile===true;
  hasProfile=Boolean(p?.account_status==="active"&&p.base_zip&&p.contact_phone&&p.service_categories?.length);
  queueMicrotask(drawServices);
  if(hasProfile)go(wasReady?current:(views[location.hash.slice(1)]?location.hash.slice(1):"contractorDashboard"));
  else go("accountSettingsPanel");
 });
-window.addEventListener("gef-signed-out",()=>{signedIn=false;hasProfile=null;nav.hidden=true;for(const x of Object.values(views))x.hidden=true;selectStep(1);});
+window.addEventListener("gef-signed-out",()=>{signedIn=false;hasProfile=null;capabilities=null;referralList.replaceChildren();nav.hidden=true;for(const x of Object.values(views))x.hidden=true;selectStep(1);});
 })();
