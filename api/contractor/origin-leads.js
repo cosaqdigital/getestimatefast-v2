@@ -1,8 +1,11 @@
 "use strict";
 const {json,method,queryDb,fail,userFor}=require("./_shared");
+const {productionMarketplaceEnabled}=require("../_lib/marketplace-access");
 module.exports=async function handler(req,res){
  if(!method(req,res,["GET"]))return;
  try{
+  if(process.env.VERCEL_ENV==="production"&&!productionMarketplaceEnabled())
+    return json(res,503,{error:"Customer contact access is not enabled.",contact_release_enabled:false});
   const user=await userFor(req,res);if(!user)return;
   const profile=await queryDb("contractor_profiles?user_id=eq."+encodeURIComponent(user.id)+
    "&select=account_status,email_verified_at&limit=1");

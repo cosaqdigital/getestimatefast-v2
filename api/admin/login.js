@@ -10,7 +10,7 @@ module.exports = async function handler(req, res) {
     }
     const { url, publishable } = config();
     const response = await fetch(url + "/auth/v1/token?grant_type=password", {
-      method: "POST", headers: { apikey: publishable, "Content-Type": "application/json" },
+      method: "POST", redirect: "error", headers: { apikey: publishable, "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }), signal: AbortSignal.timeout(10000)
     });
     if (!response.ok) return json(res, 401, { error: "Invalid credentials or access not authorized" });

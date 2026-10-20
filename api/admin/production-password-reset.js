@@ -36,6 +36,7 @@ async function validateSession(token){
  const {url,publishable}=config();
  const response=await fetch(url+"/auth/v1/user",{
   headers:{apikey:publishable,Authorization:"Bearer "+token},
+  redirect:"error",
   signal:AbortSignal.timeout(10000)
  });
  if(!response.ok)return null;

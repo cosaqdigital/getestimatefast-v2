@@ -57,6 +57,7 @@ async function queryDb(path, options = {}) {
   const response = await fetch(url + "/rest/v1/" + path, {
     ...options,
     headers: headers(secret, { "Content-Type": "application/json", ...options.headers }),
+    redirect: "error",
     signal: AbortSignal.timeout(10000)
   });
   if (!response.ok) {
@@ -90,14 +91,15 @@ async function requireAdmin(req, res) {
   const { url, publishable } = config();
   const response = await fetch(url + "/auth/v1/user", {
     headers: { apikey: publishable, Authorization: "Bearer " + match[1] },
+    redirect: "error",
     signal: AbortSignal.timeout(10000)
   });
   if (!response.ok) { json(res, 401, { error: "Session expired" }); return null; }
   const user = await response.json();
-  if (!user.id || !user.email_confirmed_at) { json(res, 403, { error: "Access denied" }); return null; }
+  if (!user.id || !user.email_confirmed_at || user.is_anonymous) { json(res, 403, { error: "Access denied" }); return null; }
   const administrators = await queryDb("admin_users?user_id=eq." + encodeURIComponent(user.id) + "&select=user_id&limit=1");
   if (!administrators.length) { json(res, 403, { error: "Access denied" }); return null; }
   return user;
 }
-function fail(res, err) { console.error("GetEstimateFast admin request failed:", err.message); json(res, 503, { error: "Service temporarily unavailable" }); }
+function fail(res) { console.error("GetEstimateFast authenticated request failed."); json(res, 503, { error: "Service temporarily unavailable" }); }
 module.exports = { config, headers, json, method, readJson, queryDb, requireAdmin, fail };

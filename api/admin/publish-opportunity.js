@@ -1,4 +1,5 @@
 const {json,method,readJson,queryDb,requireAdmin,fail}=require("./_auth");
+const {marketplaceCommercialEnabled}=require("../_lib/marketplace-access");
 module.exports=async function handler(req,res){
  if(!method(req,res,["POST"]))return;
  try{
@@ -15,6 +16,7 @@ module.exports=async function handler(req,res){
   if(isReferral && !leads[0].origin_contractor_id)
     return json(res,409,{error:"This profile request has no verified originating professional."});
   if(isReferral){
+    if(!marketplaceCommercialEnabled())return json(res,503,{error:"Commercial opportunity publication is not enabled.",payments_enabled:false});
     const rules=await queryDb("marketplace_price_rules?category=eq."+
       encodeURIComponent(leads[0].service_type)+"&currency=eq.USD"+
       "&effective_at=lte."+encodeURIComponent(new Date().toISOString())+

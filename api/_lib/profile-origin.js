@@ -1,6 +1,7 @@
 "use strict";
 const crypto=require("node:crypto");
 const {DEVELOPMENT_REF,protectedPreview}=require("./preview-target");
+const {productionMarketplaceEnabled}=require("./marketplace-access");
 const UUID=/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
 const SLUG=/^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const MAX_AGE_SECONDS=7*86400;
@@ -10,7 +11,7 @@ function mode(env=process.env){
     && env.GETESTIMATEFAST_DEVELOPMENT_PROJECT_REF===DEVELOPMENT_REF
     && String(env.GETESTIMATEFAST_SUPABASE_URL||"").replace(/\/$/,"")==="https://"+DEVELOPMENT_REF+".supabase.co")return "synthetic";
  if(flag==="live" && env.VERCEL_ENV==="production" && env.GETESTIMATEFAST_PROFILE_REQUESTS_LIVE_APPROVED==="true"
-    && env.GETESTIMATEFAST_ISOLATED_BACKEND!=="true")return "live";
+    && env.LEAD_PERSISTENCE_ENABLED==="true" && productionMarketplaceEnabled(env))return "live";
  return null;
 }
 function secret(env=process.env){

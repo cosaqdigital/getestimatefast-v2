@@ -1,4 +1,5 @@
 const {normalizeUsPhone}=require("../_lib/zenvia-us-provider");
+const {marketplaceCommercialEnabled}=require("../_lib/marketplace-access");
 const {json,method,readJson,queryDb,fail,CATEGORIES,userFor}=require("./_shared");
 const EMAIL=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 module.exports=async function handler(req,res){
@@ -8,7 +9,11 @@ module.exports=async function handler(req,res){
   const path="contractor_profiles?user_id=eq."+encodeURIComponent(user.id);
   if(req.method==="GET"){
    const rows=await queryDb(path+"&select=user_id,display_name,business_name,contact_phone,contact_email,base_zip,city,state_code,service_radius_miles,service_categories,bio,account_status,email_verified_at,sms_opt_in,created_at,updated_at&limit=1");
-   return json(res,200,{profile:rows[0]||null,categories:CATEGORIES});
+   return json(res,200,{profile:rows[0]||null,categories:CATEGORIES,capabilities:{
+    marketplace_enabled:marketplaceCommercialEnabled(),
+    profile_editing_enabled:process.env.CONTRACTOR_PROFILE_EDITING_ENABLED==="true",
+    payments_enabled:false,live_sms_enabled:false
+   }});
   }
   if(process.env.CONTRACTOR_PROFILE_EDITING_ENABLED!=="true")return json(res,503,{error:"Profile editing is not yet open."});
   const v=await readJson(req,7000);

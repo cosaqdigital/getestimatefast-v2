@@ -22,6 +22,7 @@ module.exports=async function handler(req,res){
   if(["purchase","topup","refund","adjustment","profile-service-checkout"].includes(action))return blockPayments(res);
   const body=await readJson(req,action==="portfolio-upload"?4200000:18000);
   if(action==="public-profile"){
+   if(process.env.CONTRACTOR_PROFILE_EDITING_ENABLED!=="true")return json(res,503,{error:"Profile editing is not yet open."});
    let profile;try{profile=parsePublicProfile(body);}catch(e){return json(res,400,{error:e.message});}
    const result=await rpc("gef_save_public_profile",{p_contractor:user.id,p_profile:profile});
    return json(res,200,{...result,profile_path:"/professionals/"+profile.slug});
@@ -33,6 +34,7 @@ module.exports=async function handler(req,res){
    return json(res,201,{...result,review_path:"/review.html#"+token,manual_sharing_only:true});
   }
   if(action==="portfolio-upload"){
+   if(process.env.CONTRACTOR_PROFILE_EDITING_ENABLED!=="true")return json(res,503,{error:"Profile editing is not yet open."});
    const p=await queryDb("contractor_profiles?user_id=eq."+encodeURIComponent(user.id)+"&select=account_status&limit=1");
    if(p[0]?.account_status!=="active")return json(res,403,{error:"Active profile required"});
    if(body.rightsConsent!==true||typeof body.data!=="string"||body.data.length>4000000)return json(res,400,{error:"Choose a photo you may publish (maximum 3 MB) and confirm permission."});

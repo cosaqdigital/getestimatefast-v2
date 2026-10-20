@@ -19,7 +19,7 @@ module.exports = async function handler(req, res) {
 
     const params = new URLSearchParams({
       select: "user_id,display_name,business_name,contact_phone,contact_email,base_zip,city,state_code,service_radius_miles,service_categories,account_status,email_verified_at,privacy_version,terms_version,created_at,updated_at",
-      order: "created_at.desc",
+      order: "created_at.desc,user_id.asc",
       limit: String(PAGE_SIZE + 1),
       offset: String(page * PAGE_SIZE)
     });

@@ -16,6 +16,9 @@ module.exports = async function handler(req, res) {
     res.setHeader("Allow", "POST");
     return sendErrorPage(res, 405, "This page only accepts form submissions.");
   }
+  if (process.env.LEAD_PERSISTENCE_ENABLED !== "true") {
+    return sendErrorPage(res, 503, "Service requests are not open yet. Nothing was saved or sent. Please try again later.");
+  }
 
   try {
     const formData = await parseFormData(req);
@@ -49,7 +52,7 @@ module.exports = async function handler(req, res) {
     try {
       record = await persistLead(fields);
     } catch (error) {
-      console.error("GetEstimateFast lead storage failed:", error?.message || "unknown");
+      console.error("GetEstimateFast lead storage failed.");
       return sendErrorPage(res, 503, "We couldn't save your request. Please try again shortly.");
     }
     // An existing token must be verified in the database before this succeeds.
@@ -59,7 +62,7 @@ module.exports = async function handler(req, res) {
     // Email is a secondary notification. A lead that is safely stored must never
     // become an apparent failed request if Resend is unavailable.
     if (!process.env.RESEND_API_KEY || !process.env.LEAD_TO_EMAIL) {
-      console.error("GetEstimateFast lead notification not configured; stored lead:", savedLeadId);
+      console.error("GetEstimateFast lead notification not configured after persistence.");
       return redirectToThankYou(res);
     }
 
@@ -90,14 +93,11 @@ module.exports = async function handler(req, res) {
       if (!response.ok) {
         // Never log provider response bodies: they can contain personal information.
         console.error("GetEstimateFast notification failed after lead storage:", {
-          leadId: savedLeadId,
           httpStatus: response.status
         });
       }
     } catch {
-      console.error("GetEstimateFast notification transport failed after lead storage:", {
-        leadId: savedLeadId
-      });
+      console.error("GetEstimateFast notification transport failed after lead storage.");
     }
     return redirectToThankYou(res);
   } catch (error) {
@@ -375,6 +375,8 @@ function redirectToThankYou(res) {
 }
 
 function sendErrorPage(res, statusCode, message) {
+  res.setHeader("Cache-Control", "no-store");
+  res.setHeader("X-Content-Type-Options", "nosniff");
   res.statusCode = statusCode;
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.end(`<!DOCTYPE html>

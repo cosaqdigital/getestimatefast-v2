@@ -8,7 +8,7 @@ const COOKIE="gef-review-auth",MAX_CHUNKS=4,verifiedCsrf=new WeakSet();
 class ReviewError extends Error{constructor(status,message){super(message);this.status=status;}}
 function settings(){
  const c=config();
- if(process.env.GETESTIMATEFAST_REVIEW_GOOGLE_ENABLED!=="true"||process.env.GETESTIMATEFAST_REVIEW_SCHEMA_APPROVED!=="true")throw new ReviewError(503,"Google reviews are not enabled in this isolated Preview yet.");
+ if(process.env.GETESTIMATEFAST_REVIEW_GOOGLE_ENABLED!=="true"||process.env.GETESTIMATEFAST_REVIEW_SCHEMA_APPROVED!=="true")throw new ReviewError(503,"Google reviews are not enabled.");
  const secret=process.env.GETESTIMATEFAST_REVIEW_AUTH_COOKIE_SECRET;
  if(typeof secret!=="string"||secret.length<43)throw new ReviewError(503,"Review authentication is not configured.");
  const u=new URL(process.env.GETESTIMATEFAST_PUBLIC_ORIGIN);
