@@ -90,15 +90,90 @@ for(const [id,label] of [["contractorDashboard","Home"],["opportunityPanel","Opp
  const link=make("a",label);link.href="#"+id;link.dataset.screen=id;nav.append(link);
 }
 nav.classList.add("pro-navigation");
-const welcome=make("div",undefined,"pro-welcome");welcome.append(make("strong","My GetEstimateFast"),make("p","Manage your business, one step at a time."));
+const welcome=make("div",undefined,"pro-welcome");welcome.append(make("strong","My GetEstimateFast"),make("p","Professional account · Get ready for local service opportunities."));
 workspace.prepend(welcome);
 for(const id of ["walletBalance","purchaseCount"]){const card=$(id)?.closest(".metric");if(card)card.hidden=true;}
 const dash=views.contractorDashboard;
-const callout=make("div",undefined,"pro-callout");callout.append(make("h2","Find local work that fits your business"),make("p","Explore requests near your ZIP Code. Purchases and payments are currently disabled."));
-for(const [id,label] of [["opportunityPanel","See opportunities"],["myReferralsPanel","My free profile requests"],["publicProfilePanel","Create my public profile"]]){const link=make("a",label,"pro-link");link.href="#"+id;callout.append(link);}
-dash.prepend(callout);
 const oldButtons=dash.querySelector(":scope > .actions");if(oldButtons)oldButtons.hidden=true;
 const oldHeadline=dash.querySelector(":scope > h1");if(oldHeadline)oldHeadline.hidden=true;
+const oldEyebrow=dash.querySelector(":scope > .eyebrow");if(oldEyebrow)oldEyebrow.hidden=true;
+const oldIntro=[...dash.children].find(x=>x.tagName==="P"&&!x.id);if(oldIntro)oldIntro.hidden=true;
+const oldMetrics=dash.querySelector(":scope > .metric-grid");if(oldMetrics)oldMetrics.hidden=true;
+
+const linkTo=(id,label,cls="pro-action secondary")=>{const a=make("a",label,cls);a.href="#"+id;return a;};
+const hero=make("section",undefined,"pro-hero");
+const heroCopy=make("div",undefined,"pro-hero-copy");
+heroCopy.append(make("p","WELCOME TO GETESTIMATEFAST","pro-eyebrow"),make("h1","Get More Local Service Leads Near You"),make("p","Build your professional profile, set your service area and get ready for future home-service opportunities — all from one place.","pro-hero-text"));
+const heroActions=make("div",undefined,"pro-hero-actions");
+heroActions.append(linkTo("accountSettingsPanel","Complete My Business Profile","pro-action primary"),linkTo("accountSettingsPanel","Set My Service Area"),linkTo("accountSettingsPanel","Review My Details"));
+heroCopy.append(heroActions);
+const heroAside=make("aside",undefined,"pro-hero-aside");
+heroAside.append(make("strong","Be ready for local work"),make("p","✓ Showcase your services"),make("p","✓ Set your ZIP Code and service radius"),make("p","✓ Connect with homeowners when marketplace access opens"));
+hero.append(heroCopy,heroAside);
+
+const summary=make("div",undefined,"pro-summary-grid");
+const summaryCard=(label,value,id,help)=>{const card=make("article",undefined,"pro-summary-card");card.append(make("span",label,"pro-summary-label"));const strong=make("strong",value);strong.id=id;card.append(strong,make("small",help));return card;};
+summary.append(
+ summaryCard("Profile completion","—","proCompletionValue","Complete your information to get ready for local opportunities."),
+ summaryCard("Service area","—","proServiceAreaValue","Set your ZIP Code and service radius."),
+ summaryCard("Account status","—","proAccountValue","Your professional account status."),
+ summaryCard("Local opportunities","0","proOpportunityValue","Marketplace opportunities will appear here when enabled."),
+ summaryCard("Public profile","Not published","proPublicValue","Profile publishing is not open yet.")
+);
+
+const readiness=make("div",undefined,"pro-readiness-layout");
+const checklist=make("section",undefined,"pro-checklist-card");
+const checklistHead=make("div",undefined,"pro-section-head");checklistHead.append(make("div",undefined,"pro-section-title"),make("span","0% complete","pro-progress-label"));
+checklistHead.firstChild.append(make("h2","Complete Your Contractor Profile"),make("p","A complete contractor profile helps homeowners understand your services and helps GetEstimateFast match you with relevant local projects."));
+const progress=make("div",undefined,"pro-progress");progress.append(make("span"));checklist.append(checklistHead,progress);
+const list=make("div",undefined,"pro-checklist");
+const checklistItems=[
+ ["business","Business name","Add your professional or business name"],
+ ["services","Services","Choose the services you provide"],
+ ["area","Service area","Add your ZIP Code and service radius"],
+ ["phone","Phone number","Add a contact phone number"],
+ ["about","About your business","Tell customers about your experience"],
+ ["photos","Service photos","Add work photos when profile publishing opens"]
+];
+for(const [key,title,help] of checklistItems){const row=linkTo("accountSettingsPanel","", "pro-check-row");row.dataset.check=key;const mark=make("span","○","pro-check-mark");const text=make("span");text.append(make("strong",title),make("small",help));row.append(mark,text,make("span","›","pro-check-arrow"));list.append(row);}
+checklist.append(list);
+
+const why=make("aside",undefined,"pro-why");
+why.append(make("h2","Why this matters"),make("p","Accurate business information helps you appear ready when local opportunities become available."));
+const benefit=(title,text,cls)=>{const card=make("article",undefined,"pro-benefit "+cls);card.append(make("strong",title),make("p",text));return card;};
+why.append(
+ benefit("Appear ready for local service leads","Complete your profile now so your business is prepared for relevant projects in your area.","warm"),
+ benefit("Build trust with homeowners","Clear service details and accurate information help customers understand your business.","blue"),
+ benefit("Get discovered in your service area","Your services, ZIP Code and radius help determine where your business can match.","green")
+);
+readiness.append(checklist,why);
+
+const coming=make("section",undefined,"pro-coming");
+coming.append(make("h2","Coming soon to your account"),make("p","These commercial features are not available yet. Your account can be prepared now, and we will open them only after the Production rollout is approved."));
+const comingGrid=make("div",undefined,"pro-coming-grid");
+for(const [title,text] of [["Marketplace Opportunities","Browse local home-service requests."],["Wallet & Payments","Manage credits and payments when enabled."],["Customer Contact","Access approved customer contacts through the secure platform."],["Purchase History","Review future contact transactions and status."]]){const card=make("article",undefined,"pro-coming-card");card.append(make("strong",title),make("p",text),make("span","Coming Soon","pro-pill"));comingGrid.append(card);}
+coming.append(comingGrid);
+
+dash.prepend(hero,summary,readiness,coming);
+
+function updateLaunchDashboard(p){
+ const complete={
+  business:Boolean((p?.business_name||p?.display_name||"").trim()),
+  services:Boolean(p?.service_categories?.length),
+  area:Boolean(p?.base_zip&&p?.service_radius_miles),
+  phone:Boolean((p?.contact_phone||"").trim()),
+  about:Boolean((p?.bio||"").trim().length>=20),
+  photos:false
+ };
+ const done=Object.values(complete).filter(Boolean).length,percent=Math.round(done/Object.keys(complete).length*100);
+ $("proCompletionValue").textContent=percent+"%";
+ $("proServiceAreaValue").textContent=p?.base_zip?(p.base_zip+" · "+(p.service_radius_miles||"—")+" mi"):"Not set";
+ $("proAccountValue").textContent=p?.account_status||"Incomplete";
+ $("proPublicValue").textContent=capabilities?.marketplace_enabled===false||capabilities?.profile_editing_enabled===false?"Not published":"Ready to configure";
+ checklist.querySelector(".pro-progress-label").textContent=percent+"% complete";
+ progress.firstChild.style.width=percent+"%";
+ for(const row of checklist.querySelectorAll("[data-check]")){const doneNow=complete[row.dataset.check]===true;row.classList.toggle("done",doneNow);row.querySelector(".pro-check-mark").textContent=doneNow?"✓":"○";}
+}
 // Collapse nonessential profile fields without resetting consent or changing publication status.
 const pub=views.publicProfilePanel,pubGrid=publicForm.querySelector(".form-grid");
 if(pubGrid){
@@ -147,10 +222,12 @@ window.addEventListener("gef-profile",e=>{
  referralReload.disabled=capabilities?.marketplace_enabled===false;
  if(capabilities?.marketplace_enabled===false)referralList.replaceChildren(make("p","Profile requests and customer contacts are not open yet."));
  const p=e.detail?.profile,wasReady=hasProfile===true;
+ updateLaunchDashboard(p);
  hasProfile=Boolean(p?.account_status==="active"&&p.base_zip&&p.contact_phone&&p.service_categories?.length);
  queueMicrotask(drawServices);
  if(hasProfile)go(wasReady?current:(views[location.hash.slice(1)]?location.hash.slice(1):"contractorDashboard"));
  else go("accountSettingsPanel");
 });
-window.addEventListener("gef-signed-out",()=>{signedIn=false;hasProfile=null;capabilities=null;referralList.replaceChildren();nav.hidden=true;for(const x of Object.values(views))x.hidden=true;selectStep(1);});
+window.addEventListener("gef-opportunities",e=>{if($("proOpportunityValue"))$("proOpportunityValue").textContent=String(e.detail?.matching_total??0);});
+window.addEventListener("gef-signed-out",()=>{signedIn=false;hasProfile=null;capabilities=null;referralList.replaceChildren();nav.hidden=true;for(const x of Object.values(views))x.hidden=true;selectStep(1);if($("proOpportunityValue"))$("proOpportunityValue").textContent="0";});
 })();
