@@ -8,6 +8,8 @@ const handler=require("../api/admin/production-password-reset");
 
 const ORIGIN="https://www.getestimatefast.com";
 const HOST="www.getestimatefast.com";
+const STAGED_ORIGIN="https://getestimatefast-v2-get-estimate-fast.vercel.app";
+const STAGED_HOST="getestimatefast-v2-get-estimate-fast.vercel.app";
 const AUTH_URL="https://wedsjubkttygxtpkopfj.supabase.co";
 const ADMIN_ID="5cb70424-1c13-46dd-b457-4e6991ec4263";
 const ADMIN_EMAIL="admin@getestimatefast.com";
@@ -16,6 +18,7 @@ const PASSWORD="Synthetic-Production-Reset-99!";
 const baseEnv={
  VERCEL_ENV:"production",
  GETESTIMATEFAST_ADMIN_PASSWORD_RESET_ENABLED:"true",
+ GETESTIMATEFAST_ADMIN_PASSWORD_RESET_STAGED_TEST:"false",
  GETESTIMATEFAST_ISOLATED_BACKEND:"false",
  GETESTIMATEFAST_SUPABASE_URL:AUTH_URL,
  GETESTIMATEFAST_PUBLIC_ORIGIN:ORIGIN,
@@ -73,6 +76,27 @@ test("anonymous request sends reset only to fixed admin and exact reset redirect
    return json({});
   });
   const r=await run(req("POST",{action:"request"}));
+  assert.equal(r.status,200);assert.deepEqual(r.data,{ok:true,requested:true});
+  assert.equal(calls.length,1);
+ });
+});
+
+test("staged Production reset is rejected unless the explicit staged-test gate is enabled",async()=>{
+ await isolated({},async({calls})=>{
+  const r=await run(req("POST",{action:"request"},{host:STAGED_HOST,origin:STAGED_ORIGIN}));
+  assert.equal(r.status,403);assert.equal(r.data.code,"origin_not_allowed");assert.equal(calls.length,0);
+ });
+});
+
+test("guarded staged Production reset uses only the fixed protected alias and staged redirect",async()=>{
+ await isolated({GETESTIMATEFAST_ADMIN_PASSWORD_RESET_STAGED_TEST:"true"},async({calls,setFetch})=>{
+  setFetch((url,options)=>{
+   assert.equal(url,AUTH_URL+"/auth/v1/recover?redirect_to="+encodeURIComponent(STAGED_ORIGIN+"/admin-reset-password.html"));
+   assert.equal(options.method,"POST");
+   assert.deepEqual(JSON.parse(options.body),{email:ADMIN_EMAIL});
+   return json({});
+  });
+  const r=await run(req("POST",{action:"request"},{host:STAGED_HOST,origin:STAGED_ORIGIN}));
   assert.equal(r.status,200);assert.deepEqual(r.data,{ok:true,requested:true});
   assert.equal(calls.length,1);
  });
