@@ -58,6 +58,25 @@ test('Closed commercial portal shows unavailable states, avoids commercial calls
   w.dispatchEvent(new w.CustomEvent('gef-signed-out'));assert.equal(d.querySelector('.pro-referral-cards').textContent,'');
  }finally{dom.window.close();}
 });
+test('Marketplace admin keeps authenticated session visible while Production marketplace gate is closed',async()=>{
+ const dom=new JSDOM(read('marketplace-admin.html'),{url:'http://localhost/marketplace-admin.html',runScripts:'outside-only'}),w=dom.window,d=w.document;
+ try{
+  w.GetEstimateFastLaunch={names:['Painting']};
+  w.fetch=async(url)=>{
+   if(url.endsWith('/api/admin/login'))return {ok:true,status:200,json:async()=>({access_token:'synthetic-admin-token'})};
+   if(url.endsWith('/api/admin/marketplace'))return {ok:false,status:503,json:async()=>({error:'This feature is not enabled for this environment.'})};
+   throw Error('Unexpected request '+url);
+  };
+  w.eval(read('assets/marketplace-admin.js'));
+  d.querySelector('#adminLogin input[name="email"]').value='admin@getestimatefast.com';
+  d.querySelector('#adminLogin input[name="password"]').value='SYNTHETIC_ONLY';
+  d.querySelector('#adminLogin').dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));await settle();
+  assert.ok(d.querySelector('#adminAuth').hidden);assert.ok(!d.querySelector('#adminWorkspace').hidden);
+  assert.match(d.querySelector('#marketplaceState').textContent,/disabled in Production/);
+  assert.match(d.querySelector('#adminMessage').textContent,/Signed in/);
+  for(const id of ['pricingForm','termsForm','promotionForm','profilePriceForm'])for(const control of d.querySelector('#'+id).elements)assert.ok(control.disabled);
+ }finally{dom.window.close();}
+});
 test('Customer homepage navigation and legal destinations exist; no Development ref in served UI',()=>{
  const dom=new JSDOM(read('index.html'));
  try{for(const a of dom.window.document.querySelectorAll('header a[href],footer a[href]')){
@@ -65,6 +84,6 @@ test('Customer homepage navigation and legal destinations exist; no Development 
   assert.ok(fs.existsSync(path.join(__dirname,'..',href.replace(/^\//,'').split(/[?#]/)[0])),'Missing local navigation target');
  }
  assert.ok(dom.window.document.querySelector('meta[name="viewport"]'));for(const p of ['privacy.html','terms.html'])assert.ok(fs.existsSync(path.join(__dirname,'..',p)));
- for(const p of ['admin.html','assets/admin.js','assets/contractor-ux.js','assets/marketplace-portal.js'])assert.doesNotMatch(read(p),/cpjsbijgijeyrwjpuciv|Development preview|isolated preview backend/);
+ for(const p of ['admin.html','assets/admin.js','marketplace-admin.html','assets/marketplace-admin.js','assets/contractor-ux.js','assets/marketplace-portal.js'])assert.doesNotMatch(read(p),/cpjsbijgijeyrwjpuciv|Development preview|isolated preview backend|Isolated development only|Marketplace preview/);
  }finally{dom.window.close();}
 });
