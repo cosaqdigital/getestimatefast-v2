@@ -46,15 +46,32 @@ module.exports=async function handler(req,res){
  if(!["GET","POST"].includes(req.method)){res.setHeader("Allow","GET, POST");return reject(res,405,"method_not_allowed","Method not allowed.");}
  if(!originAllowed(req))return reject(res,403,"origin_not_allowed","Request origin not allowed.");
  if(Object.keys(req.query||{}).length||String(req.url||"").includes("?"))return reject(res,400,"invalid_request","Invalid password reset request.");
- const token=bearer(req);
- if(!token)return reject(res,401,"session_invalid","The recovery session is missing or expired.");
  try{
+  if(req.method==="POST"&&String(req.headers["content-type"]||"").split(";")[0].trim().toLowerCase()!=="application/json")return reject(res,400,"invalid_request","A JSON request is required.");
+  let body;
+  if(req.method==="POST"){try{body=await readJson(req,4096);}catch{return reject(res,400,"invalid_request","Invalid password reset request.");}}
+  if(req.method==="POST"&&body?.action==="request"){
+   if(Object.keys(body).length!==1)return reject(res,400,"invalid_request","Invalid password reset request.");
+   const {url,publishable}=config();
+   const redirectTo=ORIGIN+"/admin-reset-password.html";
+   const recovery=await fetch(url+"/auth/v1/recover?redirect_to="+encodeURIComponent(redirectTo),{
+    method:"POST",redirect:"error",
+    headers:{apikey:publishable,"Content-Type":"application/json","X-Supabase-Api-Version":"2024-01-01"},
+    body:JSON.stringify({email:ADMIN_EMAIL}),signal:AbortSignal.timeout(10000)
+   });
+   if(!recovery.ok){
+    let code="";try{const d=await recovery.json();code=d?.code||d?.error_code||"";}catch{}
+    if(recovery.status===429||["over_email_send_rate_limit","over_request_rate_limit"].includes(code))return reject(res,429,"rate_limited","Too many password reset requests.");
+    return reject(res,503,"email_delivery_unavailable","Password reset email could not be sent.");
+   }
+   return json(res,200,{ok:true,requested:true});
+  }
+  const token=bearer(req);
+  if(!token)return reject(res,401,"session_invalid","The recovery session is missing or expired.");
   const user=await validateSession(token);
   if(!user)return reject(res,403,"access_denied","Access denied.");
   if(req.method==="GET")return json(res,200,{enabled:true,recipient:ADMIN_EMAIL,minPasswordLength:MIN_PASSWORD_LENGTH,maxPasswordLength:MAX_PASSWORD_LENGTH,sessionValidated:true});
-  if(String(req.headers["content-type"]||"").split(";")[0].trim().toLowerCase()!=="application/json")return reject(res,400,"invalid_request","A JSON request is required.");
-  let body;try{body=await readJson(req,4096);}catch{return reject(res,400,"invalid_request","Invalid password reset request.");}
-  if(!body||typeof body!=="object"||Array.isArray(body)||Object.keys(body).length!==1||typeof body.password!=="string")return reject(res,400,"invalid_request","Invalid password reset request.");
+  if(!body||typeof body!=="object"||Array.isArray(body)||body.action!=="complete"||Object.keys(body).length!==2||typeof body.password!=="string")return reject(res,400,"invalid_request","Invalid password reset request.");
   if(body.password.length<MIN_PASSWORD_LENGTH||body.password.length>MAX_PASSWORD_LENGTH)return reject(res,400,"invalid_password","Use a password between 8 and 256 characters.");
   const {url,publishable}=config();
   const update=await fetch(url+"/auth/v1/user",{
