@@ -13,6 +13,7 @@ async function createSandbox(port=0,options={}){
  await db.exec(fs.readFileSync(path.join(root,"sql/us_portfolio_storage.sql"),"utf8"));
  await db.exec(fs.readFileSync(path.join(root,"sql/us_stripe_test_checkout.sql"),"utf8"));
  if(options.stripeSafety) await db.exec(fs.readFileSync(path.join(root,"supabase/prepared-migrations/20261012055452_stripe_sandbox_safety.sql"),"utf8"));
+ await db.exec(fs.readFileSync(path.join(root,"supabase/prepared-migrations/us-profile-origin-referrals.sql"),"utf8"));
  const asService=(sql,values=[])=>db.transaction(async tx=>{await tx.exec("set local role service_role");return tx.query(sql,values);});
  await db.query("insert into auth.users(id,email,email_confirmed_at) values($1,'contractor@example.invalid',now()),($2,'admin@example.invalid',now()),($3,'other@example.invalid',now())",[u(1),u(9),u(2)]);
  await db.query("insert into admin_users(user_id) values($1)",[u(9)]);
@@ -43,7 +44,7 @@ async function createSandbox(port=0,options={}){
   }
   if(target.pathname.startsWith("/rest/v1/")){
    const table=target.pathname.split("/").pop(),select=target.searchParams.get("select")||"*";
-   if(!["contractor_profiles","admin_users","contractor_public_profiles"].includes(table)||!/^([a-z_]+,?)+$|^\*$/.test(select))return response({error:"Unsupported sandbox table"},400);
+   if(!["contractor_profiles","admin_users","contractor_public_profiles","leads"].includes(table)||!/^([a-z_]+,?)+$|^\*$/.test(select))return response({error:"Unsupported sandbox table"},400);
    const predicates=[],values=[];for(const [key,value] of target.searchParams){if(["select","limit","order","on_conflict"].includes(key))continue;if(!/^[a-z_]+$/.test(key)||!value.startsWith("eq."))return response({error:"Invalid filter"},400);values.push(value.slice(3));predicates.push(`${key}=$${values.length}`);}
    try{return response((await asService(`select ${select} from public.${table}${predicates.length?" where "+predicates.join(" and "):""} limit 100`,values)).rows);}catch(e){return response({error:"Synthetic table read failed",code:e.code},400);}
   }
@@ -66,7 +67,7 @@ async function createSandbox(port=0,options={}){
   }catch(e){res.statusCode=500;res.end("Synthetic sandbox request failed");console.error(e.message);}
  });
  await new Promise(resolve=>server.listen(port,"127.0.0.1",resolve));origin="http://127.0.0.1:"+server.address().port;
- Object.assign(process.env,{GETESTIMATEFAST_ISOLATED_BACKEND:"true",GETESTIMATEFAST_MARKETPLACE_PREVIEW:"true",GETESTIMATEFAST_SUPABASE_URL:origin,GETESTIMATEFAST_SUPABASE_SECRET_KEY:"synthetic-server-key",GETESTIMATEFAST_SUPABASE_PUBLISHABLE_KEY:"synthetic-publishable-key",GETESTIMATEFAST_PUBLIC_ORIGIN:origin,GETESTIMATEFAST_REVIEW_IDENTITY_SECRET:crypto.randomBytes(32).toString("hex"),VERCEL_ENV:"development",CONTRACTOR_PROFILE_EDITING_ENABLED:"false"});delete process.env.VERCEL;
+ Object.assign(process.env,{GETESTIMATEFAST_ISOLATED_BACKEND:"true",GETESTIMATEFAST_MARKETPLACE_PREVIEW:"true",GETESTIMATEFAST_SUPABASE_URL:origin,GETESTIMATEFAST_SUPABASE_SECRET_KEY:"synthetic-server-key",GETESTIMATEFAST_SUPABASE_PUBLISHABLE_KEY:"synthetic-publishable-key",GETESTIMATEFAST_PUBLIC_ORIGIN:origin,GETESTIMATEFAST_REVIEW_IDENTITY_SECRET:crypto.randomBytes(32).toString("hex"),VERCEL_ENV:"development",CONTRACTOR_PROFILE_EDITING_ENABLED:options.profileEditing===true?"true":"false"});delete process.env.VERCEL;
  return {db,origin,users,ids:{contractor:u(1),other:u(2),admin:u(9),opportunity:u(30)},fetch:nativeFetch,async close(){await new Promise(resolve=>server.close(resolve));global.fetch=nativeFetch;for(const key of Object.keys(process.env))if(!(key in previousEnv))delete process.env[key];Object.assign(process.env,previousEnv);await db.close();}};
 }
 module.exports={createSandbox};

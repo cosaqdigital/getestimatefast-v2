@@ -2,7 +2,7 @@
 const test=require("node:test"),assert=require("node:assert/strict");
 const {createSandbox}=require("../scripts/local-marketplace-sandbox");
 test("HTTP -> authenticating handlers -> isolated SQL: profile, moderation, prices and payment blocks",async()=>{
- const s=await createSandbox();
+ const s=await createSandbox(0,{profileEditing:true});
  const api=async(path,token,body)=>{const r=await s.fetch(s.origin+path,{method:body?"POST":"GET",headers:{...(token?{Authorization:"Bearer "+token}:{}),...(body?{"Content-Type":"application/json"}:{})},body:body?JSON.stringify(body):undefined});return {status:r.status,data:await r.json()};};
  try{
   assert.equal((await api("/api/contractor/marketplace")).status,401);

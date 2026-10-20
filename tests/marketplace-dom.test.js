@@ -3,7 +3,7 @@ const test=require("node:test"),assert=require("node:assert/strict"),{setTimeout
 const {createSandbox}=require("../scripts/local-marketplace-sandbox");
 async function until(predicate){for(let i=0;i<80;i++){if(predicate())return;await delay(100);}throw Error("DOM condition timed out");}
 test("local DOM: contractor dashboard, categories, public profile, invitations, logout and admin",async()=>{
- const {JSDOM,VirtualConsole,requestInterceptor}=await import("jsdom");const s=await createSandbox();let dom,admin;const errors=[];
+ const {JSDOM,VirtualConsole,requestInterceptor}=await import("jsdom");const s=await createSandbox(0,{profileEditing:true});let dom,admin;const errors=[];
  // Every resource in these fixture pages is same-origin and served by the local sandbox.
  const options={resources:{interceptors:[requestInterceptor(req=>{if(!req.url.startsWith(s.origin+"/"))return new Response("External resources blocked in local test",{status:403});})]},runScripts:"dangerously",virtualConsole:new VirtualConsole().on("jsdomError",e=>errors.push(e.message)),beforeParse(w){w.fetch=(input,init)=>s.fetch(new URL(input,s.origin),init);}};
  try{

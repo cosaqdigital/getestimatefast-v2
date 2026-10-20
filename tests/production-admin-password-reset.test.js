@@ -107,15 +107,15 @@ test("recovery token must belong to confirmed fixed admin and current admin memb
   let step=0;
   setFetch((url,options)=>{
    step++;
-   if(step===1){
+   if(step===1||step===3){
     assert.equal(url,AUTH_URL+"/auth/v1/user");assert.equal(options.headers.Authorization,"Bearer "+TOKEN);
     return json({id:ADMIN_ID,email:ADMIN_EMAIL,email_confirmed_at:"2026-10-19T18:13:33Z"});
    }
-   if(step===2){
+   if(step===2||step===4){
     assert.match(url,/\/rest\/v1\/admin_users\?user_id=eq\./);
     return json([{user_id:ADMIN_ID}]);
    }
-   if(step===3){
+   if(step===5){
     assert.equal(url,AUTH_URL+"/auth/v1/user");assert.equal(options.method,"PUT");
     assert.equal(options.headers.Authorization,"Bearer "+TOKEN);
     assert.deepEqual(JSON.parse(options.body),{password:PASSWORD});

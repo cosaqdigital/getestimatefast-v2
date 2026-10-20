@@ -124,6 +124,12 @@ test("Production migration is fail-closed and contains no synthetic seed or live
  assert.match(sql,/originating professional receives this contact without charge/i);
  assert.doesNotMatch(sql,/GETESTIMATEFAST_STRIPE|stripe_test_checkout|test_checkout_orders|test_refund_confirmations/i);
  assert.doesNotMatch(sql,/review_authenticated_identities|gef_submit_authenticated_review|gef_authenticated_review_exists/i);
- assert.doesNotMatch(sql,/insert\s+into\s+public\.marketplace_price_rules\s*\(/i);
+ // A CREATE FUNCTION defines future, authorized admin writes; it does not seed
+ // prices. Keep DO blocks/top-level SQL in the scan to reject actual seeding.
+ const withoutFunctions=sql.replace(/create(?:\s+or\s+replace)?\s+function[\s\S]*?\bas\s+(\$[a-z_]*\$)[\s\S]*?\1\s*;/gi,"");
+ assert.match(sql,/create function public\.gef_admin_configuration/);
+ assert.match(sql,/create function public\.gef_admin_configuration[\s\S]*?if not exists\(select 1 from public\.admin_users where user_id=p_actor\) then raise exception 'Administrator required'/);
+ assert.doesNotMatch(withoutFunctions,/insert\s+into\s+public\.marketplace_price_rules\s*\(/i);
+ assert.doesNotMatch(withoutFunctions,/(?:select|perform|call)\s+(?:public\.)?gef_admin_configuration\s*\(/i);
  assert.doesNotMatch(sql,/TEST ONLY|synthetic@example\.invalid|8135550100/i);
 });

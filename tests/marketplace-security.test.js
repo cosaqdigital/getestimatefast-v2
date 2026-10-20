@@ -38,6 +38,6 @@ test("marketplace endpoints fail closed before authentication/network when disab
  const old=process.env.GETESTIMATEFAST_MARKETPLACE_PREVIEW;delete process.env.GETESTIMATEFAST_MARKETPLACE_PREVIEW;
  const savedFetch=global.fetch;global.fetch=()=>{throw Error("Unexpected network call");};
  try{for(const handler of [require("../api/contractor/marketplace"),require("../api/admin/marketplace"),require("../api/public-profile")]){
-  const req=Readable.from([]);req.method="GET";req.query={};req.headers={};let data;const res={setHeader(){},end(s){data=JSON.parse(s);}};await handler(req,res);assert.equal(res.statusCode,503);assert.match(data.error,/isolated/);
+  const req=Readable.from([]);req.method="GET";req.query={};req.headers={};let data;const res={setHeader(){},end(s){data=JSON.parse(s);}};await handler(req,res);assert.equal(res.statusCode,503);assert.match(data.error,/not enabled/);
  }}finally{global.fetch=savedFetch;if(old===undefined)delete process.env.GETESTIMATEFAST_MARKETPLACE_PREVIEW;else process.env.GETESTIMATEFAST_MARKETPLACE_PREVIEW=old;}
 });

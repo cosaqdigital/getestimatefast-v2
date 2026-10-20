@@ -7,10 +7,12 @@ const admin="11111111-1111-4111-8111-111111111111";
 const origin="33333333-3333-4333-8333-333333333333";
 const envKeys=["GETESTIMATEFAST_ISOLATED_BACKEND","GETESTIMATEFAST_DEVELOPMENT_PROJECT_REF","GETESTIMATEFAST_SUPABASE_URL","GETESTIMATEFAST_SUPABASE_SECRET_KEY","GETESTIMATEFAST_SUPABASE_PUBLISHABLE_KEY","VERCEL_ENV","VERCEL_GIT_COMMIT_REF"];
 const response=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{"Content-Type":"application/json"}});
+envKeys.push("GETESTIMATEFAST_MARKETPLACE_PREVIEW");
 async function invoke({referral=true,rules=true,isAdmin=true,fromOtherOrigin=false}={}){
  const saved=Object.fromEntries(envKeys.map(k=>[k,process.env[k]]));
  const oldFetch=global.fetch,oldError=console.error,requests=[];
  Object.assign(process.env,{GETESTIMATEFAST_ISOLATED_BACKEND:"true",GETESTIMATEFAST_DEVELOPMENT_PROJECT_REF:"cpjsbijgijeyrwjpuciv",GETESTIMATEFAST_SUPABASE_URL:"https://cpjsbijgijeyrwjpuciv.supabase.co",GETESTIMATEFAST_SUPABASE_SECRET_KEY:"SYNTHETIC_TEST_KEY",GETESTIMATEFAST_SUPABASE_PUBLISHABLE_KEY:"SYNTHETIC_TEST_PUBLIC",VERCEL_ENV:"preview",VERCEL_GIT_COMMIT_REF:"feat/us-admin-overview-20261015"});
+ process.env.GETESTIMATEFAST_MARKETPLACE_PREVIEW="true";
  global.fetch=async(url,init={})=>{
   const u=String(url);requests.push({url:u,method:init.method||"GET",body:init.body});
   if(u.includes("/auth/v1/user"))return response({id:admin,email_confirmed_at:"2026-01-01"});
