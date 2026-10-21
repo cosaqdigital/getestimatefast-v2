@@ -99,12 +99,18 @@ test('Customer homepage navigation and legal destinations exist; no Development 
  }
  assert.ok(dom.window.document.querySelector('meta[name="viewport"]'));for(const p of ['privacy.html','terms.html'])assert.ok(fs.existsSync(path.join(__dirname,'..',p)));
  const home=dom.window.document;
- assert.match(home.title,/Find Local Service Pros in Riverview & Tampa Bay/);
- assert.match(home.querySelector('h1').textContent,/Find local service pros/i);
+ assert.match(home.title,/Find Local Service Professionals Near You/);
+ assert.match(home.querySelector('h1').textContent,/Find local service professionals near you/i);
  assert.equal(home.querySelector('[data-cta="choose-service"]').textContent.trim(),'Start My Free Request');
  assert.equal(home.querySelector('[data-cta="learn-pro-benefits"]').textContent.trim(),'Explore Professional Accounts');
- assert.doesNotMatch(home.body.textContent,/Create My Free Pro Profile/);
- assert.match(home.querySelector('meta[name="description"]').content,/Riverview and Tampa Bay/);
+ assert.doesNotMatch(home.body.textContent,/Create My Free Pro Profile|Serving Riverview and the Tampa Bay area|RIVERVIEW & TAMPA BAY SERVICES/);
+ assert.match(home.querySelector('meta[name="description"]').content,/Find local professionals/);
+ assert.match(home.querySelector('#areas h2').textContent,/Local coverage that grows with our network/);
+ assert.equal(home.querySelectorAll('.home-v2-service-card').length,6);
+ assert.equal(home.querySelectorAll('.home-v2-transparency-grid > div').length,4);
+ assert.equal(home.querySelectorAll('.home-v2-faq details').length,6);
+ assert.ok(home.querySelector('.home-v2-trust-strip'));
+ assert.ok(home.querySelector('.home-v2-final-cta'));
  for(const p of ['admin.html','assets/admin.js','marketplace-admin.html','assets/marketplace-admin.js','contractor-portal.html','assets/contractor-ux.js','assets/marketplace-portal.js'])assert.doesNotMatch(read(p),/cpjsbijgijeyrwjpuciv|Development preview|isolated preview backend|Isolated development only|Private Development preview|Marketplace preview/);
  }finally{dom.window.close();}
 });
