@@ -56,6 +56,13 @@ test('Closed commercial portal shows unavailable states, avoids commercial calls
   assert.ok(d.querySelector('.pro-hero-actions a[href="#accountSettingsPanel"]'));
   assert.equal([...d.querySelectorAll('.pro-hero-actions a')].some(a=>/public profile/i.test(a.textContent)),false);
   assert.match(d.querySelector('.pro-coming').textContent,/Coming soon to your account/);
+  assert.equal(d.querySelector('#workspace > h1').hidden,true);
+  const legacyWorkspaceCopy=[...d.querySelectorAll('#workspace > p')].filter(p=>!p.id);assert.ok(legacyWorkspaceCopy.every(p=>p.hidden));
+  for(const screen of ['opportunityPanel','myReferralsPanel','publicProfilePanel','walletPanel','purchasePanel']){
+    const link=d.querySelector('.pro-navigation a[data-screen="'+screen+'"]');assert.equal(link.getAttribute('aria-disabled'),'true');assert.equal(link.dataset.coming,'true');
+  }
+  assert.equal(d.querySelector('.pro-navigation a[data-screen="contractorDashboard"]').getAttribute('aria-disabled'),'false');
+  assert.equal(d.querySelector('.pro-navigation a[data-screen="accountSettingsPanel"]').getAttribute('aria-disabled'),'false');
   assert.equal(d.querySelector('#walletBalance').textContent,'—');assert.ok(d.querySelector('#publicProfileForm button').disabled);
   d.querySelector('a[data-screen="myReferralsPanel"]').click();assert.equal(calls.length,0);
   d.querySelector('.pro-referral-cards').textContent='SYNTHETIC PRIVATE CONTACT';
