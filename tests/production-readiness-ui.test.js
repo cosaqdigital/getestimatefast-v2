@@ -153,3 +153,20 @@ test('Professional landing is rollout-safe and contains no Development or signup
   assert.ok(d.querySelector('script[type="application/ld+json"]'));
  }finally{dom.window.close();}
 });
+
+test('How it works page uses scalable marketplace positioning and clear expectations',()=>{
+ const dom=new JSDOM(read('how-it-works.html'));
+ try{
+  const d=dom.window.document;
+  assert.match(d.title,/How GetEstimateFast Works/);
+  assert.match(d.querySelector('h1').textContent,/One request\. Better context\. More control\./);
+  assert.doesNotMatch(d.body.textContent,/Tampa Bay|areaServed|Compare Local Estimates/);
+  assert.equal(d.querySelectorAll('.how-v2-process article').length,6);
+  assert.equal(d.querySelectorAll('.how-v2-expect-grid > div').length,4);
+  assert.equal(d.querySelectorAll('.how-v2-faq details').length,5);
+  assert.match(d.body.textContent,/GetEstimateFast is the marketplace layer/);
+  assert.match(d.body.textContent,/Professional accounts are designed around business details/);
+  assert.match(d.body.textContent,/without a fixed geographic boundary/);
+  assert.ok(d.querySelector('meta[name="robots"][content="index,follow"]'));
+ }finally{dom.window.close();}
+});
