@@ -111,6 +111,29 @@ test('Customer homepage navigation and legal destinations exist; no Development 
  assert.equal(home.querySelectorAll('.home-v2-faq details').length,6);
  assert.ok(home.querySelector('.home-v2-trust-strip'));
  assert.ok(home.querySelector('.home-v2-final-cta'));
+ assert.equal(home.querySelectorAll('.home-v2-service-card img').length,6);
+ assert.equal(home.querySelectorAll('.home-v2-benefit-grid > div[data-icon]').length,3);
+ assert.equal(home.querySelectorAll('.home-v2-transparency-grid > div[data-icon]').length,4);
  for(const p of ['admin.html','assets/admin.js','marketplace-admin.html','assets/marketplace-admin.js','contractor-portal.html','assets/contractor-ux.js','assets/marketplace-portal.js'])assert.doesNotMatch(read(p),/cpjsbijgijeyrwjpuciv|Development preview|isolated preview backend|Isolated development only|Private Development preview|Marketplace preview/);
+ }finally{dom.window.close();}
+});
+
+test('Homepage service search stays closed until the user types',()=>{
+ const dom=new JSDOM(read('index.html'),{url:'http://localhost/index.html',runScripts:'outside-only'}),w=dom.window,d=w.document;
+ try{
+  w.eval(read('assets/platform-forms.js'));
+  const results=d.querySelector('[data-service-starter-results]');
+  const input=d.querySelector('[data-service-starter-input]');
+  assert.ok(results);
+  assert.equal(results.classList.contains('is-visible'),false);
+  assert.equal(results.children.length,0);
+  input.value='paint';
+  input.dispatchEvent(new w.Event('input',{bubbles:true}));
+  assert.equal(results.classList.contains('is-visible'),true);
+  assert.match(results.textContent,/Painting/);
+  input.value='';
+  input.dispatchEvent(new w.Event('input',{bubbles:true}));
+  assert.equal(results.classList.contains('is-visible'),false);
+  assert.equal(results.children.length,0);
  }finally{dom.window.close();}
 });
