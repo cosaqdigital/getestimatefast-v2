@@ -137,3 +137,19 @@ test('Homepage service search stays closed until the user types',()=>{
   assert.equal(results.children.length,0);
  }finally{dom.window.close();}
 });
+
+test('Professional landing is rollout-safe and contains no Development or signup promise',()=>{
+ const dom=new JSDOM(read('for-professionals.html'));
+ try{
+  const d=dom.window.document;
+  assert.equal(d.querySelector('meta[name="robots"]').content,'noindex,follow');
+  assert.match(d.querySelector('h1').textContent,/Grow your local service business with GetEstimateFast/i);
+  assert.equal([...d.querySelectorAll('a')].some(a=>/Create (My )?Free|Create Free Profile|Sign Up/i.test(a.textContent)),false);
+  assert.doesNotMatch(d.body.textContent,/Development workspace|tested in Development|Create My Free Profile|Create Free Professional Account/);
+  assert.match(d.body.textContent,/Public registration, marketplace access, public profile publishing, wallet and payments are opening in stages/);
+  assert.equal(d.querySelectorAll('.pro-v2-coming-grid > div').length,4);
+  assert.equal(d.querySelectorAll('.pro-v2-transparency-grid > div').length,4);
+  assert.equal(d.querySelectorAll('.pro-v2-faq details').length,5);
+  assert.ok(d.querySelector('script[type="application/ld+json"]'));
+ }finally{dom.window.close();}
+});
