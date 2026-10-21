@@ -337,3 +337,41 @@ textarea { min-height: 150px; resize: vertical; }
  .home-v2-final-cta{padding:22px}
  .home-v2 .home-header .btn-pro-header{display:none}
 }
+
+/* Homepage v2 final polish */
+.home-v2 .home-v2-hero .hero-shell{align-items:stretch}
+.home-v2 .home-v2-hero-copy{display:flex;flex-direction:column}
+.home-v2 .home-v2-search{margin-top:18px}
+.home-v2 .service-starter-results:not(.is-visible){display:none}
+.home-v2-hero-media{min-height:420px;height:100%}
+.home-v2-hero-media img{height:100%;min-height:420px}
+.home-v2-trust-strip>div{position:relative;padding-left:64px;min-height:96px}
+.home-v2-trust-strip>div:before{content:attr(data-icon);position:absolute;left:20px;top:22px;width:30px;height:30px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--green-soft);color:var(--green);font-size:13px;font-weight:900}
+.home-v2-service-card{padding:0 0 16px;overflow:hidden;min-height:250px}
+.home-v2-service-card img{width:100%;height:112px;object-fit:cover;margin:0 0 4px;border-radius:0;background:#f4f8fb}
+.home-v2-service-card h3,.home-v2-service-card p,.home-v2-service-card span{margin-left:16px;margin-right:16px}
+.home-v2-service-card h3{margin-top:10px}
+.home-v2-service-card span{margin-top:auto}
+.home-v2-steps{position:relative}
+.home-v2-steps:before{content:"";position:absolute;left:16.5%;right:16.5%;top:40px;height:2px;background:linear-gradient(90deg,#cfe9dc,#d8e6f2);z-index:0}
+.home-v2-steps>div{z-index:1}
+.home-v2-benefit-grid>div,.home-v2-transparency-grid>div{position:relative;padding-top:58px}
+.home-v2-benefit-grid>div:before,.home-v2-transparency-grid>div:before{position:absolute;left:18px;top:18px;width:28px;height:28px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:#eef6ff;color:#1e5f97;font-size:13px;font-weight:900}
+.home-v2-benefit-grid>div[data-icon="clock"]:before{content:"⏱"}
+.home-v2-benefit-grid>div[data-icon="details"]:before{content:"≡"}
+.home-v2-benefit-grid>div[data-icon="shield"]:before{content:"✓";background:var(--green-soft);color:var(--green)}
+.home-v2-transparency-grid>div[data-icon="people"]:before{content:"2";background:#edf4fb;color:#255d91}
+.home-v2-transparency-grid>div[data-icon="info"]:before{content:"i";background:#edf4fb;color:#255d91}
+.home-v2-transparency-grid>div[data-icon="check"]:before{content:"✓";background:var(--green-soft);color:var(--green)}
+.home-v2-transparency-grid>div[data-icon="stop"]:before{content:"—";background:#fff0f0;color:#b73e3e}
+.home-v2-final-cta .btn-primary{min-width:190px;box-shadow:0 16px 34px rgba(242,100,25,.28)}
+@media(max-width:900px){
+ .home-v2-steps:before{display:none}
+ .home-v2-hero-media,.home-v2-hero-media img{min-height:330px}
+}
+@media(max-width:700px){
+ .home-v2-hero-media,.home-v2-hero-media img{min-height:270px}
+ .home-v2-trust-strip>div{padding-left:58px}
+ .home-v2-service-card{min-height:0}
+ .home-v2-service-card img{height:150px}
+}
