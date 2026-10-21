@@ -350,9 +350,17 @@
     const sourceItems = Array.isArray(config && config.items) ? config.items : [];
     const items = sourceItems.map((item) => ({ ...item, normalized: normalizeText(`${item.label} ${item.summary || ""} ${(item.keywords || []).join(" ")}`) }));
     if (!items.length) return;
-    render(items.slice(0, 5));
-    input.addEventListener("input", () => { const query = normalizeText(input.value); if (!query) { render(items.slice(0, 5)); return; } render(items.filter((item) => item.normalized.includes(query)).slice(0, 6)); });
+    clearResults();
+    input.addEventListener("input", () => {
+      const query = normalizeText(input.value);
+      if (!query) { clearResults(); return; }
+      render(items.filter((item) => item.normalized.includes(query)).slice(0, 6));
+    });
     input.addEventListener("keydown", (event) => { if (event.key !== "Enter") return; const firstLink = results.querySelector("a.service-starter-item"); if (!firstLink) return; event.preventDefault(); window.location.href = firstLink.getAttribute("href"); });
+    function clearResults() {
+      results.innerHTML = "";
+      results.classList.remove("is-visible");
+    }
     function render(itemsToRender) {
       if (!itemsToRender.length) { results.innerHTML = '<div class="service-starter-empty">No close match yet. Try yard cleanup, painting, flooring, or other services.</div>'; results.classList.add("is-visible"); return; }
       results.innerHTML = itemsToRender.map((item) => `<a class="service-starter-item" href="${item.href}" data-service-option data-track="service_selected" data-cta="service-search-result" data-service="${item.key}" data-action="starter-result-click"><strong>${escapeHtml(item.label)}</strong><span>${escapeHtml(item.cta)} · ${escapeHtml(item.summary || "")}</span></a>`).join("");
