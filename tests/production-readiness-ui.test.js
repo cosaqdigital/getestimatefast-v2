@@ -98,6 +98,13 @@ test('Customer homepage navigation and legal destinations exist; no Development 
   assert.ok(fs.existsSync(path.join(__dirname,'..',href.replace(/^\//,'').split(/[?#]/)[0])),'Missing local navigation target');
  }
  assert.ok(dom.window.document.querySelector('meta[name="viewport"]'));for(const p of ['privacy.html','terms.html'])assert.ok(fs.existsSync(path.join(__dirname,'..',p)));
+ const home=dom.window.document;
+ assert.match(home.title,/Find Local Service Pros in Riverview & Tampa Bay/);
+ assert.match(home.querySelector('h1').textContent,/Find local service pros/i);
+ assert.equal(home.querySelector('[data-cta="choose-service"]').textContent.trim(),'Start My Free Request');
+ assert.equal(home.querySelector('[data-cta="learn-pro-benefits"]').textContent.trim(),'Explore Professional Accounts');
+ assert.doesNotMatch(home.body.textContent,/Create My Free Pro Profile/);
+ assert.match(home.querySelector('meta[name="description"]').content,/Riverview and Tampa Bay/);
  for(const p of ['admin.html','assets/admin.js','marketplace-admin.html','assets/marketplace-admin.js','contractor-portal.html','assets/contractor-ux.js','assets/marketplace-portal.js'])assert.doesNotMatch(read(p),/cpjsbijgijeyrwjpuciv|Development preview|isolated preview backend|Isolated development only|Private Development preview|Marketplace preview/);
  }finally{dom.window.close();}
 });
