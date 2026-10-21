@@ -97,8 +97,14 @@ function syncNavigationAvailability(){
   const locked=closed&&commercialScreens.has(link.dataset.screen);
   link.dataset.coming=locked?"true":"false";
   link.setAttribute("aria-disabled",locked?"true":"false");
-  if(locked)link.title="Coming soon";
-  else link.removeAttribute("title");
+  let badge=link.querySelector(".pro-nav-badge");
+  if(locked){
+   link.title="Coming soon";
+   if(!badge){badge=make("span","Coming soon","pro-nav-badge");link.append(badge);}
+  }else{
+   link.removeAttribute("title");
+   badge?.remove();
+  }
  }
 }
 const welcome=make("div",undefined,"pro-welcome");welcome.append(make("strong","My GetEstimateFast"),make("p","Professional account · Get ready for local service opportunities."));
@@ -168,6 +174,17 @@ for(const [title,text] of [["Marketplace Opportunities","Browse local home-servi
 coming.append(comingGrid);
 
 dash.prepend(hero,summary,readiness,coming);
+const dashboardNotice=$("dashboardNotice");
+function syncDashboardNotice(){
+ if(!dashboardNotice)return;
+ const redundant=/^Your account is available\. Marketplace, wallet access, profile publishing and payments are not open yet\.$/.test(dashboardNotice.textContent.trim());
+ dashboardNotice.hidden=redundant;
+}
+if(dashboardNotice){
+ const noticeObserver=new MutationObserver(syncDashboardNotice);
+ noticeObserver.observe(dashboardNotice,{childList:true,characterData:true,subtree:true});
+ syncDashboardNotice();
+}
 
 function updateLaunchDashboard(p){
  const complete={
