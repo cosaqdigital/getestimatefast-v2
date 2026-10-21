@@ -90,14 +90,27 @@ for(const [id,label] of [["contractorDashboard","Home"],["opportunityPanel","Opp
  const link=make("a",label);link.href="#"+id;link.dataset.screen=id;nav.append(link);
 }
 nav.classList.add("pro-navigation");
+const commercialScreens=new Set(["opportunityPanel","myReferralsPanel","publicProfilePanel","walletPanel","purchasePanel"]);
+function syncNavigationAvailability(){
+ const closed=capabilities?.marketplace_enabled===false;
+ for(const link of nav.querySelectorAll("a[data-screen]")){
+  const locked=closed&&commercialScreens.has(link.dataset.screen);
+  link.dataset.coming=locked?"true":"false";
+  link.setAttribute("aria-disabled",locked?"true":"false");
+  if(locked)link.title="Coming soon";
+  else link.removeAttribute("title");
+ }
+}
 const welcome=make("div",undefined,"pro-welcome");welcome.append(make("strong","My GetEstimateFast"),make("p","Professional account · Get ready for local service opportunities."));
 workspace.prepend(welcome);
+// Remove legacy shell copy from the signed-in workspace; the redesigned dashboard and My details panel replace it.
+for(const legacy of [...workspace.children].filter(x=>x.matches("h1,p")&&!x.id))legacy.hidden=true;
 for(const id of ["walletBalance","purchaseCount"]){const card=$(id)?.closest(".metric");if(card)card.hidden=true;}
 const dash=views.contractorDashboard;
 const oldButtons=dash.querySelector(":scope > .actions");if(oldButtons)oldButtons.hidden=true;
 const oldHeadline=dash.querySelector(":scope > h1");if(oldHeadline)oldHeadline.hidden=true;
 const oldEyebrow=dash.querySelector(":scope > .eyebrow");if(oldEyebrow)oldEyebrow.hidden=true;
-const oldIntro=[...dash.children].find(x=>x.tagName==="P"&&!x.id);if(oldIntro)oldIntro.hidden=true;
+for(const legacy of [...dash.children].filter(x=>x.tagName==="P"&&!x.id))legacy.hidden=true;
 const oldMetrics=dash.querySelector(":scope > .metric-grid");if(oldMetrics)oldMetrics.hidden=true;
 
 const linkTo=(id,label,cls="pro-action secondary")=>{const a=make("a",label,cls);a.href="#"+id;return a;};
@@ -200,6 +213,10 @@ if(reviewTitle){
 let signedIn=false,hasProfile=null,current="",capabilities=null;
 function go(id){
  if(!signedIn)return;
+ if(capabilities?.marketplace_enabled===false&&commercialScreens.has(id)){
+  window.GetEstimateFastPortal?.say?.("This feature is coming soon. Complete your business details now so your account is ready.");
+  return;
+ }
  const dest=hasProfile===false?"accountSettingsPanel":views[id]?id:"contractorDashboard";
  for(const [key,section] of Object.entries(views))section.hidden=key!==dest;
  nav.hidden=hasProfile!==true;
@@ -219,6 +236,7 @@ document.addEventListener("click",e=>{
 window.addEventListener("gef-signed-in",()=>{signedIn=true;hasProfile=null;current="";$("register").hidden=true;nav.hidden=true;for(const section of Object.values(views))section.hidden=true;});
 window.addEventListener("gef-profile",e=>{
  capabilities=e.detail?.capabilities||null;
+ syncNavigationAvailability();
  referralReload.disabled=capabilities?.marketplace_enabled===false;
  if(capabilities?.marketplace_enabled===false)referralList.replaceChildren(make("p","Profile requests and customer contacts are not open yet."));
  const p=e.detail?.profile,wasReady=hasProfile===true;
