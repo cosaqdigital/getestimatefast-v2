@@ -59,10 +59,12 @@ test('Closed commercial portal shows unavailable states, avoids commercial calls
   assert.equal(d.querySelector('#workspace > h1').hidden,true);
   const legacyWorkspaceCopy=[...d.querySelectorAll('#workspace > p')].filter(p=>!p.id);assert.ok(legacyWorkspaceCopy.every(p=>p.hidden));
   for(const screen of ['opportunityPanel','myReferralsPanel','publicProfilePanel','walletPanel','purchasePanel']){
-    const link=d.querySelector('.pro-navigation a[data-screen="'+screen+'"]');assert.equal(link.getAttribute('aria-disabled'),'true');assert.equal(link.dataset.coming,'true');
+    const link=d.querySelector('.pro-navigation a[data-screen="'+screen+'"]');assert.equal(link.getAttribute('aria-disabled'),'true');assert.equal(link.dataset.coming,'true');assert.match(link.textContent,/Coming soon/);
   }
   assert.equal(d.querySelector('.pro-navigation a[data-screen="contractorDashboard"]').getAttribute('aria-disabled'),'false');
   assert.equal(d.querySelector('.pro-navigation a[data-screen="accountSettingsPanel"]').getAttribute('aria-disabled'),'false');
+  const redundant=d.querySelector('#dashboardNotice');redundant.textContent='Your account is available. Marketplace, wallet access, profile publishing and payments are not open yet.';await settle();assert.equal(redundant.hidden,true);
+  redundant.textContent='Unexpected marketplace error';await settle();assert.equal(redundant.hidden,false);
   assert.equal(d.querySelector('#walletBalance').textContent,'—');assert.ok(d.querySelector('#publicProfileForm button').disabled);
   d.querySelector('a[data-screen="myReferralsPanel"]').click();assert.equal(calls.length,0);
   d.querySelector('.pro-referral-cards').textContent='SYNTHETIC PRIVATE CONTACT';
