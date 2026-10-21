@@ -63,6 +63,7 @@ test('Closed commercial portal shows unavailable states, avoids commercial calls
   }
   assert.equal(d.querySelector('.pro-navigation a[data-screen="contractorDashboard"]').getAttribute('aria-disabled'),'false');
   assert.equal(d.querySelector('.pro-navigation a[data-screen="accountSettingsPanel"]').getAttribute('aria-disabled'),'false');
+  const portalCss=read('assets/contractor-ux.css');assert.match(portalCss,/grid-template-columns:repeat\(7,minmax\(0,1fr\)\)/);assert.match(portalCss,/pro-navigation::-webkit-scrollbar\{display:none\}/);
   const redundant=d.querySelector('#dashboardNotice');redundant.textContent='Your account is available. Marketplace, wallet access, profile publishing and payments are not open yet.';await settle();assert.equal(redundant.hidden,true);
   redundant.textContent='Unexpected marketplace error';await settle();assert.equal(redundant.hidden,false);
   assert.equal(d.querySelector('#walletBalance').textContent,'—');assert.ok(d.querySelector('#publicProfileForm button').disabled);
