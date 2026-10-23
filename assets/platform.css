@@ -432,3 +432,54 @@ textarea { min-height: 150px; resize: vertical; }
  .how-v2 .nav .nav-link{display:none}
  .how-v2 .nav .btn-secondary{display:none}
 }
+
+/* Services catalog v2 */
+.services-v2 .services-v2-hero-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(320px,.85fr);gap:26px;align-items:stretch}
+.services-v2 .services-v2-hero-grid>div{display:flex;flex-direction:column;justify-content:center}
+.services-v2-hero-card{padding:26px;border-radius:22px;background:linear-gradient(135deg,#102f4c,#1d527a);color:#fff;display:flex;flex-direction:column;justify-content:center;box-shadow:var(--shadow-lg)}
+.services-v2-hero-card h2{color:#fff;font-size:30px}
+.services-v2-hero-card p{color:#e4eef6;margin:0 0 16px}
+.services-v2-hero-icon{display:inline-flex;width:52px;height:52px;align-items:center;justify-content:center;border-radius:15px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);font-weight:900;font-size:18px;margin-bottom:16px}
+.services-v2-mini-list{display:grid;gap:8px}
+.services-v2-mini-list span{position:relative;padding-left:20px;color:#e9f3fa;font-size:14px}
+.services-v2-mini-list span:before{content:"✓";position:absolute;left:0;color:#9de0c1;font-weight:900}
+.services-v2-section{padding:28px}
+.services-v2-head{display:flex;justify-content:space-between;align-items:end;gap:24px}
+.services-v2-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.services-v2-card{display:grid;grid-template-rows:150px 1fr;overflow:hidden;border:1px solid var(--line);border-radius:18px;background:#fff;transition:.2s ease;min-height:340px}
+.services-v2-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:#c8d5e2}
+.services-v2-card img{width:100%;height:150px;object-fit:cover;background:#f5f8fb}
+.services-v2-card>div{display:flex;flex-direction:column;padding:18px}
+.services-v2-card h3{font-size:19px}
+.services-v2-card p{margin:0;color:var(--text-soft);font-size:14px;line-height:1.6}
+.services-v2-card span{margin-top:auto;padding-top:14px;color:var(--accent-deep);font-size:13px;font-weight:900}
+.services-v2-card-other{background:linear-gradient(180deg,#fff 0%,#f7fbff 100%)}
+.services-v2-guide{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(320px,.85fr);gap:28px;align-items:center;background:linear-gradient(135deg,#fff 0%,#f7fafc 100%)}
+.services-v2-guide>div:first-child>p:not(.eyebrow){color:var(--text-soft)}
+.services-v2-guide-points{display:grid;gap:10px}
+.services-v2-guide-points>div{display:grid;gap:4px;padding:15px;border:1px solid var(--line);border-radius:14px;background:#fff}
+.services-v2-guide-points strong{color:var(--navy);font-size:15px}
+.services-v2-guide-points span{color:var(--text-soft);font-size:13px}
+.services-v2-expect{padding:28px}
+.services-v2-expect-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.services-v2-expect-grid>div{padding:18px;border:1px solid var(--line);border-radius:16px;background:#fff}
+.services-v2-expect-grid h3{font-size:17px}
+.services-v2-expect-grid p{margin:0;color:var(--text-soft);font-size:13px;line-height:1.6}
+.services-v2-final{display:flex;justify-content:space-between;gap:24px;align-items:center;padding:28px 30px}
+.services-v2-final .eyebrow{margin-bottom:10px}.services-v2-final p{margin:0;color:#e5eef6}.services-v2-final .hero-actions{margin:0}
+@media(max-width:1100px){
+ .services-v2-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .services-v2-expect-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:900px){
+ .services-v2 .services-v2-hero-grid,.services-v2-guide{grid-template-columns:1fr}
+ .services-v2-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:700px){
+ .services-v2-grid,.services-v2-expect-grid{grid-template-columns:1fr}
+ .services-v2-card{grid-template-rows:170px 1fr;min-height:0}
+ .services-v2-card img{height:170px}
+ .services-v2-final{align-items:flex-start;flex-direction:column;padding:22px}
+ .services-v2-final .hero-actions{width:100%;display:grid}.services-v2-final .btn{width:100%}
+ .services-v2 .nav .nav-link,.services-v2 .nav .btn-secondary{display:none}
+}
