@@ -170,3 +170,19 @@ test('How it works page uses scalable marketplace positioning and clear expectat
   assert.ok(d.querySelector('meta[name="robots"][content="index,follow"]'));
  }finally{dom.window.close();}
 });
+
+test('Services page uses scalable catalog positioning and preserves all launch categories',()=>{
+ const dom=new JSDOM(read('services.html'));
+ try{
+  const d=dom.window.document;
+  assert.match(d.title,/Home & Property Services/);
+  assert.match(d.querySelector('h1').textContent,/Find the right service for your project/i);
+  assert.doesNotMatch(d.body.textContent,/Tampa Bay|Fourteen launch categories are available in this preview|See a premium kitchen example/);
+  assert.equal(d.querySelectorAll('.services-v2-card').length,14);
+  assert.equal(d.querySelectorAll('.services-v2-expect-grid > div').length,4);
+  assert.match(d.querySelector('meta[name="description"]').content,/Browse home and property service categories/);
+  assert.ok(d.querySelector('meta[name="robots"][content="index,follow"]'));
+  assert.match(d.body.textContent,/Availability varies by service and location/);
+  assert.match(d.body.textContent,/Other Services/);
+ }finally{dom.window.close();}
+});
