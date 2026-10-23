@@ -44,7 +44,7 @@ test('Sensitive shell pages have explicit no-store and CDN no-store headers',()=
   for(const key of ['Cache-Control','CDN-Cache-Control','Vercel-CDN-Cache-Control'])assert.match(h.find(x=>x.key===key).value,/no-store/);
  }
 });
-test('Closed commercial portal shows unavailable states, avoids commercial calls and clears referral PII on logout',()=>{
+test('Closed commercial portal shows unavailable states, avoids commercial calls and clears referral PII on logout',async()=>{
  const dom=new JSDOM(read('contractor-portal.html'),{url:'http://localhost/contractor-portal.html',runScripts:'outside-only'}),w=dom.window,d=w.document,calls=[];
  try{
   w.GetEstimateFastPortal={api:async(...args)=>{calls.push(args);throw Error('No commercial call allowed');},say(){}};
