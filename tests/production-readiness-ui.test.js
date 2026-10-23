@@ -121,6 +121,9 @@ test('Customer homepage navigation and legal destinations exist; no Development 
 test('Homepage service search stays closed until the user types',()=>{
  const dom=new JSDOM(read('index.html'),{url:'http://localhost/index.html',runScripts:'outside-only'}),w=dom.window,d=w.document;
  try{
+  const starterConfig=[...d.querySelectorAll('script')].find(s=>s.textContent.includes('window.serviceStarterConfig'));
+  assert.ok(starterConfig);
+  w.eval(starterConfig.textContent);
   w.eval(read('assets/platform-forms.js'));
   const results=d.querySelector('[data-service-starter-results]');
   const input=d.querySelector('[data-service-starter-input]');
