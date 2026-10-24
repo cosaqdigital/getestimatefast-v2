@@ -4,7 +4,7 @@ const {livePaymentsApproved,liveWebhookApproved}=require("../api/_lib/stripe-liv
 const {liveConfiguration,checkoutParameters,processWebhook}=require("../api/_lib/stripe-live");
 
 const id="30000000-0000-4000-8000-000000000001";
-const key=["rk","live","SyntheticOnly"].join("_");
+const key=["rk","live","SyntheticOnlyKeyForTests"].join("_");
 const secret="wh"+"sec_SyntheticOnly";
 const settings={key,secret,expectedAccountId:"acct_SyntheticLiveOnly",origin:"https://www.getestimatefast.com"};
 const sdk=new Stripe(key);
