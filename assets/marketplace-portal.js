@@ -4,6 +4,9 @@ if(!portal||!workspace)return;
 const api=(action,method="GET",body)=>portal.api("marketplace?action="+encodeURIComponent(action),method,body);
 const money=n=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(n/100);
 const date=s=>new Intl.DateTimeFormat("en-US",{dateStyle:"medium",timeStyle:"short",timeZone:"America/New_York"}).format(new Date(s));
+const formatPhone=value=>{const digits=String(value||"").replace(/\D/g,"");const local=digits.length===11&&digits.startsWith("1")?digits.slice(1):digits;return local.length===10?"("+local.slice(0,3)+") "+local.slice(3,6)+"-"+local.slice(6):String(value||"");};
+const statusLabel=value=>value==="acquired"?"Contact unlocked":value==="reserved"?"Pending":value==="expired"?"Expired":String(value||"").replace(/_/g," ").replace(/\b\w/g,m=>m.toUpperCase());
+const detailValue=value=>Array.isArray(value)?value.join(", "):value&&typeof value==="object"?JSON.stringify(value):String(value??"");
 function node(tag,value,cls){const n=document.createElement(tag);if(value!==undefined)n.textContent=value;if(cls)n.className=cls;return n;}
 const panels=document.createElement("div");
 const registrationToggle=document.createElement("button");registrationToggle.type="button";registrationToggle.className="secondary";registrationToggle.textContent="Create a free account";registrationToggle.setAttribute("aria-controls","register");registrationToggle.setAttribute("aria-expanded","false");
@@ -28,29 +31,49 @@ function renderPortfolio(){el("portfolioItems").replaceChildren();portfolio.forE
 function table(container,head,rows){const holder=el(container);holder.replaceChildren();if(!rows.length){holder.append(node("p","No records yet."));return;}const t=node("table"),thead=node("thead"),tr=node("tr");for(const h of head)tr.append(node("th",h));thead.append(tr);t.append(thead);const body=node("tbody");for(const row of rows){const r=node("tr");for(const v of row)r.append(node("td",v));body.append(r);}t.append(body);holder.append(t);}
 function renderPurchases(purchases,contactRelease){
  const holder=el("purchaseHistory");holder.replaceChildren();
- if(!purchases.length){holder.append(node("p","No records yet."));return;}
+ if(!purchases.length){holder.append(node("p","No purchases yet."));return;}
  for(const p of purchases){
-  const card=node("div",undefined,"card");
+  const card=node("article",undefined,"card pro-purchase-card");
   card.append(
-   node("strong",p.service_category+" — "+p.city),
-   node("p",date(p.created_at)+" · "+money(p.amount_cents)+" · "+p.status)
+   node("strong",p.service_category+" — "+p.city,"pro-purchase-title"),
+   node("p","Purchased "+date(p.created_at)+" · Purchase price: "+money(p.amount_cents)+" · Status: "+statusLabel(p.status),"pro-purchase-meta")
   );
   if(contactRelease&&p.status==="acquired"){
    const button=node("button","View contact","secondary");button.type="button";
-   const details=node("div");details.hidden=true;
+   const details=node("div",undefined,"pro-contact-details");details.hidden=true;
+   let loaded=false;
    button.onclick=async()=>{
+    if(loaded){details.hidden=!details.hidden;button.textContent=details.hidden?"View contact":"Hide contact";return;}
     button.disabled=true;
     try{
      const r=await portal.api("contact-access?opportunity_id="+encodeURIComponent(p.opportunity_id));
-     const x=r.contact;
-     details.replaceChildren(
-      node("p","Customer: "+x.full_name),
-      node("p","Phone: "+(x.phone||"Not provided")),
-      node("p","Email: "+(x.email||"Not provided")),
-      node("p","Preferred contact: "+(x.contact_method||"Not specified")),
-      node("p","Location: "+x.city+", "+x.zip_code)
-     );
-     details.hidden=false;
+     const x=r.contact||{};
+     const contactHead=node("div",undefined,"pro-contact-head");
+     contactHead.append(node("h3","Customer contact"));
+     const contactGrid=node("div",undefined,"pro-contact-grid");
+     const name=node("div",undefined,"pro-contact-item");name.append(node("span","Customer"),node("strong",x.full_name||"Not provided"));
+     const phone=node("div",undefined,"pro-contact-item");phone.append(node("span","Phone"));
+     if(x.phone){const a=node("a",formatPhone(x.phone));a.href="tel:"+String(x.phone).replace(/[^0-9+]/g,"");phone.append(a);}else phone.append(node("strong","Not provided"));
+     const email=node("div",undefined,"pro-contact-item");email.append(node("span","Email"));
+     if(x.email){const a=node("a",x.email);a.href="mailto:"+x.email;email.append(a);}else email.append(node("strong","Not provided"));
+     const preferred=node("div",undefined,"pro-contact-item");preferred.append(node("span","Preferred contact"),node("strong",x.contact_method||"Not specified"));
+     const locationBox=node("div",undefined,"pro-contact-item");locationBox.append(node("span","Location"),node("strong",[x.city,x.zip_code].filter(Boolean).join(", ")||"Not provided"));
+     contactGrid.append(name,phone,email,preferred,locationBox);
+     contactHead.append(contactGrid);
+     const actions=node("div",undefined,"pro-contact-actions");
+     if(x.phone){const call=node("a","Call customer","button secondary");call.href="tel:"+String(x.phone).replace(/[^0-9+]/g,"");actions.append(call);}
+     if(x.email){const mail=node("a","Email customer","button secondary");mail.href="mailto:"+x.email;actions.append(mail);}
+     const project=node("div",undefined,"pro-project-details");
+     project.append(node("h3","Project details"));
+     const excluded=new Set(["Submission Token","Full Name","Phone Number","Email Address","Preferred contact method","City","ZIP Code","Service Type"]);
+     const entries=Object.entries(x.project_details||{}).filter(([key,value])=>!excluded.has(key)&&value!==null&&value!==undefined&&detailValue(value).trim()!=="");
+     if(entries.length){
+      const grid=node("div",undefined,"pro-project-grid");
+      for(const [key,value] of entries){const item=node("div",undefined,"pro-project-item");item.append(node("span",key),node("p",detailValue(value)));grid.append(item);}
+      project.append(grid);
+     }else project.append(node("p","No additional project details were provided."));
+     details.append(contactHead,actions,project);
+     details.hidden=false;loaded=true;button.textContent="Hide contact";
     }catch(e){portal.say(e.message);}
     finally{button.disabled=false;}
    };
@@ -70,7 +93,7 @@ async function loadMarketplace(){
   return;
  }
  try{
-  const d=await api("dashboard");if(current!==generation||!signedIn)return;el("dashboardNotice").textContent="Wallet values come from your account records. Payments are disabled.";
+  const d=await api("dashboard");if(current!==generation||!signedIn)return;el("dashboardNotice").textContent=d.payments_enabled===true?"Secure contact purchases are enabled. Customer details unlock only after Stripe payment confirmation.":"Contact payments are currently unavailable.";
   for(const [id,key] of [["walletBalance","available_cents"],["paidBalance","paid_cents"],["promoBalance","promotional_cents"],["refundBalance","refund_cents"]])el(id).textContent=money(d.wallet[key]);
   el("purchaseCount").textContent=d.purchase_count??d.purchases.length;
   table("walletStatement",["Date (Eastern Time)","Activity","Credit origin","Amount"],d.transactions.map(t=>[date(t.created_at),t.kind,t.bucket,(t.amount_cents<0?"−":"+")+money(Math.abs(t.amount_cents))]));
