@@ -2,6 +2,7 @@
 const crypto=require("node:crypto");
 const {json,method,readJson,queryDb,fail,userFor,config,headers}=require("./_shared");
 const {marketplaceReady,blockPayments,uuid}=require("../_lib/marketplace-access");
+const {livePaymentsApproved}=require("../_lib/stripe-live-policy");
 const {parsePublicProfile,tokenHash}=require("../_lib/public-profile-policy");
 const {formatUsd}=require("../_lib/marketplace-pricing");
 const rpc=(name,payload)=>queryDb("rpc/"+name,{method:"POST",body:JSON.stringify(payload)});
@@ -12,7 +13,7 @@ module.exports=async function handler(req,res){
   const user=await userFor(req,res);if(!user)return;
   const action=String(req.query?.action||"dashboard");
   if(req.method==="GET"){
-   if(action==="dashboard")return json(res,200,{...await rpc("gef_dashboard",{p_contractor:user.id}),payments_enabled:false,contact_release_enabled:false});
+   if(action==="dashboard"){const payments=livePaymentsApproved();return json(res,200,{...await rpc("gef_dashboard",{p_contractor:user.id}),payments_enabled:payments,contact_release_enabled:payments});}
    if(action==="public-profile"){
     const rows=await queryDb("contractor_public_profiles?contractor_id=eq."+encodeURIComponent(user.id)+"&select=slug,display_name,headline,about,city,state_code,zip_code,radius_miles,categories,languages,social_links,portfolio,published,publish_email,publish_phone,public_email,public_phone&limit=1");
     return json(res,200,{profile:rows[0]||null});
