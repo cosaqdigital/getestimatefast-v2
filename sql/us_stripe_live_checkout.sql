@@ -135,7 +135,7 @@ create or replace function public.gef_confirm_live_order(
  p_order uuid,p_event text,p_session text,p_payment text,p_outcome text,p_amount bigint,p_currency text,p_mode text
 ) returns jsonb language plpgsql set search_path='' as $$
 declare o gef_private.live_checkout_orders%rowtype;e gef_private.live_checkout_events%rowtype;
- q gef_private.contact_quotes%rowtype;v_status text;v_published timestamptz;v_purchase uuid;v_next text;
+ q gef_private.contact_quotes%rowtype;v_status text;v_published timestamptz;v_purchase uuid;v_next text;v_count integer;
 begin
  if p_mode is distinct from 'live' or p_currency is distinct from 'USD'
     or p_event is null or p_event !~ '^evt_[A-Za-z0-9_]+$'
@@ -171,10 +171,21 @@ begin
         or not exists(select 1 from public.contractor_profiles where user_id=o.contractor_id and account_status='active' and email_verified_at is not null)
        then v_next:='refund_required';
      else
-       insert into gef_private.wallets(contractor_id) values(o.contractor_id) on conflict do nothing;
-       insert into gef_private.contact_purchases(contractor_id,opportunity_id,quote_id,amount_cents,operation_key,funding_source)
-       values(o.contractor_id,o.opportunity_id,o.quote_id,o.amount_cents,'stripe-live:'||o.id::text,'stripe_live')
-       returning id into v_purchase;
+       select
+         (select count(*) from gef_private.contact_purchases
+          where opportunity_id=o.opportunity_id and status='acquired')
+         +
+         (select count(*) from gef_private.live_checkout_orders
+          where opportunity_id=o.opportunity_id and status='reserved' and reserved_until>now() and id<>o.id)
+       into v_count;
+       if v_count>=q.max_buyers then
+         v_next:='refund_required';
+       else
+         insert into gef_private.wallets(contractor_id) values(o.contractor_id) on conflict do nothing;
+         insert into gef_private.contact_purchases(contractor_id,opportunity_id,quote_id,amount_cents,operation_key,funding_source)
+         values(o.contractor_id,o.opportunity_id,o.quote_id,o.amount_cents,'stripe-live:'||o.id::text,'stripe_live')
+         returning id into v_purchase;
+       end if;
      end if;
    elsif o.status='reserved' then v_next:=p_outcome;end if;
    update gef_private.live_checkout_orders
