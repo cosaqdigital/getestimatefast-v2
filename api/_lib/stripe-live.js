@@ -67,7 +67,7 @@ async function createCheckout(order,settings,client=clientFor(settings.key)){
   const params=checkoutParameters(order,settings.origin);
   await verifyLiveAccount(settings,client);
   const seconds=params.expires_at-Math.floor(Date.now()/1000);
-  if(!order.session_id&&(seconds<1860||seconds>86400))throw Error("Checkout creation window closed");
+  if(!order.session_id&&(seconds<1830||seconds>86400))throw Error("Checkout creation window closed");
   const session=order.session_id
     ? await client.checkout.sessions.retrieve(order.session_id)
     : await client.checkout.sessions.create(params,{idempotencyKey:"gef-live-order:"+order.id});
