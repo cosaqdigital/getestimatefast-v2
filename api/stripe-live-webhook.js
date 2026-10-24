@@ -19,6 +19,7 @@ module.exports=async function handler(req,res){
       repository,
       clientFor(settings.key)
     );
+    if(result?.pending===true)return json(res,503,{error:"Payment is not confirmed yet; retry required"});
     return json(res,200,result);
   }catch(error){
     const invalid=error?.type==="StripeSignatureVerificationError";
