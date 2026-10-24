@@ -144,3 +144,25 @@ body.pro-simple .pro-nav-badge{
     white-space:nowrap;
   }
 }
+
+
+/* Production purchase history polish */
+body.pro-simple .pro-purchase-card{padding:20px;border-color:#d7e4ed;background:#fff}
+body.pro-simple .pro-purchase-title{display:block;font-size:18px;color:#173b59;margin-bottom:7px}
+body.pro-simple .pro-purchase-meta{margin:0 0 14px;color:#60768a}
+body.pro-simple .pro-contact-details{margin-top:16px;padding:18px;border:1px solid #d7e5ee;border-radius:12px;background:#f8fbfd}
+body.pro-simple .pro-contact-details h3{margin:0 0 12px;color:#173b59}
+body.pro-simple .pro-contact-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+body.pro-simple .pro-contact-item{min-width:0;padding:12px;border:1px solid #dce7ef;border-radius:10px;background:#fff}
+body.pro-simple .pro-contact-item span,body.pro-simple .pro-project-item span{display:block;color:#6a7f91;font-size:12px;font-weight:750;margin-bottom:4px}
+body.pro-simple .pro-contact-item strong,body.pro-simple .pro-contact-item a{display:block;color:#183f5d;font-weight:750;overflow-wrap:anywhere}
+body.pro-simple .pro-contact-actions{display:flex;gap:9px;flex-wrap:wrap;margin:14px 0 18px}
+body.pro-simple .pro-contact-actions .button{min-width:150px}
+body.pro-simple .pro-project-details{border-top:1px solid #dce7ef;padding-top:16px}
+body.pro-simple .pro-project-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+body.pro-simple .pro-project-item{min-width:0;padding:12px;border:1px solid #dce7ef;border-radius:10px;background:#fff}
+body.pro-simple .pro-project-item p{margin:0;color:#27475f;white-space:pre-wrap;overflow-wrap:anywhere}
+@media(max-width:700px){
+ body.pro-simple .pro-contact-grid,body.pro-simple .pro-project-grid{grid-template-columns:1fr}
+ body.pro-simple .pro-contact-actions .button{width:100%}
+}
