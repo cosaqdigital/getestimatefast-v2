@@ -126,7 +126,7 @@ begin
  where op.id=q.opportunity_id for update of l;
  perform 1 from public.opportunity_previews where id=q.opportunity_id for update;
  if v_status is distinct from 'published' or v_published is distinct from q.published_at_snapshot
-    or q.valid_until<=now() or q.opportunity_expires_at<now()+interval '31 minutes'
+    or q.valid_until<=now() or q.opportunity_expires_at<now()+interval '35 minutes'
    then raise exception 'Opportunity unavailable for Checkout';end if;
  if exists(select 1 from gef_private.contact_purchases where contractor_id=p_contractor and opportunity_id=q.opportunity_id)
     or exists(select 1 from gef_private.live_checkout_orders where contractor_id=p_contractor and opportunity_id=q.opportunity_id and status='reserved' and reserved_until>now())
@@ -137,7 +137,7 @@ begin
  into v_count;
  if v_count>=q.max_buyers then raise exception 'Buyer limit reached';end if;
  insert into gef_private.live_checkout_orders(contractor_id,quote_id,opportunity_id,amount_cents,operation_key,reserved_until)
- values(p_contractor,q.id,q.opportunity_id,q.amount_cents,p_key,now()+interval '31 minutes') returning id into v_id;
+ values(p_contractor,q.id,q.opportunity_id,q.amount_cents,p_key,now()+interval '35 minutes') returning id into v_id;
  select * into o from gef_private.live_checkout_orders where id=v_id;
  return to_jsonb(o);
 end $$;
