@@ -1,10 +1,10 @@
 "use strict";
 const test=require("node:test"),assert=require("node:assert/strict"),Stripe=require("stripe"),{Readable}=require("node:stream");
 const {livePaymentsApproved,liveWebhookApproved}=require("../api/_lib/stripe-live-policy");
-const {checkoutParameters,processWebhook}=require("../api/_lib/stripe-live");
+const {liveConfiguration,checkoutParameters,processWebhook}=require("../api/_lib/stripe-live");
 
 const id="30000000-0000-4000-8000-000000000001";
-const key=["sk","live","SyntheticOnly"].join("_");
+const key=["rk","live","SyntheticOnly"].join("_");
 const secret="wh"+"sec_SyntheticOnly";
 const settings={key,secret,expectedAccountId:"acct_SyntheticLiveOnly",origin:"https://www.getestimatefast.com"};
 const sdk=new Stripe(key);
@@ -41,6 +41,16 @@ function client(changes={}){
   }
  };
 }
+
+test("live configuration accepts only restricted live Stripe keys",()=>{
+ const base={
+  GETESTIMATEFAST_STRIPE_LIVE_SECRET_KEY:key,
+  GETESTIMATEFAST_STRIPE_LIVE_WEBHOOK_SECRET:secret,
+  GETESTIMATEFAST_STRIPE_LIVE_ACCOUNT_ID:settings.expectedAccountId
+ };
+ assert.equal(liveConfiguration(base).key,key);
+ assert.throws(()=>liveConfiguration({...base,GETESTIMATEFAST_STRIPE_LIVE_SECRET_KEY:"sk_live_should_not_be_used"}),/restricted live key unavailable/);
+});
 
 test("live payment policy is fail-closed and requires every Production gate",()=>{
  const base={
@@ -90,6 +100,7 @@ test("live Checkout freezes exact contact price and never treats redirect as pay
  assert.equal(params.metadata.gef_purpose,"contact");
  assert.equal(params.success_url,"https://www.getestimatefast.com/contractor-portal.html?payment=pending");
  assert.equal(params.cancel_url,"https://www.getestimatefast.com/contractor-portal.html?payment=canceled");
+ assert.equal(Object.prototype.hasOwnProperty.call(params,"payment_method_types"),false);
  assert.throws(()=>checkoutParameters({...order,status:"paid"},settings.origin));
  assert.throws(()=>checkoutParameters({...order,currency:"BRL"},settings.origin));
 });
