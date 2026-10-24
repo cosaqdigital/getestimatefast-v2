@@ -55,38 +55,38 @@ function categoryPicker(id,fieldId){
 }
 const drawServices=categoryPicker("categories","proServiceChoices"),drawPublic=categoryPicker("publicCategories","proPublicChoices");
 const referrals=make("section",undefined,"pro-referrals");referrals.id="myReferralsPanel";
-referrals.append(make("h2","Requests from my public profile"),
- make("p","When you share your profile, customers can request an estimate. After administrative review and publication, you see the customer's contact here at no charge. No wallet credits are used."));
-const referralReload=make("button","Refresh my requests","secondary");referralReload.type="button";
+referrals.append(make("h2","Direct Leads"),
+ make("p","Customers who contact you directly through your public GetEstimateFast profile appear here. These leads do not require a contact purchase or wallet credits."));
+const referralReload=make("button","Refresh direct leads","secondary");referralReload.type="button";
 const referralList=make("div",undefined,"pro-referral-cards");
 referrals.append(referralReload,referralList);workspace.append(referrals);
 async function showReferrals(){
  if(capabilities?.marketplace_enabled===false){referralList.replaceChildren(make("p","Profile requests and customer contacts are not open yet."));return;}
- referralList.replaceChildren(make("p","Loading your profile requests..."));
+ referralList.replaceChildren(make("p","Loading direct leads..."));
  try{
   const result=await window.GetEstimateFastPortal.api("origin-leads");
   referralList.replaceChildren();
-  if(!result.leads?.length){referralList.append(make("p","No requests from your profile yet. Share your public profile to invite estimate requests."));return;}
+  if(!result.leads?.length){referralList.append(make("p","No direct leads yet. Share your public profile to invite customers to contact you directly."));return;}
   for(const lead of result.leads){
    const card=make("article",undefined,"pro-referral-card");
    card.append(make("h3",lead.service_type+" · "+lead.city+", "+lead.zip_code));
-   card.append(make("p","Status: "+(lead.contact_available?"Approved · Free contact ready":lead.status==="new"?"Waiting for GetEstimateFast review":lead.status==="qualified"?"Approved · Awaiting publication":"Not currently available")));
+   card.append(make("p","Status: "+(lead.contact_available?"Approved · Contact ready":lead.status==="new"?"Waiting for GetEstimateFast review":lead.status==="qualified"?"Approved · Awaiting publication":"Not currently available")));
    if(lead.contact_available && lead.customer){
-    card.append(make("p","Free access — $0.00. No credits deducted."));
+    card.append(make("p","Direct lead — no contact purchase required. $0.00 charged."));
     const details=make("div",undefined,"pro-referral-contact");
     details.append(make("p","Customer: "+lead.customer.name),make("p","Phone: "+lead.customer.phone),make("p","Email: "+lead.customer.email));
     card.append(details);
    }else card.append(make("p","Customer contact is private until the request has been approved and published."));
    referralList.append(card);
   }
- }catch(e){referralList.replaceChildren(make("p",e?.message||"Could not load your profile requests."));}
+ }catch(e){referralList.replaceChildren(make("p",e?.message||"Could not load your direct leads."));}
 }
 referralReload.addEventListener("click",()=>showReferrals());
 
 // Reuse every existing module, showing one section at a time.
 const views={contractorDashboard:$("contractorDashboard"),opportunityPanel:$("opportunityPanel"),myReferralsPanel:referrals,publicProfilePanel:$("publicProfilePanel"),accountSettingsPanel:settings,walletPanel:$("walletPanel"),purchasePanel:$("purchasePanel")};
 nav.replaceChildren();
-for(const [id,label] of [["contractorDashboard","Home"],["opportunityPanel","Opportunities"],["myReferralsPanel","My free requests"],["publicProfilePanel","Public profile"],["accountSettingsPanel","My details"],["walletPanel","Wallet"],["purchasePanel","Purchase history"]]){
+for(const [id,label] of [["contractorDashboard","Home"],["opportunityPanel","Opportunities"],["myReferralsPanel","Direct Leads"],["publicProfilePanel","Public profile"],["accountSettingsPanel","My details"],["walletPanel","Wallet"],["purchasePanel","Purchase history"]]){
  const link=make("a",label);link.href="#"+id;link.dataset.screen=id;nav.append(link);
 }
 nav.classList.add("pro-navigation");
