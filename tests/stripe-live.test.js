@@ -30,7 +30,15 @@ function client(changes={}){
  return {
   accounts:{retrieve:async()=>({object:"account",id:settings.expectedAccountId})},
   webhooks:sdk.webhooks,
-  checkout:{sessions:{retrieve:async()=>({...session,...changes})}}
+  checkout:{sessions:{retrieve:async()=>({...session,...changes})}},
+  paymentIntents:{retrieve:async paymentId=>({
+    id:paymentId,livemode:true,currency:"usd",status:"succeeded",amount_received:3990,
+    metadata:{gef_order_id:id,gef_mode:"live",gef_purpose:"contact"}
+  })},
+  refunds:{
+    create:async()=>({id:"re_synthetic",payment_intent:"pi_synthetic",currency:"usd",amount:3990,status:"succeeded"}),
+    retrieve:async()=>({id:"re_synthetic",payment_intent:"pi_synthetic",currency:"usd",amount:3990,status:"succeeded"})
+  }
  };
 }
 
@@ -118,17 +126,91 @@ test("pending or mismatched live sessions never release a contact",async()=>{
  assert.equal(confirmations,0);
 });
 
-test("redelivered persisted live event skips provider retrieval and confirmation",async()=>{
+test("redelivered persisted live event skips Checkout retrieval and purchase confirmation",async()=>{
  const value=signed(event());
  const repo={
-  event:async()=>({session_id:session.id}),
-  order:async()=>{throw Error("No order read on duplicate");},
-  confirm:async()=>{throw Error("No confirm on duplicate");}
+  event:async()=>({order_id:id,session_id:session.id}),
+  order:async()=>({...order,status:"paid",purchase_id:"purchase_synthetic"}),
+  confirm:async()=>{throw Error("No purchase confirmation on duplicate");}
  };
  const fake=client();
- fake.checkout.sessions.retrieve=async()=>{throw Error("No provider retrieval on duplicate");};
+ fake.checkout.sessions.retrieve=async()=>{throw Error("No Checkout retrieval on duplicate");};
  const result=await processWebhook(value.raw,value.signature,settings,repo,fake);
  assert.equal(result.duplicate,true);
+ assert.equal(result.status,"paid");
+});
+
+
+test("refund_required creates one full idempotent live refund and confirms refunded state",async()=>{
+ const value=signed(event());
+ const calls=[];
+ const repo={
+  event:async()=>null,
+  order:async()=>({...order}),
+  bind:async()=>{throw Error("Already bound");},
+  confirm:async()=>({created:true,status:"refund_required",contact_release_enabled:false}),
+  refund:async()=>({order_id:id,status:"refund_required",refund_id:null,payment_id:"pi_synthetic",amount_cents:3990,currency:"USD"}),
+  confirmRefund:async data=>{calls.push(data);return {created:true,status:"refunded",refund_id:data.refundId,contact_release_enabled:false,processor_refund_confirmed:true};}
+ };
+ const fake=client();
+ const created=[];
+ fake.refunds.create=async(params,options)=>{
+  created.push({params,options});
+  return {id:"re_synthetic",payment_intent:"pi_synthetic",currency:"usd",amount:3990,status:"succeeded"};
+ };
+ const result=await processWebhook(value.raw,value.signature,settings,repo,fake);
+ assert.equal(result.status,"refunded");
+ assert.equal(result.contact_release_enabled,false);
+ assert.equal(result.processor_refund_confirmed,true);
+ assert.equal(created.length,1);
+ assert.equal(created[0].params.amount,3990);
+ assert.equal(created[0].params.payment_intent,"pi_synthetic");
+ assert.equal(created[0].options.idempotencyKey,"gef-live-refund:"+id);
+ assert.equal(calls.length,1);
+});
+
+test("pending live refund keeps contact blocked and does not mark refunded",async()=>{
+ const value=signed(event());
+ let confirmed=0;
+ const repo={
+  event:async()=>null,
+  order:async()=>({...order}),
+  bind:async()=>{},
+  confirm:async()=>({created:true,status:"refund_required",contact_release_enabled:false}),
+  refund:async()=>null,
+  confirmRefund:async()=>{confirmed++;throw Error("Pending refund must not be confirmed");}
+ };
+ const fake=client();
+ fake.refunds.create=async()=>({id:"re_pending",payment_intent:"pi_synthetic",currency:"usd",amount:3990,status:"pending"});
+ const result=await processWebhook(value.raw,value.signature,settings,repo,fake);
+ assert.equal(result.status,"refund_required");
+ assert.equal(result.processor_refund_confirmed,false);
+ assert.equal(result.contact_release_enabled,false);
+ assert.equal(confirmed,0);
+});
+
+test("duplicate paid webhook recovers refund_required without duplicating payment confirmation",async()=>{
+ const value=signed(event());
+ let purchaseConfirmations=0,refundConfirmations=0,refundCreates=0;
+ const repo={
+  event:async()=>({order_id:id,session_id:session.id}),
+  order:async()=>({...order,status:"refund_required",payment_id:"pi_synthetic",purchase_id:null}),
+  confirm:async()=>{purchaseConfirmations++;throw Error("No purchase confirmation on duplicate");},
+  refund:async()=>({order_id:id,status:"refund_required",refund_id:null,payment_id:"pi_synthetic",amount_cents:3990,currency:"USD"}),
+  confirmRefund:async data=>{refundConfirmations++;return {created:true,status:"refunded",refund_id:data.refundId,contact_release_enabled:false,processor_refund_confirmed:true};}
+ };
+ const fake=client();
+ fake.checkout.sessions.retrieve=async()=>{throw Error("No Checkout retrieval on duplicate");};
+ fake.refunds.create=async(params,options)=>{
+  refundCreates++;
+  assert.equal(options.idempotencyKey,"gef-live-refund:"+id);
+  return {id:"re_retry",payment_intent:params.payment_intent,currency:"usd",amount:params.amount,status:"succeeded"};
+ };
+ const result=await processWebhook(value.raw,value.signature,settings,repo,fake);
+ assert.equal(result.status,"refunded");
+ assert.equal(purchaseConfirmations,0);
+ assert.equal(refundCreates,1);
+ assert.equal(refundConfirmations,1);
 });
 
 test("contact access endpoint fails closed before authentication while marketplace is disabled",async()=>{
