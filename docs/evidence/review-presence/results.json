@@ -1,0 +1,221 @@
+{
+  "sessions": "synthetic browser fixtures",
+  "remote_database_writes": 0,
+  "results": [
+    {
+      "width": 1440,
+      "state": "pending",
+      "form_hidden": true,
+      "exact_message": true,
+      "focus": true,
+      "overflow": 0
+    },
+    {
+      "width": 1440,
+      "state": "approved",
+      "form_hidden": true,
+      "exact_message": true,
+      "focus": true,
+      "overflow": 0
+    },
+    {
+      "width": 1440,
+      "state": "hidden",
+      "form_hidden": true,
+      "exact_message": true,
+      "focus": true,
+      "overflow": 0
+    },
+    {
+      "width": 1440,
+      "state": "rejected",
+      "form_hidden": true,
+      "exact_message": true,
+      "focus": true,
+      "overflow": 0
+    },
+    {
+      "width": 1440,
+      "different_account_form_available": true,
+      "query_cannot_override_session": true
+    },
+    {
+      "width": 1440,
+      "race_conflict_hides_form": true,
+      "lookup_failure_hides_form": true,
+      "javascript_errors": 0
+    },
+    {
+      "width": 320,
+      "state": "pending",
+      "form_hidden": true,
+      "exact_message": true,
+      "focus": true,
+      "overflow": 0
+    },
+    {
+      "width": 320,
+      "state": "approved",
+      "form_hidden": true,
+      "exact_message": true,
+      "focus": true,
+      "overflow": 0
+    },
+    {
+      "width": 320,
+      "state": "hidden",
+      "form_hidden": true,
+      "exact_message": true,
+      "focus": true,
+      "overflow": 0
+    },
+    {
+      "width": 320,
+      "state": "rejected",
+      "form_hidden": true,
+      "exact_message": true,
+      "focus": true,
+      "overflow": 0
+    },
+    {
+      "width": 320,
+      "different_account_form_available": true,
+      "query_cannot_override_session": true
+    },
+    {
+      "width": 320,
+      "race_conflict_hides_form": true,
+      "lookup_failure_hides_form": true,
+      "javascript_errors": 0
+    },
+    {
+      "width": 375,
+      "state": "pending",
+      "form_hidden": true,
+      "exact_message": true,
+      "focus": true,
+      "overflow": 0
+    },
+    {
+      "width": 375,
+      "state": "approved",
+      "form_hidden": true,
+      "exact_message": true,
+      "focus": true,
+      "overflow": 0
+    },
+    {
+      "width": 375,
+      "state": "hidden",
+      "form_hidden": true,
+      "exact_message": true,
+      "focus": true,
+      "overflow": 0
+    },
+    {
+      "width": 375,
+      "state": "rejected",
+      "form_hidden": true,
+      "exact_message": true,
+      "focus": true,
+      "overflow": 0
+    },
+    {
+      "width": 375,
+      "different_account_form_available": true,
+      "query_cannot_override_session": true
+    },
+    {
+      "width": 375,
+      "race_conflict_hides_form": true,
+      "lookup_failure_hides_form": true,
+      "javascript_errors": 0
+    },
+    {
+      "width": 390,
+      "state": "pending",
+      "form_hidden": true,
+      "exact_message": true,
+      "focus": true,
+      "overflow": 0
+    },
+    {
+      "width": 390,
+      "state": "approved",
+      "form_hidden": true,
+      "exact_message": true,
+      "focus": true,
+      "overflow": 0
+    },
+    {
+      "width": 390,
+      "state": "hidden",
+      "form_hidden": true,
+      "exact_message": true,
+      "focus": true,
+      "overflow": 0
+    },
+    {
+      "width": 390,
+      "state": "rejected",
+      "form_hidden": true,
+      "exact_message": true,
+      "focus": true,
+      "overflow": 0
+    },
+    {
+      "width": 390,
+      "different_account_form_available": true,
+      "query_cannot_override_session": true
+    },
+    {
+      "width": 390,
+      "race_conflict_hides_form": true,
+      "lookup_failure_hides_form": true,
+      "javascript_errors": 0
+    },
+    {
+      "width": 430,
+      "state": "pending",
+      "form_hidden": true,
+      "exact_message": true,
+      "focus": true,
+      "overflow": 0
+    },
+    {
+      "width": 430,
+      "state": "approved",
+      "form_hidden": true,
+      "exact_message": true,
+      "focus": true,
+      "overflow": 0
+    },
+    {
+      "width": 430,
+      "state": "hidden",
+      "form_hidden": true,
+      "exact_message": true,
+      "focus": true,
+      "overflow": 0
+    },
+    {
+      "width": 430,
+      "state": "rejected",
+      "form_hidden": true,
+      "exact_message": true,
+      "focus": true,
+      "overflow": 0
+    },
+    {
+      "width": 430,
+      "different_account_form_available": true,
+      "query_cannot_override_session": true
+    },
+    {
+      "width": 430,
+      "race_conflict_hides_form": true,
+      "lookup_failure_hides_form": true,
+      "javascript_errors": 0
+    }
+  ]
+}

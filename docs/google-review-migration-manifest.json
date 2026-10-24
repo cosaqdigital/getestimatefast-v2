@@ -1,0 +1,28 @@
+{
+  "project_ref": "cpjsbijgijeyrwjpuciv",
+  "status": "prepared_not_applied",
+  "encoding": "UTF-8 with LF line endings",
+  "prerequisite": "approved twenty-script Development baseline",
+  "migrations": [
+    {
+      "version": "20261010065908",
+      "file": "supabase/migrations/20261010065908_review_authenticated_identity_foundation.sql",
+      "sha256": "ea4a2daea98704027b30af84f0163b6cc38a34986fdede47fe0682fa64dbc34c"
+    },
+    {
+      "version": "20261010065922",
+      "file": "supabase/migrations/20261010065922_review_authenticated_submission.sql",
+      "sha256": "ba395e27cb8e0f4db7ccd30eee9e7230f2b08a44cd41c6b8a623fb123ba56556"
+    },
+    {
+      "version": "20261010065933",
+      "file": "supabase/migrations/20261010065933_review_authenticated_public_reputation.sql",
+      "sha256": "4239d09c7430acfeb487664e59c7818fca9b6357aa2f768af2ec7486a1ac52f1"
+    },
+    {
+      "version": "20261010065941",
+      "file": "supabase/migrations/20261010065941_review_legacy_classification_audit.sql",
+      "sha256": "af7547dc65a1715e346779e0e6a3f79f1b5321045754546c278e3549d30bc691"
+    }
+  ]
+}

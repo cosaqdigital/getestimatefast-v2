@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+  <title>Administrator recovery | GetEstimateFast</title>
+  <script src="/assets/admin-recovery.js" defer></script>
+  <link rel="stylesheet" href="/assets/admin-recovery.css">
+</head>
+<body>
+  <header class="site-header">
+    <strong>GetEstimateFast <span>· Admin</span></strong>
+    <a href="/admin.html">Administrator sign in</a>
+  </header>
+  <main id="recoveryApp" data-state="loading" aria-busy="true">
+    <div class="eyebrow">Development account recovery</div>
+    <h1>Recover administrator access</h1>
+    <p class="intro">Restore access to the GetEstimateFast Development administrator account.</p>
+    <div class="panel">
+      <p id="status" class="status" role="status" aria-live="polite" aria-atomic="true">Checking recovery availability…</p>
+
+      <section id="unavailableView" hidden aria-labelledby="unavailableTitle">
+        <h2 id="unavailableTitle">Recovery is unavailable</h2>
+        <p id="unavailableMessage">Account recovery has not been enabled for this environment.</p>
+        <button id="retryCheck" type="button" class="secondary" hidden>Check again</button>
+      </section>
+
+      <form id="requestForm" method="post" action="/api/admin/password-recovery" hidden novalidate>
+        <h2>Request a recovery email</h2>
+        <p>The recovery link will be sent to <strong>admin@getestimatefast.com</strong>.</p>
+        <fieldset id="requestFields" disabled>
+          <legend class="visually-hidden">Confirm the recovery email request</legend>
+          <label class="checkbox-label" for="requestConsent">
+            <input id="requestConsent" type="checkbox" required>
+            <span>I want to send a password recovery email to this administrator address.</span>
+          </label>
+          <p id="requestError" class="error" role="alert" aria-live="assertive"></p>
+          <button id="requestSubmit" type="submit" disabled>Send recovery email</button>
+        </fieldset>
+      </form>
+
+      <section id="requestedView" hidden aria-labelledby="requestedTitle">
+        <h2 id="requestedTitle">Check your administrator email</h2>
+        <p id="requestedMessage">The recovery email was requested. Delivery has not been confirmed.</p>
+        <p>Open the newest recovery email sent to <strong>admin@getestimatefast.com</strong> and follow its link to choose a password.</p>
+        <button id="requestAnother" type="button" class="secondary">Request another email</button>
+      </section>
+
+      <form id="passwordForm" method="post" action="/api/admin/password-recovery" hidden novalidate>
+        <h2>Choose a new password</h2>
+        <p>Administrator account: <strong>admin@getestimatefast.com</strong></p>
+        <fieldset id="passwordFields" disabled>
+          <legend class="visually-hidden">New administrator password</legend>
+          <input type="hidden" name="username" autocomplete="username" value="admin@getestimatefast.com">
+          <label for="newPassword">New password</label>
+          <input id="newPassword" name="new-password" type="password" autocomplete="new-password" minlength="8" maxlength="256" required spellcheck="false" autocapitalize="off" aria-describedby="passwordHint passwordError">
+          <p id="passwordHint" class="hint">Use 8–256 characters. Choose a password you do not use for other accounts.</p>
+          <label for="confirmPassword">Confirm new password</label>
+          <input id="confirmPassword" name="confirm-password" type="password" autocomplete="new-password" minlength="8" maxlength="256" required spellcheck="false" autocapitalize="off" aria-describedby="passwordError">
+          <p id="passwordError" class="error" role="alert" aria-live="assertive"></p>
+          <div class="actions">
+            <button id="passwordSubmit" type="submit">Update password</button>
+            <button id="cancelRecovery" type="button" class="secondary">Cancel</button>
+          </div>
+        </fieldset>
+      </form>
+
+      <section id="expiredView" hidden aria-labelledby="expiredTitle">
+        <h2 id="expiredTitle">A new recovery link is needed</h2>
+        <p id="expiredMessage">This recovery link is missing, expired, or could not be verified. Request a new email to continue.</p>
+        <button id="newRecovery" type="button" class="secondary">Request a new recovery email</button>
+      </section>
+
+      <section id="successView" hidden aria-labelledby="successTitle">
+        <h2 id="successTitle">Your password has been updated</h2>
+        <p>Sign in to the Development administrator dashboard with your new password to continue reviewing requests.</p>
+        <a class="button-link" href="/admin.html">Continue to administrator sign in</a>
+      </section>
+
+      <noscript><p class="error">JavaScript is required to recover this account. Enable it, then open your recovery link again.</p></noscript>
+    </div>
+    <p class="back-link"><a href="/admin.html">Back to administrator sign in</a></p>
+  </main>
+</body>
+</html>

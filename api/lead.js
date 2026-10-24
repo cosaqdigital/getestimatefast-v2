@@ -1,16 +1,23 @@
+const LAUNCH_CATALOG = require("../assets/launch-categories");
+const { DEVELOPMENT_REF, protectedPreview } = require("./_lib/preview-target");
+// Reject accidental cross-platform database configuration.
+const PRODUCTION_REF = "wedsjubkttygxtpkopfj";
 const THANK_YOU_URL = "https://www.getestimatefast.com/thank-you.html";
 const DEFAULT_FROM_EMAIL = "GetEstimateFast <onboarding@resend.dev>";
 const MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024;
+const MAX_REQUEST_SIZE = 15 * 1024 * 1024;
+const MAX_ATTACHMENT_COUNT = 3;
 
 module.exports = async function handler(req, res) {
+  if (process.env.GETESTIMATEFAST_ISOLATED_BACKEND === "true" || protectedPreview()) {
+    return sendErrorPage(res, 503, "Public submissions and external email delivery are disabled in this isolated test environment.");
+  }
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return sendErrorPage(res, 405, "This page only accepts form submissions.");
   }
-
-  if (!process.env.RESEND_API_KEY || !process.env.LEAD_TO_EMAIL) {
-    console.error("Missing RESEND_API_KEY or LEAD_TO_EMAIL environment variable.");
-    return sendErrorPage(res, 500, "Email delivery is not configured yet. Please try again shortly.");
+  if (process.env.LEAD_PERSISTENCE_ENABLED !== "true") {
+    return sendErrorPage(res, 503, "Service requests are not open yet. Nothing was saved or sent. Please try again later.");
   }
 
   try {
@@ -18,50 +25,162 @@ module.exports = async function handler(req, res) {
     const fields = normalizeFields(formData);
 
     if (isSpamSubmission(fields)) {
+      if (process.env.VERCEL_ENV === "preview") {
+        return sendErrorPage(res, 400, "Test submission blocked by anti-spam field. No request was saved.");
+      }
       return redirectToThankYou(res);
     }
 
     const validationError = validateLead(fields);
-    if (validationError) {
-      return sendErrorPage(res, 400, validationError);
+    if (validationError) return sendErrorPage(res, 400, validationError);
+
+    // Validate attachments before writing: an invalid upload cannot create an incomplete lead.
+    let attachments;
+    try {
+      attachments = await collectAttachments(formData);
+    } catch {
+      return sendErrorPage(res, 413, "Check your attachments: JPG, PNG, WebP or PDF; up to three files of 5 MB each.");
     }
 
-    const attachments = await collectAttachments(formData);
+    // Unlike the former opt-in behavior, a disabled persistence flag fails closed.
+    if (process.env.LEAD_PERSISTENCE_ENABLED !== "true") {
+      console.error("GetEstimateFast lead persistence is not enabled.");
+      return sendErrorPage(res, 503, "Requests are temporarily unavailable. Please try again later.");
+    }
+
+    let record;
+    try {
+      record = await persistLead(fields);
+    } catch (error) {
+      console.error("GetEstimateFast lead storage failed.");
+      return sendErrorPage(res, 503, "We couldn't save your request. Please try again shortly.");
+    }
+    // An existing token must be verified in the database before this succeeds.
+    if (record.duplicate) return redirectToThankYou(res);
+    const savedLeadId = record.id;
+
+    // Email is a secondary notification. A lead that is safely stored must never
+    // become an apparent failed request if Resend is unavailable.
+    if (!process.env.RESEND_API_KEY || !process.env.LEAD_TO_EMAIL) {
+      console.error("GetEstimateFast lead notification not configured after persistence.");
+      return redirectToThankYou(res);
+    }
+
     const subject = buildSubject(fields);
+    fields["Request ID"] = savedLeadId;
     const replyTo = firstValue(fields["Email Address"]);
 
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        from: process.env.LEAD_FROM_EMAIL || DEFAULT_FROM_EMAIL,
-        to: [process.env.LEAD_TO_EMAIL],
-        subject,
-        html: renderLeadEmail(subject, fields, attachments),
-        text: renderLeadText(subject, fields, attachments),
-        reply_to: replyTo || undefined,
-        attachments: attachments.map((file) => ({
-          filename: file.filename,
-          content: file.content
-        }))
-      })
-    });
-
-    if (!response.ok) {
-      const errorBody = await response.text();
-      console.error("Resend API error:", response.status, errorBody);
-      return sendErrorPage(res, 502, "We couldn't deliver your request right now. Please try again in a moment.");
+    try {
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          from: process.env.LEAD_FROM_EMAIL || DEFAULT_FROM_EMAIL,
+          to: [process.env.LEAD_TO_EMAIL],
+          subject,
+          html: renderLeadEmail(subject, fields, attachments),
+          text: renderLeadText(subject, fields, attachments),
+          reply_to: replyTo || undefined,
+          attachments: attachments.map((file) => ({
+            filename: file.filename,
+            content: file.content
+          }))
+        })
+      });
+      if (!response.ok) {
+        // Never log provider response bodies: they can contain personal information.
+        console.error("GetEstimateFast notification failed after lead storage:", {
+          httpStatus: response.status
+        });
+      }
+    } catch {
+      console.error("GetEstimateFast notification transport failed after lead storage.");
     }
-
     return redirectToThankYou(res);
   } catch (error) {
-    console.error("Lead submission failed:", error);
-    return sendErrorPage(res, 500, "We couldn't send your request right now. Please go back and try again in a moment.");
+    // Keep personal details, customer files and provider credentials out of server logs.
+    console.error("GetEstimateFast request processing failed:", error?.name || "unknown");
+    return sendErrorPage(res, 500, "We couldn't process your request. Please check your form and try again.");
   }
 };
+async function persistLead(fields) {
+  const endpoint = String(process.env.GETESTIMATEFAST_SUPABASE_URL || "").replace(/\/$/, "");
+  const key = process.env.GETESTIMATEFAST_SUPABASE_SECRET_KEY;
+  const expectedRef = process.env.VERCEL_ENV === "production" ? PRODUCTION_REF : DEVELOPMENT_REF;
+  if (endpoint !== `https://${expectedRef}.supabase.co` || !key) {
+    throw new Error("Independent GetEstimateFast database is not configured for this environment");
+  }
+
+  const rawToken = firstValue(fields["Submission Token"]);
+  const submissionToken = /^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(rawToken) ? rawToken : null;
+  if (!submissionToken) throw new Error("Missing valid lead submission token");
+  const dbHeaders = {
+    apikey: key,
+    ...(key.startsWith("sb_secret_") ? {} : { Authorization: "Bearer " + key })
+  };
+  const response = await fetch(endpoint + "/rest/v1/leads?on_conflict=submission_token&select=id", {
+    method: "POST",
+    headers: {
+      ...dbHeaders,
+      "Content-Type": "application/json",
+      Prefer: "resolution=ignore-duplicates,return=representation"
+    },
+    body: JSON.stringify({
+      submission_token: submissionToken,
+      service_type: firstValue(fields["Service Type"]),
+      status: "new", // Manual review before qualification or publishing.
+      full_name: firstValue(fields["Full Name"]),
+      email: firstValue(fields["Email Address"]),
+      phone: firstValue(fields["Phone Number"]),
+      city: firstValue(fields["City"]),
+      zip_code: firstValue(fields["ZIP Code"]),
+      contact_method: firstValue(fields["Preferred contact method"]) || null,
+      details: {
+        ...fields,
+        _platform_review: {
+          required: true,
+          reason: manualReviewReason(fields),
+          original_service: firstValue(fields["Service Type"])
+        }
+      },
+      source: "getestimatefast.com"
+    })
+  });
+  if (!response.ok) {
+    throw new Error("Lead database insert returned HTTP " + response.status);
+  }
+  const records = await response.json();
+  if (!Array.isArray(records)) throw new Error("Invalid lead database response");
+  if (records.length === 0) {
+    // DO NOTHING on the unique submission token returns no row. Confirm the
+    // original exists before issuing a success receipt.
+    const lookup = await fetch(
+      endpoint + "/rest/v1/leads?submission_token=eq." + encodeURIComponent(submissionToken) + "&select=id&limit=1",
+      { method: "GET", headers: dbHeaders, cache: "no-store" }
+    );
+    if (!lookup.ok) throw new Error("Lead duplicate lookup failed (HTTP " + lookup.status + ")");
+    const matches = await lookup.json();
+    if (!Array.isArray(matches) || !matches[0]?.id) {
+      throw new Error("Duplicate token is not verifiable in GetEstimateFast");
+    }
+    return { duplicate: true, id: matches[0].id };
+  }
+  if (!records[0]?.id) throw new Error("Lead database returned no ID");
+  return { duplicate: false, id: records[0].id };
+}
+
+// Pure, server-derived review marker; descriptions are never blocked by
+// service keywords or inferred licensing requirements.
+function manualReviewReason(fields) {
+  const service = firstValue(fields["Service Type"]);
+  const category = LAUNCH_CATALOG.findByName(service);
+  if (category?.slug === "other-services") return "other_services";
+  if (!category) return "unlisted_or_legacy_category";
+  return "standard_request";
+}
 
 async function parseFormData(req) {
   const bodyBuffer = await readRequestBody(req);
@@ -78,8 +197,17 @@ async function parseFormData(req) {
 function readRequestBody(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];
-    req.on("data", (chunk) => chunks.push(chunk));
-    req.on("end", () => resolve(Buffer.concat(chunks)));
+    let total = 0;
+    req.on("data", (chunk) => {
+      total += chunk.length;
+      if (total > MAX_REQUEST_SIZE) {
+        reject(new Error("Request payload exceeds size limit"));
+        req.pause();
+        return;
+      }
+      chunks.push(chunk);
+    });
+    req.on("end", () => { if (total <= MAX_REQUEST_SIZE) resolve(Buffer.concat(chunks)); });
     req.on("error", reject);
   });
 }
@@ -111,7 +239,9 @@ async function collectAttachments(formData) {
   for (const [, rawValue] of formData.entries()) {
     if (!isFileLike(rawValue)) continue;
     if (!rawValue.size || rawValue.size <= 0) continue;
-    if (rawValue.size > MAX_ATTACHMENT_SIZE) continue;
+    if (rawValue.size > MAX_ATTACHMENT_SIZE) throw new Error("Attachment exceeds size limit");
+    if (attachments.length >= MAX_ATTACHMENT_COUNT) throw new Error("Too many attachments");
+    if (!["image/jpeg", "image/png", "image/webp", "application/pdf"].includes(rawValue.type)) throw new Error("Unsupported attachment type");
 
     const arrayBuffer = await rawValue.arrayBuffer();
     attachments.push({
@@ -125,7 +255,7 @@ async function collectAttachments(formData) {
 }
 
 function isSpamSubmission(fields) {
-  return Boolean(firstValue(fields.company) || firstValue(fields.website));
+  return Boolean(firstValue(fields.gef_hp_trap_47b) || firstValue(fields.company) || firstValue(fields.website));
 }
 
 function validateLead(fields) {
@@ -135,6 +265,23 @@ function validateLead(fields) {
     if (!firstValue(fields[field])) {
       return `Please complete the ${field.toLowerCase()} field and try again.`;
     }
+  }
+
+  // Each supported browser form must generate a stable UUID for safe retries.
+  const submissionToken = firstValue(fields["Submission Token"]);
+  if (!/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(submissionToken)) {
+    return "We couldn't verify your request. Reload the form and try again.";
+  }
+
+  // No service/category keyword filter here. Unlisted and older service categories
+  // are retained for human review rather than automatically rejected.
+  const service = firstValue(fields["Service Type"]);
+  if (service.length > 120) return "Please shorten the service name.";
+  if (service === "Other Services" && firstValue(fields["Project Description"]).length < LAUNCH_CATALOG.MIN_OTHER_DESCRIPTION) {
+    return "Please describe your Other Services request using at least 60 characters.";
+  }
+  if (firstValue(fields["Project Description"]).length > 10000) {
+    return "Please shorten the description to 10000 characters.";
   }
 
   const phoneDigits = firstValue(fields["Phone Number"]).replace(/\D/g, "");
@@ -222,11 +369,14 @@ function renderLeadText(subject, fields, attachments) {
 
 function redirectToThankYou(res) {
   res.statusCode = 303;
-  res.setHeader("Location", THANK_YOU_URL);
+  // Keep Preview on the same deployment for a verifiable test.
+  res.setHeader("Location", process.env.VERCEL_ENV === "preview" ? "/thank-you.html" : THANK_YOU_URL);
   res.end();
 }
 
 function sendErrorPage(res, statusCode, message) {
+  res.setHeader("Cache-Control", "no-store");
+  res.setHeader("X-Content-Type-Options", "nosniff");
   res.statusCode = statusCode;
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.end(`<!DOCTYPE html>
