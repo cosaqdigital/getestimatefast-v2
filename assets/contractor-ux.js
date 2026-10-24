@@ -122,12 +122,12 @@ const oldMetrics=dash.querySelector(":scope > .metric-grid");if(oldMetrics)oldMe
 const linkTo=(id,label,cls="pro-action secondary")=>{const a=make("a",label,cls);a.href="#"+id;return a;};
 const hero=make("section",undefined,"pro-hero");
 const heroCopy=make("div",undefined,"pro-hero-copy");
-heroCopy.append(make("p","WELCOME TO GETESTIMATEFAST","pro-eyebrow"),make("h1","Get More Local Service Leads"),make("p","Build your professional profile, set your service area and get ready for future home-service opportunities — all from one place.","pro-hero-text"));
+heroCopy.append(make("p","WELCOME TO GETESTIMATEFAST","pro-eyebrow"),make("h1","Get More Local Service Leads"),make("p","Build your professional profile, set your service area and access relevant local home-service opportunities — all from one place.","pro-hero-text"));
 const heroActions=make("div",undefined,"pro-hero-actions");
 heroActions.append(linkTo("accountSettingsPanel","Complete My Business Profile","pro-action primary"),linkTo("accountSettingsPanel","Set My Service Area"),linkTo("accountSettingsPanel","Review My Details"));
 heroCopy.append(heroActions);
 const heroAside=make("aside",undefined,"pro-hero-aside");
-heroAside.append(make("strong","Be ready for local work"),make("p","✓ Showcase your services"),make("p","✓ Set your ZIP Code and service radius"),make("p","✓ Connect with homeowners when marketplace access opens"));
+heroAside.append(make("strong","Be ready for local work"),make("p","✓ Showcase your services"),make("p","✓ Set your ZIP Code and service radius"),make("p","✓ Securely unlock customer contacts when you choose an opportunity"));
 hero.append(heroCopy,heroAside);
 
 const summary=make("div",undefined,"pro-summary-grid");
@@ -136,8 +136,8 @@ summary.append(
  summaryCard("Profile completion","—","proCompletionValue","Complete your information to get ready for local opportunities."),
  summaryCard("Service area","—","proServiceAreaValue","Set your ZIP Code and service radius."),
  summaryCard("Account status","—","proAccountValue","Your professional account status."),
- summaryCard("Local opportunities","0","proOpportunityValue","Marketplace opportunities will appear here when enabled."),
- summaryCard("Public profile","Not published","proPublicValue","Profile publishing is not open yet.")
+ summaryCard("Local opportunities","0","proOpportunityValue","Marketplace opportunities appear based on your services, location and availability."),
+ summaryCard("Public profile","Not published","proPublicValue","Manage your public profile and sharing settings.")
 );
 
 const readiness=make("div",undefined,"pro-readiness-layout");
@@ -158,17 +158,17 @@ for(const [key,title,help] of checklistItems){const row=linkTo("accountSettingsP
 checklist.append(list);
 
 const why=make("aside",undefined,"pro-why");
-why.append(make("h2","Why this matters"),make("p","Accurate business information helps you appear ready when local opportunities become available."));
+why.append(make("h2","Why this matters"),make("p","Accurate business information helps GetEstimateFast match you with relevant local opportunities."));
 const benefit=(title,text,cls)=>{const card=make("article",undefined,"pro-benefit "+cls);card.append(make("strong",title),make("p",text));return card;};
 why.append(
- benefit("Appear ready for local service leads","Complete your profile now so your business is prepared for relevant projects in your area.","warm"),
+ benefit("Appear ready for local service leads","Keep your profile complete so your business can match with relevant projects in your area.","warm"),
  benefit("Build trust with homeowners","Clear service details and accurate information help customers understand your business.","blue"),
  benefit("Get discovered in your service area","Your services, ZIP Code and radius help determine where your business can match.","green")
 );
 readiness.append(checklist,why);
 
 const coming=make("section",undefined,"pro-coming");
-coming.append(make("h2","Coming soon to your account"),make("p","These commercial features are not available yet. Your account can be prepared now, and we will open them only after the Production rollout is approved."));
+coming.append(make("h2","Coming soon to your account"),make("p","Some optional account features are still being expanded. Your core marketplace access remains available."));
 const comingGrid=make("div",undefined,"pro-coming-grid");
 for(const [title,text] of [["Marketplace Opportunities","Browse local home-service requests."],["Wallet & Payments","Manage credits and payments when enabled."],["Customer Contact","Access approved customer contacts through the secure platform."],["Purchase History","Review future contact transactions and status."]]){const card=make("article",undefined,"pro-coming-card");card.append(make("strong",title),make("p",text),make("span","Coming Soon","pro-pill"));comingGrid.append(card);}
 coming.append(comingGrid);
@@ -187,6 +187,7 @@ if(dashboardNotice){
 }
 
 function updateLaunchDashboard(p){
+ coming.hidden=capabilities?.marketplace_enabled!==false;
  const complete={
   business:Boolean((p?.business_name||p?.display_name||"").trim()),
   services:Boolean(p?.service_categories?.length),
