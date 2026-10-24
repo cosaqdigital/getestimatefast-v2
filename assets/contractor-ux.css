@@ -39,7 +39,7 @@ body.pro-simple #message:empty{display:none}
 body.pro-simple #message:not(:empty){position:fixed;right:15px;top:80px;z-index:40;max-width:min(420px,calc(100% - 30px));padding:14px 16px;background:#fff;border:1px solid #d3e3ed;border-left:4px solid #d45c19;box-shadow:0 12px 34px #15344e20;border-radius:11px}
 @media(max-width:700px){body.pro-simple main{padding:0 11px}body.pro-simple #workspace>section,body.pro-simple #workspace>div>section{padding:18px}body.pro-simple .pro-grid{grid-template-columns:1fr}body.pro-simple .pro-callout .pro-link{width:100%;text-align:center;justify-content:center}body.pro-simple #contractorDashboard .metric-grid{grid-template-columns:1fr}body.pro-simple .pro-category{width:100%}body.pro-simple .pro-controls{display:grid;grid-template-columns:1fr 1fr}body.pro-simple .pro-controls small{grid-column:1/-1}body.pro-simple .pro-controls #saveProfile{grid-column:1/-1}}
 
-body.pro-simple .flag{background:#fff2e6;border:1px solid #ffe0c7;color:#7a421b;padding:13px 16px;border-radius:12px;margin-bottom:14px}
+body.pro-simple .flag{background:#eef8f4;border:1px solid #cfe8dc;color:#205842;padding:13px 16px;border-radius:12px;margin-bottom:14px}
 body.pro-simple .pro-welcome{padding:4px 2px 12px}
 body.pro-simple .pro-welcome strong{font-size:22px}
 body.pro-simple #contractorDashboard{padding:0!important;border:0!important;background:transparent!important}
