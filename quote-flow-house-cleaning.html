@@ -122,6 +122,41 @@
   </div>
   <div class="error"></div>
 </section><section class="step" data-step="4">
+  <h2>Add photos if you have them</h2>
+  <p class="step-help">Photos are optional. Add up to 5 project photos to help professionals evaluate the job before buying the contact.</p>
+  <div class="upload-box">
+    <strong>Upload up to 5 photos</strong>
+    <div class="hint">JPG, PNG or WebP. Up to 5 MB each. Photos may be shown to signed-in professionals before contact purchase.</div>
+    <div class="photo-grid" style="margin-top:14px;">
+      <div class="photo-field">
+        <label class="field-label" for="photo-1">Photo 1</label>
+        <input id="photo-1" type="file" name="Photo 1" accept="image/jpeg,image/png,image/webp" />
+        <span class="photo-file-name"></span>
+      </div><div class="photo-field">
+        <label class="field-label" for="photo-2">Photo 2</label>
+        <input id="photo-2" type="file" name="Photo 2" accept="image/jpeg,image/png,image/webp" />
+        <span class="photo-file-name"></span>
+      </div><div class="photo-field">
+        <label class="field-label" for="photo-3">Photo 3</label>
+        <input id="photo-3" type="file" name="Photo 3" accept="image/jpeg,image/png,image/webp" />
+        <span class="photo-file-name"></span>
+      </div><div class="photo-field">
+        <label class="field-label" for="photo-4">Photo 4</label>
+        <input id="photo-4" type="file" name="Photo 4" accept="image/jpeg,image/png,image/webp" />
+        <span class="photo-file-name"></span>
+      </div><div class="photo-field">
+        <label class="field-label" for="photo-5">Photo 5</label>
+        <input id="photo-5" type="file" name="Photo 5" accept="image/jpeg,image/png,image/webp" />
+        <span class="photo-file-name"></span>
+      </div>
+    </div>
+  </div>
+  <div class="nav-row">
+    <button type="button" class="nav-btn secondary" data-back>Back</button>
+    <button type="button" class="nav-btn" data-next>Continue</button>
+  </div>
+  <div class="error"></div>
+</section><section class="step" data-step="5">
   <h2>Where is the property located?</h2>
   <p class="step-help">We ask for location so the request can be routed locally.</p>
   <div class="field-grid two-col">
@@ -139,7 +174,7 @@
     <button type="button" class="nav-btn" data-next>Continue</button>
   </div>
   <div class="error"></div>
-</section><section class="step" data-step="5">
+</section><section class="step" data-step="6">
   <h2>Where should local professionals contact you?</h2>
   <p class="step-help">No obligation. No spam blast. Your request is only used to connect you with relevant local professionals.</p>
   <div class="field-grid two-col">
@@ -186,7 +221,7 @@
   </div>
 </footer>
   <script>
-    window.flowConfig = {"serviceLabel":"House Cleaning","type":"fast","pageTitle":"Start your house cleaning request","intro":"This shorter request keeps things simple while still giving local professionals enough detail to understand the job.","timeEstimate":"About 60 seconds","microcopy":["Free to use","No obligation","No spam blast","Local professionals only"],"whatHappensNext":["Your request is reviewed based on service type, timing, and location.","Matched local professionals can see the basics before they contact you.","You stay in control of how providers contact you."],"descriptionPrompt":"Anything important we should know?","descriptionPlaceholder":"Example: Move-out clean, pet hair, or extra attention needed in bathrooms and kitchen.","steps":[{"title":"What type of cleaning do you need?","help":"Choose the option that feels closest. This helps keep the request short and relevant.","field":"Cleaning Type","type":"single","options":["Standard house cleaning","Deep cleaning","Move-in cleaning","Move-out cleaning","Airbnb / short-term rental","Not sure"]},{"title":"How often do you need cleaning?","help":"A quick answer helps providers understand whether this is a one-time job or ongoing service.","field":"Cleaning Frequency","type":"single","options":["One time","Weekly","Every 2 weeks","Monthly","Not sure"]},{"title":"About how large is the home?","help":"This does not need to be exact. A simple estimate is enough.","field":"Job Size","type":"single","options":["Apartment / condo","Small home","Medium home","Large home","Not sure"]},{"title":"Anything important we should know?","help":"Optional. Add a short note only if there is something useful to mention.","type":"textarea","required":false},{"title":"Where is the property located?","help":"We ask for location so the request can be routed locally.","type":"location"},{"title":"Where should local professionals contact you?","help":"No obligation. No spam blast. Your request is only used to connect you with relevant local professionals.","type":"contact"}]};
+    window.flowConfig = {"serviceLabel":"House Cleaning","type":"fast","pageTitle":"Start your house cleaning request","intro":"This shorter request keeps things simple while still giving local professionals enough detail to understand the job.","timeEstimate":"About 60 seconds","microcopy":["Free to use","No obligation","No spam blast","Local professionals only"],"whatHappensNext":["Your request is reviewed based on service type, timing, and location.","Matched local professionals can see the basics before they contact you.","You stay in control of how providers contact you."],"descriptionPrompt":"Anything important we should know?","descriptionPlaceholder":"Example: Move-out clean, pet hair, or extra attention needed in bathrooms and kitchen.","steps":[{"title":"What type of cleaning do you need?","help":"Choose the option that feels closest. This helps keep the request short and relevant.","field":"Cleaning Type","type":"single","options":["Standard house cleaning","Deep cleaning","Move-in cleaning","Move-out cleaning","Airbnb / short-term rental","Not sure"]},{"title":"How often do you need cleaning?","help":"A quick answer helps providers understand whether this is a one-time job or ongoing service.","field":"Cleaning Frequency","type":"single","options":["One time","Weekly","Every 2 weeks","Monthly","Not sure"]},{"title":"About how large is the home?","help":"This does not need to be exact. A simple estimate is enough.","field":"Job Size","type":"single","options":["Apartment / condo","Small home","Medium home","Large home","Not sure"]},{"title":"Anything important we should know?","help":"Optional. Add a short note only if there is something useful to mention.","type":"textarea","required":false},{"title":"Add photos if you have them","help":"Optional photos can help professionals evaluate the cleaning request before buying the contact.","type":"photos"},{"title":"Where is the property located?","help":"We ask for location so the request can be routed locally.","type":"location"},{"title":"Where should local professionals contact you?","help":"No obligation. No spam blast. Your request is only used to connect you with relevant local professionals.","type":"contact"}]};
   </script>
   <script src="assets/launch-categories.js"></script>
   <script src="assets/platform-forms.js"></script>
