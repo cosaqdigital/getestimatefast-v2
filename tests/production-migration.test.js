@@ -133,3 +133,72 @@ test("Production migration is fail-closed and contains no synthetic seed or live
  assert.doesNotMatch(withoutFunctions,/(?:select|perform|call)\s+(?:public\.)?gef_admin_configuration\s*\(/i);
  assert.doesNotMatch(sql,/TEST ONLY|synthetic@example\.invalid|8135550100/i);
 });
+
+
+test("Production Stripe Live incremental migration applies only after marketplace baseline and remains fail-closed",async()=>{
+ const db=new PGlite();await db.waitReady;
+ try{
+  await db.exec("create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key,email text,email_confirmed_at timestamptz);");
+  const baseline=[
+   "getestimatefast_leads.sql",
+   "getestimatefast_marketplace_foundation.sql",
+   "getestimatefast_admin_status_rpc.sql",
+   "admin_approve_lead.sql",
+   "getestimatefast_contractors_foundation.sql",
+   "contractor_consent_fields.sql",
+   "contractor_admin_review_rpc.sql",
+   "contractor_auto_enable.sql",
+   "opportunity_publication_preview.sql",
+   "admin_reconfirm_legacy_review.sql",
+   "controlled_matching_rounds.sql",
+   "sms_simulation_preview.sql",
+   "zenvia_us_webhook_safety.sql"
+  ];
+  for(const file of baseline){
+   let sql=fs.readFileSync(path.join(root,"sql",file),"utf8");
+   sql=sql.replace("create extension if not exists pgcrypto;","");
+   await db.exec(sql);
+  }
+  await db.exec("create schema storage;create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);");
+  await db.query("insert into auth.users(id,email,email_confirmed_at) values($1,'admin@getestimatefast.com',now())",[u(11)]);
+  await db.query("insert into public.admin_users(user_id) values($1)",[u(11)]);
+
+  await db.exec(fs.readFileSync(migration,"utf8"));
+  const stripeMigration=path.join(root,"supabase/prepared-migrations/20261024_production_stripe_live.sql");
+  await db.exec(fs.readFileSync(stripeMigration,"utf8"));
+
+  for(const table of ["gef_private.live_checkout_orders","gef_private.live_checkout_events"]){
+    assert.equal((await db.query("select to_regclass($1) is not null ok",[table])).rows[0].ok,true,table);
+  }
+  for(const fn of [
+    "public.gef_prepare_live_order(uuid,uuid,text)",
+    "public.gef_confirm_live_order(uuid,text,text,text,text,bigint,text,text)",
+    "public.gef_confirm_live_refund(uuid,text,text,bigint,text,text,text)"
+  ]){
+    assert.equal((await db.query("select to_regprocedure($1) is not null ok",[fn])).rows[0].ok,true,fn);
+  }
+
+  const triggers=(await db.query(
+    "select event_object_table,trigger_name from information_schema.triggers where event_object_schema='gef_private' and trigger_name in ('guard_purchase_capacity','guard_direct_refund') order by trigger_name"
+  )).rows;
+  assert.deepEqual(triggers.map(r=>r.trigger_name),["guard_direct_refund","guard_purchase_capacity"]);
+
+  const funding=(await db.query(
+    "select pg_get_constraintdef(oid) def from pg_constraint where conrelid='gef_private.contact_purchases'::regclass and conname='contact_purchases_funding_source_check'"
+  )).rows[0].def;
+  assert.match(funding,/stripe_live/);
+
+  for(const role of ["anon","authenticated"]){
+    assert.equal((await db.query("select has_table_privilege($1,'gef_private.live_checkout_orders','select') allowed",[role])).rows[0].allowed,false);
+    assert.equal((await db.query("select has_function_privilege($1,'public.gef_confirm_live_refund(uuid,text,text,bigint,text,text,text)','execute') allowed",[role])).rows[0].allowed,false);
+  }
+
+  assert.equal((await db.query("select count(*)::int n from gef_private.live_checkout_orders")).rows[0].n,0);
+  assert.equal((await db.query("select count(*)::int n from gef_private.live_checkout_events")).rows[0].n,0);
+
+  await assert.rejects(
+    db.exec(fs.readFileSync(stripeMigration,"utf8")),
+    /Stripe Live schema already exists; stop and re-audit before applying/
+  );
+ }finally{await db.close();}
+});
