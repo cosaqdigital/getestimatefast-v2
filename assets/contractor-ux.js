@@ -61,7 +61,7 @@ const referralReload=make("button","Refresh direct leads","secondary");referralR
 const referralList=make("div",undefined,"pro-referral-cards");
 referrals.append(referralReload,referralList);workspace.append(referrals);
 async function showReferrals(){
- if(capabilities?.marketplace_enabled===false){referralList.replaceChildren(make("p","Profile requests and customer contacts are not open yet."));return;}
+ if(capabilities?.marketplace_enabled===false){referralList.replaceChildren(make("p","Direct Leads are not available yet."));return;}
  referralList.replaceChildren(make("p","Loading direct leads..."));
  try{
   const result=await window.GetEstimateFastPortal.api("origin-leads");
