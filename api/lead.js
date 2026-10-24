@@ -1,12 +1,13 @@
 const LAUNCH_CATALOG = require("../assets/launch-categories");
 const { DEVELOPMENT_REF, protectedPreview } = require("./_lib/preview-target");
+const { MAX_PHOTO_COUNT, parsePhotoPaths } = require("./_lib/lead-photo-storage");
 // Reject accidental cross-platform database configuration.
 const PRODUCTION_REF = "wedsjubkttygxtpkopfj";
 const THANK_YOU_URL = "https://www.getestimatefast.com/thank-you.html";
 const DEFAULT_FROM_EMAIL = "GetEstimateFast <onboarding@resend.dev>";
 const MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024;
 const MAX_REQUEST_SIZE = 15 * 1024 * 1024;
-const MAX_ATTACHMENT_COUNT = 3;
+const MAX_ATTACHMENT_COUNT = 5;
 
 module.exports = async function handler(req, res) {
   if (process.env.GETESTIMATEFAST_ISOLATED_BACKEND === "true" || protectedPreview()) {
@@ -39,7 +40,7 @@ module.exports = async function handler(req, res) {
     try {
       attachments = await collectAttachments(formData);
     } catch {
-      return sendErrorPage(res, 413, "Check your attachments: JPG, PNG, WebP or PDF; up to three files of 5 MB each.");
+      return sendErrorPage(res, 413, "Check your attachments: JPG, PNG, WebP or PDF; up to five files of 5 MB each.");
     }
 
     // Unlike the former opt-in behavior, a disabled persistence flag fails closed.
@@ -272,6 +273,14 @@ function validateLead(fields) {
   if (!/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(submissionToken)) {
     return "We couldn't verify your request. Reload the form and try again.";
   }
+  const photoRaw = firstValue(fields["Project Photo Paths"]);
+  if (photoRaw) {
+    const photoPaths = parsePhotoPaths(photoRaw, submissionToken);
+    const declaredCount = Number(firstValue(fields["Project Photo Count"]));
+    if (!photoPaths.length || photoPaths.length > MAX_PHOTO_COUNT || declaredCount !== photoPaths.length) {
+      return "We couldn't verify the project photos. Please reload the form and try again.";
+    }
+  }
 
   // No service/category keyword filter here. Unlisted and older service categories
   // are retained for human review rather than automatically rejected.
@@ -323,6 +332,7 @@ function buildSubject(fields) {
 
 function renderLeadEmail(subject, fields, attachments) {
   const rows = Object.entries(fields)
+    .filter(([key]) => key !== "Project Photo Paths")
     .map(([key, value]) => {
       const displayValue = Array.isArray(value) ? value.join(", ") : value;
       return `<tr><td style="padding:10px 12px;border:1px solid #d9e3ee;font-weight:700;background:#f8fafc;">${escapeHtml(
@@ -354,7 +364,7 @@ function renderLeadEmail(subject, fields, attachments) {
 function renderLeadText(subject, fields, attachments) {
   const lines = [`${subject}`, "", "New lead received from GetEstimateFast.", ""];
 
-  Object.entries(fields).forEach(([key, value]) => {
+  Object.entries(fields).filter(([key]) => key !== "Project Photo Paths").forEach(([key, value]) => {
     const displayValue = Array.isArray(value) ? value.join(", ") : value;
     lines.push(`${key}: ${displayValue}`);
   });

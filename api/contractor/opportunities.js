@@ -1,4 +1,5 @@
-const {json,method,queryDb,fail,userFor}=require("./_shared");
+const {json,method,queryDb,fail,userFor,config}=require("./_shared");
+const {parsePhotoPaths,signPhotoUrls}=require("../_lib/lead-photo-storage");
 const {parseFilters,matchesFilters}=require("../_lib/opportunity-filters");
 const {quotePrice}=require("../_lib/marketplace-pricing");
 const {marketplaceCommercialEnabled}=require("../_lib/marketplace-access");
@@ -48,6 +49,37 @@ module.exports=async function handler(req,res){
     if(item.origin_free)item.commercial=null;
    }
   }
-  return json(res,200,{opportunities:filtered.slice(page*25,(page+1)*25),page,matching_total:filtered.length,note:"Approximate straight-line miles between ZIP centroids. Customer contacts are private unless available to the originating professional after publication."});
+  const pageItems=filtered.slice(page*25,(page+1)*25);
+  await attachProjectPhotos(pageItems);
+  return json(res,200,{opportunities:pageItems,page,matching_total:filtered.length,note:"Approximate straight-line miles between ZIP centroids. Project photos may be shown to signed-in professionals before purchase; customer contact details remain private until authorized release."});
  }catch(error){fail(res,error);}
 };
+
+async function attachProjectPhotos(items){
+ if(!items.length)return;
+ const ids=items.map(x=>x.opportunity_id);
+ const previews=await queryDb("opportunity_previews?id=in.("+ids.join(",")+")&select=id,lead_id");
+ const byOpportunity=new Map(previews.map(row=>[row.id,row.lead_id]));
+ const leadIds=[...new Set(previews.map(row=>row.lead_id).filter(Boolean))];
+ if(!leadIds.length)return;
+ const leads=await queryDb("leads?id=in.("+leadIds.join(",")+")&select=id,details");
+ const detailsByLead=new Map(leads.map(row=>[row.id,row.details||{}]));
+ const pathsByOpportunity=new Map();
+ const allPaths=[];
+ for(const item of items){
+  const leadId=byOpportunity.get(item.opportunity_id);
+  const details=detailsByLead.get(leadId)||{};
+  const paths=parsePhotoPaths(details["Project Photo Paths"],details["Submission Token"]);
+  pathsByOpportunity.set(item.opportunity_id,paths);
+  allPaths.push(...paths);
+ }
+ if(!allPaths.length)return;
+ const {url,secret}=config();
+ const signed=await signPhotoUrls(url,secret,[...new Set(allPaths)],900);
+ const signedByPath=new Map(signed.map(photo=>[photo.path,photo.url]));
+ for(const item of items){
+  const paths=pathsByOpportunity.get(item.opportunity_id)||[];
+  item.photos=paths.map(path=>signedByPath.get(path)).filter(Boolean).map(url=>({url}));
+  item.photo_count=item.photos.length;
+ }
+}

@@ -135,6 +135,41 @@
   </div>
   <div class="error"></div>
 </section><section class="step" data-step="4">
+  <h2>Add photos if you have them</h2>
+  <p class="step-help">Photos are optional. Add up to 5 project photos to help professionals evaluate the job before buying the contact.</p>
+  <div class="upload-box">
+    <strong>Upload up to 5 photos</strong>
+    <div class="hint">JPG, PNG or WebP. Up to 5 MB each. Photos may be shown to signed-in professionals before contact purchase.</div>
+    <div class="photo-grid" style="margin-top:14px;">
+      <div class="photo-field">
+        <label class="field-label" for="photo-1">Photo 1</label>
+        <input id="photo-1" type="file" name="Photo 1" accept="image/jpeg,image/png,image/webp" />
+        <span class="photo-file-name"></span>
+      </div><div class="photo-field">
+        <label class="field-label" for="photo-2">Photo 2</label>
+        <input id="photo-2" type="file" name="Photo 2" accept="image/jpeg,image/png,image/webp" />
+        <span class="photo-file-name"></span>
+      </div><div class="photo-field">
+        <label class="field-label" for="photo-3">Photo 3</label>
+        <input id="photo-3" type="file" name="Photo 3" accept="image/jpeg,image/png,image/webp" />
+        <span class="photo-file-name"></span>
+      </div><div class="photo-field">
+        <label class="field-label" for="photo-4">Photo 4</label>
+        <input id="photo-4" type="file" name="Photo 4" accept="image/jpeg,image/png,image/webp" />
+        <span class="photo-file-name"></span>
+      </div><div class="photo-field">
+        <label class="field-label" for="photo-5">Photo 5</label>
+        <input id="photo-5" type="file" name="Photo 5" accept="image/jpeg,image/png,image/webp" />
+        <span class="photo-file-name"></span>
+      </div>
+    </div>
+  </div>
+  <div class="nav-row">
+    <button type="button" class="nav-btn secondary" data-back>Back</button>
+    <button type="button" class="nav-btn" data-next>Continue</button>
+  </div>
+  <div class="error"></div>
+</section><section class="step" data-step="5">
   <h2>Where is the project located?</h2>
   <p class="step-help">We ask for location so the request can be routed locally.</p>
   <div class="field-grid two-col">
@@ -152,7 +187,7 @@
     <button type="button" class="nav-btn" data-next>Continue</button>
   </div>
   <div class="error"></div>
-</section><section class="step" data-step="5">
+</section><section class="step" data-step="6">
   <h2>Where should local professionals contact you?</h2>
   <p class="step-help">No obligation. No spam blast. Your request is only used to connect you with relevant local professionals.</p>
   <div class="field-grid two-col">
@@ -199,7 +234,7 @@
   </div>
 </footer>
   <script>
-    window.flowConfig = {"serviceLabel":"General Home Service","type":"standard","pageTitle":"Start your request","intro":"Describe the service you need and share project details. Independent providers may contact you, but replies are not guaranteed.","timeEstimate":"About 90 seconds","microcopy":["Free to use","No obligation","No spam blast","Local professionals only"],"whatHappensNext":["Your request may be reviewed for scope and service area.","Interested independent providers may choose to access the request.","There is no obligation to hire and no guaranteed response."],"descriptionPrompt":"Tell us a little about the project.","descriptionPlaceholder":"Example: Need a repair, installation, replacement, or help with a new project.","serviceOptions":["House Cleaning","Pressure Washing","Flooring","Painting","Cabinets & Countertops","Furniture Assembly","Handyman","Drywall","Yard Cleanup & Other Cleanup","Lawn Care & Gardening","Pool Cleaning","Window Cleaning","Carpet & Upholstery Cleaning","Other Services"],"steps":[{"title":"What service do you need?","help":"Choose the service that feels closest to the work you need.","field":"Service Type","type":"single","options":["House Cleaning","Pressure Washing","Flooring","Painting","Cabinets & Countertops","Furniture Assembly","Handyman","Drywall","Yard Cleanup & Other Cleanup","Lawn Care & Gardening","Pool Cleaning","Window Cleaning","Carpet & Upholstery Cleaning","Other Services"]},{"title":"What do you need help with?","help":"Pick the option that feels closest. This helps keep the request simple.","field":"Project Intent","type":"single","options":["Repair","Installation","Replacement","Maintenance","New project","Not sure yet"]},{"title":"Tell us a little about the project.","help":"Describe the work you need so interested providers can decide whether to respond.","type":"textarea","required":true},{"title":"When would you like to get started?","help":"Choose the timeline that feels closest.","field":"Timeline","type":"single","options":["As soon as possible","This week","1-2 weeks","This month","Just planning"]},{"title":"Where is the project located?","help":"We ask for location so the request can be routed locally.","type":"location"},{"title":"Where should local professionals contact you?","help":"Independent providers may contact you if they access your request. Replies are not guaranteed.","type":"contact"}]};
+    window.flowConfig = {"serviceLabel":"General Home Service","type":"standard","pageTitle":"Start your request","intro":"Describe the service you need and share project details. Independent providers may contact you, but replies are not guaranteed.","timeEstimate":"About 90 seconds","microcopy":["Free to use","No obligation","No spam blast","Local professionals only"],"whatHappensNext":["Your request may be reviewed for scope and service area.","Interested independent providers may choose to access the request.","There is no obligation to hire and no guaranteed response."],"descriptionPrompt":"Tell us a little about the project.","descriptionPlaceholder":"Example: Need a repair, installation, replacement, or help with a new project.","serviceOptions":["House Cleaning","Pressure Washing","Flooring","Painting","Cabinets & Countertops","Furniture Assembly","Handyman","Drywall","Yard Cleanup & Other Cleanup","Lawn Care & Gardening","Pool Cleaning","Window Cleaning","Carpet & Upholstery Cleaning","Other Services"],"steps":[{"title":"What service do you need?","help":"Choose the service that feels closest to the work you need.","field":"Service Type","type":"single","options":["House Cleaning","Pressure Washing","Flooring","Painting","Cabinets & Countertops","Furniture Assembly","Handyman","Drywall","Yard Cleanup & Other Cleanup","Lawn Care & Gardening","Pool Cleaning","Window Cleaning","Carpet & Upholstery Cleaning","Other Services"]},{"title":"What do you need help with?","help":"Pick the option that feels closest. This helps keep the request simple.","field":"Project Intent","type":"single","options":["Repair","Installation","Replacement","Maintenance","New project","Not sure yet"]},{"title":"Tell us a little about the project.","help":"Describe the work you need so interested providers can decide whether to respond.","type":"textarea","required":true},{"title":"When would you like to get started?","help":"Choose the timeline that feels closest.","field":"Timeline","type":"single","options":["As soon as possible","This week","1-2 weeks","This month","Just planning"]},{"title":"Add photos if you have them","help":"Optional photos can help professionals evaluate the project before buying the contact.","type":"photos"},{"title":"Where is the project located?","help":"We ask for location so the request can be routed locally.","type":"location"},{"title":"Where should local professionals contact you?","help":"Independent providers may contact you if they access your request. Replies are not guaranteed.","type":"contact"}]};
   </script>
   <script src="assets/launch-categories.js"></script>
   <script src="assets/platform-forms.js"></script>

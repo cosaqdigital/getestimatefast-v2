@@ -8,6 +8,18 @@ const formatPhone=value=>{const digits=String(value||"").replace(/\D/g,"");const
 const statusLabel=value=>value==="acquired"?"Contact unlocked":value==="reserved"?"Pending":value==="expired"?"Expired":String(value||"").replace(/_/g," ").replace(/\b\w/g,m=>m.toUpperCase());
 const detailValue=value=>Array.isArray(value)?value.join(", "):value&&typeof value==="object"?JSON.stringify(value):String(value??"");
 function node(tag,value,cls){const n=document.createElement(tag);if(value!==undefined)n.textContent=value;if(cls)n.className=cls;return n;}
+function projectPhotoGallery(photos){
+ const valid=Array.isArray(photos)?photos.filter(photo=>photo&&photo.url):[];
+ if(!valid.length)return null;
+ const wrap=node("div",undefined,"pro-project-photo-block");
+ wrap.append(node("h3","Project photos"));
+ const gallery=node("div",undefined,"pro-opportunity-photo-gallery");
+ valid.forEach((photo,index)=>{
+  const a=node("a",undefined,"pro-opportunity-photo-link");a.href=photo.url;a.target="_blank";a.rel="noopener noreferrer";
+  const img=node("img");img.src=photo.url;img.alt="Project photo "+(index+1);img.loading="lazy";img.decoding="async";a.append(img);gallery.append(a);
+ });
+ wrap.append(gallery);return wrap;
+}
 const panels=document.createElement("div");
 const registrationToggle=document.createElement("button");registrationToggle.type="button";registrationToggle.className="secondary";registrationToggle.textContent="Create a free account";registrationToggle.setAttribute("aria-controls","register");registrationToggle.setAttribute("aria-expanded","false");
 registrationToggle.onclick=()=>{const open=el("register").hidden;el("register").hidden=!open;registrationToggle.setAttribute("aria-expanded",String(open));if(open)el("register").scrollIntoView({block:"start",behavior:"smooth"});};
@@ -65,14 +77,14 @@ function renderPurchases(purchases,contactRelease){
      if(x.email){const mail=node("a","Email customer","button secondary");mail.href="mailto:"+x.email;actions.append(mail);}
      const project=node("div",undefined,"pro-project-details");
      project.append(node("h3","Project details"));
-     const excluded=new Set(["Submission Token","Full Name","Phone Number","Email Address","Preferred contact method","City","ZIP Code","Service Type"]);
+     const excluded=new Set(["Submission Token","Full Name","Phone Number","Email Address","Preferred contact method","City","ZIP Code","Service Type","Project Photo Paths","Project Photo Count"]);
      const entries=Object.entries(x.project_details||{}).filter(([key,value])=>!excluded.has(key)&&value!==null&&value!==undefined&&detailValue(value).trim()!=="");
      if(entries.length){
       const grid=node("div",undefined,"pro-project-grid");
       for(const [key,value] of entries){const item=node("div",undefined,"pro-project-item");item.append(node("span",key),node("p",detailValue(value)));grid.append(item);}
       project.append(grid);
      }else project.append(node("p","No additional project details were provided."));
-     details.append(contactHead,actions,project);
+     const photos=projectPhotoGallery(x.project_photos);if(photos)details.append(contactHead,actions,photos,project);else details.append(contactHead,actions,project);
      details.hidden=false;loaded=true;button.textContent="Hide contact";
     }catch(e){portal.say(e.message);}
     finally{button.disabled=false;}
