@@ -1,7 +1,7 @@
 "use strict";
 const test=require("node:test"),assert=require("node:assert/strict"),Stripe=require("stripe"),{Readable}=require("node:stream");
 const {livePaymentsApproved,liveWebhookApproved}=require("../api/_lib/stripe-live-policy");
-const {liveConfiguration,checkoutParameters,processWebhook}=require("../api/_lib/stripe-live");
+const {liveConfiguration,checkoutParameters,createCheckout,processWebhook}=require("../api/_lib/stripe-live");
 
 const id="30000000-0000-4000-8000-000000000001";
 const key=["rk","live","SyntheticOnlyKeyForTests"].join("_");
@@ -104,6 +104,20 @@ test("live Checkout freezes exact contact price and never treats redirect as pay
  assert.throws(()=>checkoutParameters({...order,status:"paid"},settings.origin));
  assert.throws(()=>checkoutParameters({...order,currency:"BRL"},settings.origin));
 });
+
+test("live Checkout allows a 35-minute reservation with network safety margin",async()=>{
+ const fresh={...order,session_id:null,reserved_until:new Date(Date.now()+35*60*1000).toISOString()};
+ const fake={
+  accounts:{retrieve:async()=>({object:"account",id:settings.expectedAccountId})},
+  checkout:{sessions:{create:async params=>({
+   id:"cs_live_margin",livemode:true,status:"open",payment_status:"unpaid",mode:"payment",currency:"usd",amount_total:fresh.amount_cents,
+   client_reference_id:fresh.id,metadata:params.metadata,url:"https://checkout.stripe.com/c/pay/cs_live_margin"
+  })}}
+ };
+ const result=await createCheckout(fresh,settings,fake);
+ assert.equal(result.id,"cs_live_margin");
+});
+
 
 test("signed live webhook confirms a retrieved paid session exactly once",async()=>{
  const calls=[];
