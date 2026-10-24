@@ -2,14 +2,14 @@
 const Stripe=require("stripe");
 const {cents}=require("./marketplace-pricing");
 
-const SECRET_PREFIX=["sk","live"].join("_")+"_";
+const RESTRICTED_PREFIX=["rk","live"].join("_")+"_";
 const WEBHOOK_PREFIX="wh"+"sec_";
 
 function liveConfiguration(env=process.env){
   const key=String(env.GETESTIMATEFAST_STRIPE_LIVE_SECRET_KEY||"");
   const secret=String(env.GETESTIMATEFAST_STRIPE_LIVE_WEBHOOK_SECRET||"");
   const expectedAccountId=String(env.GETESTIMATEFAST_STRIPE_LIVE_ACCOUNT_ID||"");
-  if(!key.startsWith(SECRET_PREFIX)||key.length<24)throw Error("Stripe live key unavailable");
+  if(!key.startsWith(RESTRICTED_PREFIX)||key.length<24)throw Error("Stripe restricted live key unavailable");
   if(!secret.startsWith(WEBHOOK_PREFIX)||secret.length<16)throw Error("Stripe live webhook secret unavailable");
   if(!expectedAccountId.startsWith("acct_")||expectedAccountId.length<12)throw Error("Stripe live account unavailable");
   return {key,secret,expectedAccountId,origin:"https://www.getestimatefast.com"};
@@ -37,7 +37,6 @@ function checkoutParameters(order,origin){
   const metadata={gef_order_id:order.id,gef_purpose:"contact",gef_mode:"live"};
   return {
     mode:"payment",
-    payment_method_types:["card"],
     client_reference_id:order.id,
     metadata,
     payment_intent_data:{metadata},
