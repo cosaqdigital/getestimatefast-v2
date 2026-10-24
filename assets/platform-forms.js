@@ -237,8 +237,25 @@
       });
     });
 
-    form.addEventListener("submit", (event) => {
-      if (!validateStep(state.currentStep)) event.preventDefault();
+    let photoSubmitInFlight = false;
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (photoSubmitInFlight || !validateStep(state.currentStep)) return;
+      const submitButton = form.querySelector(".submit-btn");
+      const originalLabel = submitButton ? submitButton.textContent : "";
+      try {
+        photoSubmitInFlight = true;
+        if (submitButton) { submitButton.disabled = true; submitButton.textContent = "Uploading photos..."; }
+        if (!window.GetEstimateFastLeadPhotos) await import("/assets/lead-photo-upload.js?v=20261024-photos1");
+        await window.GetEstimateFastLeadPhotos.prepare(form);
+        if (submitButton) submitButton.textContent = "Sending...";
+        HTMLFormElement.prototype.submit.call(form);
+      } catch (error) {
+        photoSubmitInFlight = false;
+        if (submitButton) { submitButton.disabled = false; submitButton.textContent = originalLabel; }
+        const box = steps[state.currentStep]?.querySelector(".error");
+        showError(box, error?.message || "We couldn't upload your project photos. Please try again.");
+      }
     });
   }
 
