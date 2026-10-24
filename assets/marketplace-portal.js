@@ -26,6 +26,39 @@ const availability=node("p",undefined,"notice");availability.id="profileAvailabi
 el("publicProfileForm").before(availability);
 function renderPortfolio(){el("portfolioItems").replaceChildren();portfolio.forEach((p,index)=>{const row=node("div",undefined,"card");row.append(node("strong",p.title),node("p",p.description));const remove=node("button","Remove photo","secondary");remove.type="button";remove.onclick=()=>{portfolio.splice(index,1);renderPortfolio();};row.append(remove);el("portfolioItems").append(row);});}
 function table(container,head,rows){const holder=el(container);holder.replaceChildren();if(!rows.length){holder.append(node("p","No records yet."));return;}const t=node("table"),thead=node("thead"),tr=node("tr");for(const h of head)tr.append(node("th",h));thead.append(tr);t.append(thead);const body=node("tbody");for(const row of rows){const r=node("tr");for(const v of row)r.append(node("td",v));body.append(r);}t.append(body);holder.append(t);}
+function renderPurchases(purchases,contactRelease){
+ const holder=el("purchaseHistory");holder.replaceChildren();
+ if(!purchases.length){holder.append(node("p","No records yet."));return;}
+ for(const p of purchases){
+  const card=node("div",undefined,"card");
+  card.append(
+   node("strong",p.service_category+" — "+p.city),
+   node("p",date(p.created_at)+" · "+money(p.amount_cents)+" · "+p.status)
+  );
+  if(contactRelease&&p.status==="acquired"){
+   const button=node("button","View contact","secondary");button.type="button";
+   const details=node("div");details.hidden=true;
+   button.onclick=async()=>{
+    button.disabled=true;
+    try{
+     const r=await portal.api("contact-access?opportunity_id="+encodeURIComponent(p.opportunity_id));
+     const x=r.contact;
+     details.replaceChildren(
+      node("p","Customer: "+x.full_name),
+      node("p","Phone: "+(x.phone||"Not provided")),
+      node("p","Email: "+(x.email||"Not provided")),
+      node("p","Preferred contact: "+(x.contact_method||"Not specified")),
+      node("p","Location: "+x.city+", "+x.zip_code)
+     );
+     details.hidden=false;
+    }catch(e){portal.say(e.message);}
+    finally{button.disabled=false;}
+   };
+   card.append(button,details);
+  }
+  holder.append(card);
+ }
+}
 function addShares(id,path,title){const holder=el(id);holder.replaceChildren();if(!path)return;const box=node("div",undefined,"share-tools");box.dataset.shareUrl=new URL(path,location.origin).href;box.dataset.shareTitle=title;holder.append(box);window.GetEstimateFastSharing?.render(box);}
 async function loadMarketplace(){
  const current=generation;
@@ -41,10 +74,26 @@ async function loadMarketplace(){
   for(const [id,key] of [["walletBalance","available_cents"],["paidBalance","paid_cents"],["promoBalance","promotional_cents"],["refundBalance","refund_cents"]])el(id).textContent=money(d.wallet[key]);
   el("purchaseCount").textContent=d.purchase_count??d.purchases.length;
   table("walletStatement",["Date (Eastern Time)","Activity","Credit origin","Amount"],d.transactions.map(t=>[date(t.created_at),t.kind,t.bucket,(t.amount_cents<0?"−":"+")+money(Math.abs(t.amount_cents))]));
-  table("purchaseHistory",["Date (Eastern Time)","Service","City","Amount","Access status"],d.purchases.map(p=>[date(p.created_at),p.service_category,p.city,money(p.amount_cents),p.status]));
+  renderPurchases(d.purchases,d.contact_release_enabled===true);
   table("paymentHistory",["Date","Purpose","Amount","Status"],d.pending_payments.map(p=>[date(p.created_at),p.purpose==="profile_service"?"Profile preparation":"Wallet top-up",money(p.amount_cents),p.status]));
   el("reviewPurchase").replaceChildren(node("option","External customer"));el("reviewPurchase").firstChild.value="";
   for(const p of d.purchases.filter(p=>p.status==="acquired")){const o=node("option",p.service_category+" — "+p.city);o.value=p.id;el("reviewPurchase").append(o);}
+  const paymentState=new URLSearchParams(location.search).get("payment");
+  const pendingOrder=sessionStorage.getItem("gef_pending_order_id");
+  if(paymentState==="pending"&&pendingOrder&&d.payments_enabled===true){
+   try{
+    const order=await portal.api("live-checkout?order_id="+encodeURIComponent(pendingOrder));
+    if(order.status==="paid"&&order.contact_release_enabled){
+     sessionStorage.removeItem("gef_pending_order_id");
+     el("dashboardNotice").textContent="Payment confirmed. Your customer contact is available under Purchased opportunities.";
+    }else if(order.status==="refund_required"){
+     sessionStorage.removeItem("gef_pending_order_id");
+     el("dashboardNotice").textContent="Payment was received but contact access could not be completed. Support review is required.";
+    }else{
+     el("dashboardNotice").textContent="Payment is still being confirmed. Contact details remain locked until confirmation.";
+    }
+   }catch(e){el("dashboardNotice").textContent=e.message;}
+  }
   const saved=(await api("public-profile")).profile;if(current!==generation||!signedIn)return;if(saved){
    const form=el("publicProfileForm");for(const [k,v] of Object.entries(saved)){const field=form.elements.namedItem(k);if(!field)continue;if(field.type==="checkbox")field.checked=v===true;else if(k==="categories")for(const o of field.options)o.selected=v.includes(o.value);else field.value=Array.isArray(v)?v.join("\n"):v??"";}
    portfolio=saved.portfolio||[];renderPortfolio();profileSeeded=true;
