@@ -46,6 +46,11 @@ test("live payment policy is fail-closed and requires every Production gate",()=
   GETESTIMATEFAST_STRIPE_LIVE_SCHEMA_APPROVED:"true",
   GETESTIMATEFAST_MARKETPLACE_PRODUCTION_ENABLED:"true",
   GETESTIMATEFAST_MARKETPLACE_SCHEMA_APPROVED:"true",
+  GETESTIMATEFAST_SMS_MODE:"disabled",
+  GETESTIMATEFAST_STRIPE_TEST_CHECKOUT_APPROVED:"false",
+  GETESTIMATEFAST_STRIPE_TEST_WEBHOOK_ENABLED:"false",
+  GETESTIMATEFAST_REVIEW_GOOGLE_ENABLED:"false",
+  GETESTIMATEFAST_ADMIN_RECOVERY_ENABLED:"false",
   GETESTIMATEFAST_SUPABASE_URL:"https://wedsjubkttygxtpkopfj.supabase.co",
   GETESTIMATEFAST_PUBLIC_ORIGIN:"https://www.getestimatefast.com"
  };
@@ -61,6 +66,10 @@ test("live payment policy is fail-closed and requires every Production gate",()=
  ]) assert.equal(livePaymentsApproved({...base,[key]:"false"}),false);
  assert.equal(livePaymentsApproved({...base,VERCEL_ENV:"preview"}),false);
  assert.equal(livePaymentsApproved({...base,GETESTIMATEFAST_ISOLATED_BACKEND:"true"}),false);
+ assert.equal(livePaymentsApproved({...base,GETESTIMATEFAST_SMS_MODE:"live"}),false);
+ assert.equal(livePaymentsApproved({...base,GETESTIMATEFAST_STRIPE_TEST_WEBHOOK_ENABLED:"true"}),false);
+ assert.equal(livePaymentsApproved({...base,GETESTIMATEFAST_REVIEW_GOOGLE_ENABLED:"true"}),false);
+ assert.equal(livePaymentsApproved({...base,GETESTIMATEFAST_ADMIN_RECOVERY_ENABLED:"true"}),false);
  assert.equal(livePaymentsApproved({...base,GETESTIMATEFAST_SUPABASE_URL:"https://cpjsbijgijeyrwjpuciv.supabase.co"}),false);
 });
 
