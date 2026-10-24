@@ -1,6 +1,6 @@
 "use strict";
 const test=require("node:test"),assert=require("node:assert/strict"),Stripe=require("stripe"),{Readable}=require("node:stream");
-const {livePaymentsApproved}=require("../api/_lib/stripe-live-policy");
+const {livePaymentsApproved,liveWebhookApproved}=require("../api/_lib/stripe-live-policy");
 const {checkoutParameters,processWebhook}=require("../api/_lib/stripe-live");
 
 const id="30000000-0000-4000-8000-000000000001";
@@ -71,6 +71,8 @@ test("live payment policy is fail-closed and requires every Production gate",()=
  assert.equal(livePaymentsApproved({...base,GETESTIMATEFAST_REVIEW_GOOGLE_ENABLED:"true"}),false);
  assert.equal(livePaymentsApproved({...base,GETESTIMATEFAST_ADMIN_RECOVERY_ENABLED:"true"}),false);
  assert.equal(livePaymentsApproved({...base,GETESTIMATEFAST_SUPABASE_URL:"https://cpjsbijgijeyrwjpuciv.supabase.co"}),false);
+ assert.equal(liveWebhookApproved({...base,GETESTIMATEFAST_STRIPE_LIVE_CHECKOUT_APPROVED:"false",GETESTIMATEFAST_MARKETPLACE_PRODUCTION_ENABLED:"false"}),true);
+ assert.equal(liveWebhookApproved({...base,GETESTIMATEFAST_STRIPE_LIVE_WEBHOOK_ENABLED:"false"}),false);
 });
 
 test("live Checkout freezes exact contact price and never treats redirect as payment",()=>{
