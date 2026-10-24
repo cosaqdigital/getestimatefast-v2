@@ -63,5 +63,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
       - name: Synthetic API and routing tests
         run: node --test tests/us-durable-lead-intake.test.js tests/us-legacy-intake-routing.test.js tests/us-mvp-home-pro.test.js tests/us-admin-overview.test.js tests/us-professional-ux.test.js tests/us-profile-origin-referrals.test.js tests/us-referral-auto-pricing.test.js tests/us-admin-password-recovery.test.js tests/us-admin-recovery-ui.test.js tests/stripe-live.test.js
