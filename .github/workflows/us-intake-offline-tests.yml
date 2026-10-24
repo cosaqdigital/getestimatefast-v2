@@ -39,6 +39,9 @@ on:
       - api/stripe-live-webhook.js
       - sql/us_stripe_live_checkout.sql
       - sql/us_stripe_live_capacity_guard.sql
+      - sql/us_stripe_live_refund.sql
+      - supabase/prepared-migrations/20261024_production_stripe_live.sql
+      - tests/production-migration.test.js
       - tests/stripe-live.test.js
       - tests/us-professional-ux.test.js
       - tests/us-profile-origin-referrals.test.js
@@ -66,4 +69,4 @@ jobs:
       - name: Install locked dependencies
         run: npm ci --ignore-scripts
       - name: Synthetic API and routing tests
-        run: node --test tests/us-durable-lead-intake.test.js tests/us-legacy-intake-routing.test.js tests/us-mvp-home-pro.test.js tests/us-admin-overview.test.js tests/us-professional-ux.test.js tests/us-profile-origin-referrals.test.js tests/us-referral-auto-pricing.test.js tests/us-admin-password-recovery.test.js tests/us-admin-recovery-ui.test.js tests/stripe-live.test.js
+        run: node --test tests/us-durable-lead-intake.test.js tests/us-legacy-intake-routing.test.js tests/us-mvp-home-pro.test.js tests/us-admin-overview.test.js tests/us-professional-ux.test.js tests/us-profile-origin-referrals.test.js tests/us-referral-auto-pricing.test.js tests/us-admin-password-recovery.test.js tests/us-admin-recovery-ui.test.js tests/production-migration.test.js tests/stripe-live.test.js
