@@ -973,16 +973,28 @@ function init() {
     button.addEventListener("click", prevStep);
   });
 
-  serviceForm.addEventListener("submit", (event) => {
-    if (!validateStep(state.currentStep)) {
-      event.preventDefault();
-      return;
-    }
+  let photoSubmitInFlight = false;
+  serviceForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (photoSubmitInFlight || !validateStep(state.currentStep)) return;
 
     setDynamicSubject();
     const submitButton = document.getElementById("submitButton");
-    submitButton.disabled = true;
-    submitButton.textContent = "Sending...";
+    const originalLabel = submitButton.textContent;
+    try {
+      photoSubmitInFlight = true;
+      submitButton.disabled = true;
+      submitButton.textContent = "Uploading photos...";
+      if (!window.GetEstimateFastLeadPhotos) await import("/assets/lead-photo-upload.js?v=20261024-photos1");
+      await window.GetEstimateFastLeadPhotos.prepare(serviceForm);
+      submitButton.textContent = "Sending...";
+      HTMLFormElement.prototype.submit.call(serviceForm);
+    } catch (error) {
+      photoSubmitInFlight = false;
+      submitButton.disabled = false;
+      submitButton.textContent = originalLabel;
+      showError(state.currentStep, error?.message || "We couldn't upload your project photos. Please try again.");
+    }
   });
 
   showStep(0);
