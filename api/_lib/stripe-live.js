@@ -12,12 +12,7 @@ function liveConfiguration(env=process.env){
   if(!key.startsWith(SECRET_PREFIX)||key.length<24)throw Error("Stripe live key unavailable");
   if(!secret.startsWith(WEBHOOK_PREFIX)||secret.length<16)throw Error("Stripe live webhook secret unavailable");
   if(!expectedAccountId.startsWith("acct_")||expectedAccountId.length<12)throw Error("Stripe live account unavailable");
-  return {
-    key,
-    secret,
-    expectedAccountId,
-    origin:"https://www.getestimatefast.com"
-  };
+  return {key,secret,expectedAccountId,origin:"https://www.getestimatefast.com"};
 }
 
 function clientFor(key){
@@ -47,14 +42,7 @@ function checkoutParameters(order,origin){
     metadata,
     payment_intent_data:{metadata},
     expires_at:expires,
-    line_items:[{
-      quantity:1,
-      price_data:{
-        currency:"usd",
-        unit_amount:Number(order.amount_cents),
-        product_data:{name:"GetEstimateFast contact"}
-      }
-    }],
+    line_items:[{quantity:1,price_data:{currency:"usd",unit_amount:Number(order.amount_cents),product_data:{name:"GetEstimateFast contact"}}}],
     success_url:origin+"/contractor-portal.html?payment=pending",
     cancel_url:origin+"/contractor-portal.html?payment=canceled"
   };
@@ -111,6 +99,57 @@ async function readRaw(req,limit=262144){
   return Buffer.concat(chunks);
 }
 
+const idOf=value=>typeof value==="string"?value:value?.id;
+
+async function reconcileLiveRefund(order,repository,client){
+  if(!order||!["refund_required","refunded"].includes(order.status))return null;
+  if(order.status==="refunded")return {status:"refunded",contact_release_enabled:false,processor_refund_confirmed:true};
+  const paymentId=String(order.payment_id||"");
+  if(!paymentId.startsWith("pi_"))throw Error("Known live payment required for refund");
+
+  const payment=await client.paymentIntents.retrieve(paymentId);
+  if(payment?.id!==paymentId||payment.livemode!==true||payment.currency!=="usd"||
+     payment.status!=="succeeded"||Number(payment.amount_received)!==Number(order.amount_cents)||
+     payment.metadata?.gef_order_id!==order.id||payment.metadata?.gef_mode!=="live"||
+     payment.metadata?.gef_purpose!=="contact"){
+    throw Error("Refund payment does not match live order");
+  }
+
+  const known=await repository.refund(order.id);
+  const refund=known?.refund_id
+    ? await client.refunds.retrieve(known.refund_id)
+    : await client.refunds.create({
+        payment_intent:paymentId,
+        amount:Number(order.amount_cents),
+        metadata:{gef_order_id:order.id,gef_purpose:"contact",gef_mode:"live"}
+      },{idempotencyKey:"gef-live-refund:"+order.id});
+
+  if(!String(refund?.id||"").startsWith("re_")||
+     idOf(refund.payment_intent)!==paymentId||
+     refund.currency!=="usd"||Number(refund.amount)!==Number(order.amount_cents)){
+    throw Error("Refund does not match verified live payment");
+  }
+
+  if(refund.status!=="succeeded"){
+    return {
+      status:"refund_required",
+      refund_id:refund.id,
+      processor_refund_confirmed:false,
+      contact_release_enabled:false
+    };
+  }
+
+  return repository.confirmRefund({
+    orderId:order.id,
+    refundId:refund.id,
+    paymentId,
+    amount:Number(refund.amount),
+    currency:"USD",
+    mode:"live",
+    status:refund.status
+  });
+}
+
 async function processWebhook(raw,signature,settings,repository,client=clientFor(settings.key)){
   const event=client.webhooks.constructEvent(raw,signature,settings.secret,300);
   if(event.livemode!==true||!String(event.id||"").startsWith("evt_"))throw Error("Live event required");
@@ -130,7 +169,11 @@ async function processWebhook(raw,signature,settings,repository,client=clientFor
   const previous=await repository.event(event.id);
   if(previous){
     if(previous.session_id!==eventSession)throw Error("Event identity conflict");
-    return {received:true,duplicate:true};
+    const priorOrder=await repository.order(previous.order_id);
+    if(priorOrder?.status==="refund_required"){
+      return reconcileLiveRefund(priorOrder,repository,client);
+    }
+    return {received:true,duplicate:true,status:priorOrder?.status};
   }
 
   const session=await client.checkout.sessions.retrieve(eventSession);
@@ -148,10 +191,10 @@ async function processWebhook(raw,signature,settings,repository,client=clientFor
   else if(event.type==="checkout.session.async_payment_failed"&&session.payment_status==="unpaid")outcome="failed";
   else return {received:true,pending:true};
 
-  const payment=typeof session.payment_intent==="string"?session.payment_intent:session.payment_intent?.id;
+  const payment=idOf(session.payment_intent);
   if(outcome==="paid"&&!String(payment||"").startsWith("pi_"))throw Error("Confirmed payment required");
 
-  return repository.confirm({
+  const result=await repository.confirm({
     orderId:order.id,
     eventId:event.id,
     sessionId:session.id,
@@ -161,6 +204,11 @@ async function processWebhook(raw,signature,settings,repository,client=clientFor
     currency:"USD",
     mode:"live"
   });
+
+  if(result?.status==="refund_required"){
+    return reconcileLiveRefund({...order,status:"refund_required",payment_id:payment},repository,client);
+  }
+  return result;
 }
 
 module.exports={
@@ -171,5 +219,6 @@ module.exports={
   assertSession,
   createCheckout,
   readRaw,
+  reconcileLiveRefund,
   processWebhook
 };
