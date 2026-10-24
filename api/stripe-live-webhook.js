@@ -1,13 +1,13 @@
 "use strict";
 const {json,method}=require("./admin/_auth");
-const {livePaymentsApproved}=require("./_lib/stripe-live-policy");
+const {liveWebhookApproved}=require("./_lib/stripe-live-policy");
 const {liveConfiguration,readRaw,processWebhook,clientFor}=require("./_lib/stripe-live");
 const {createLiveRepository}=require("./_lib/stripe-live-repository");
 
 module.exports=async function handler(req,res){
   if(!method(req,res,["POST"]))return;
   if(process.env.VERCEL_ENV!=="production")return json(res,404,{error:"Not found"});
-  if(!livePaymentsApproved())return json(res,503,{error:"Live payment webhook is disabled"});
+  if(!liveWebhookApproved())return json(res,503,{error:"Live payment webhook is disabled"});
   try{
     const settings=liveConfiguration();
     const raw=await readRaw(req);
