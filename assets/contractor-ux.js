@@ -186,7 +186,7 @@ if(dashboardNotice){
  syncDashboardNotice();
 }
 
-function updateLaunchDashboard(p){
+function updateLaunchDashboard(p,publicProfilePublished){
  coming.hidden=capabilities?.marketplace_enabled!==false;
  const complete={
   business:Boolean((p?.business_name||p?.display_name||"").trim()),
@@ -200,7 +200,7 @@ function updateLaunchDashboard(p){
  $("proCompletionValue").textContent=percent+"%";
  $("proServiceAreaValue").textContent=p?.base_zip?(p.base_zip+" · "+(p.service_radius_miles||"—")+" mi"):"Not set";
  $("proAccountValue").textContent=p?.account_status||"Incomplete";
- $("proPublicValue").textContent=capabilities?.marketplace_enabled===false||capabilities?.profile_editing_enabled===false?"Not published":"Ready to configure";
+ $("proPublicValue").textContent=publicProfilePublished===true?"Published":(capabilities?.marketplace_enabled===false||capabilities?.profile_editing_enabled===false?"Not available":"Not published");
  checklist.querySelector(".pro-progress-label").textContent=percent+"% complete";
  progress.firstChild.style.width=percent+"%";
  for(const row of checklist.querySelectorAll("[data-check]")){const doneNow=complete[row.dataset.check]===true;row.classList.toggle("done",doneNow);row.querySelector(".pro-check-mark").textContent=doneNow?"✓":"○";}
@@ -258,7 +258,7 @@ window.addEventListener("gef-profile",e=>{
  referralReload.disabled=capabilities?.marketplace_enabled===false;
  if(capabilities?.marketplace_enabled===false)referralList.replaceChildren(make("p","Profile requests and customer contacts are not open yet."));
  const p=e.detail?.profile,wasReady=hasProfile===true;
- updateLaunchDashboard(p);
+ updateLaunchDashboard(p,e.detail?.public_profile_published===true);
  hasProfile=Boolean(p?.account_status==="active"&&p.base_zip&&p.contact_phone&&p.service_categories?.length);
  queueMicrotask(drawServices);
  if(hasProfile)go(wasReady?current:(views[location.hash.slice(1)]?location.hash.slice(1):"contractorDashboard"));
