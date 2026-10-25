@@ -57,8 +57,17 @@ on:
       - api/reviews/session.js
       - api/reviews/submit.js
       - api/reviews/confirm.js
+      - api/reviews/google-session.js
+      - api/reviews/google-submit.js
+      - api/reviews/auth-start.js
+      - api/reviews/auth-callback.js
+      - api/reviews/logout.js
+      - api/_lib/review-auth.js
+      - review.html
+      - assets/review-form.js
+      - tests/review-google-auth.test.js
       - api/_lib/review-email.js
-      - tests/review-email-flow.test.js
+      - tests/review-email-flow.test.js tests/review-google-auth.test.js
       - supabase/prepared-migrations/us-profile-origin-referrals.sql
       - .github/workflows/us-intake-offline-tests.yml
 permissions:
