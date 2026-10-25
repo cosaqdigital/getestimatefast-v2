@@ -16,7 +16,6 @@ function productionMarketplaceEnabled(env=process.env){
   env.GETESTIMATEFAST_SMS_MODE==="disabled"&&
   env.GETESTIMATEFAST_STRIPE_TEST_CHECKOUT_APPROVED!=="true"&&
   env.GETESTIMATEFAST_STRIPE_TEST_WEBHOOK_ENABLED!=="true"&&
-  (env.GETESTIMATEFAST_REVIEW_GOOGLE_ENABLED!=="true"||env.GETESTIMATEFAST_REVIEW_SCHEMA_APPROVED==="true")&&
   env.GETESTIMATEFAST_ADMIN_RECOVERY_ENABLED!=="true";
 }
 function marketplaceCommercialEnabled(env=process.env){
