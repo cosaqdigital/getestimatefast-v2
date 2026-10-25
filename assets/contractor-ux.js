@@ -264,6 +264,7 @@ window.addEventListener("gef-profile",e=>{
  if(hasProfile)go(wasReady?current:(views[location.hash.slice(1)]?location.hash.slice(1):"contractorDashboard"));
  else go("accountSettingsPanel");
 });
+window.addEventListener("gef-public-profile",e=>{const p=e.detail?.profile;if($("proPublicValue"))$("proPublicValue").textContent=p?.published===true?"Published":"Not published";});
 window.addEventListener("gef-opportunities",e=>{if($("proOpportunityValue"))$("proOpportunityValue").textContent=String(e.detail?.matching_total??0);});
 window.addEventListener("gef-signed-out",()=>{signedIn=false;hasProfile=null;capabilities=null;referralList.replaceChildren();nav.hidden=true;for(const x of Object.values(views))x.hidden=true;selectStep(1);if($("proOpportunityValue"))$("proOpportunityValue").textContent="0";});
 })();
