@@ -13,7 +13,8 @@ function baseEnv(){
     GETESTIMATEFAST_SMS_MODE:"disabled",
     GETESTIMATEFAST_STRIPE_TEST_CHECKOUT_APPROVED:"false",
     GETESTIMATEFAST_STRIPE_TEST_WEBHOOK_ENABLED:"false",
-    GETESTIMATEFAST_ADMIN_RECOVERY_ENABLED:"false"
+    GETESTIMATEFAST_ADMIN_RECOVERY_ENABLED:"false",
+    GETESTIMATEFAST_REVIEW_SCHEMA_APPROVED:"true"
   };
 }
 
@@ -23,6 +24,7 @@ test("Google reviews do not disable the Production marketplace",()=>{
 });
 
 test("unsafe Production gates still disable the marketplace",()=>{
+  assert.equal(productionMarketplaceEnabled({...baseEnv(),GETESTIMATEFAST_REVIEW_GOOGLE_ENABLED:"true",GETESTIMATEFAST_REVIEW_SCHEMA_APPROVED:"false"}),false);
   assert.equal(productionMarketplaceEnabled({...baseEnv(),GETESTIMATEFAST_SMS_MODE:"live"}),false);
   assert.equal(productionMarketplaceEnabled({...baseEnv(),GETESTIMATEFAST_STRIPE_TEST_CHECKOUT_APPROVED:"true"}),false);
   assert.equal(productionMarketplaceEnabled({...baseEnv(),GETESTIMATEFAST_ADMIN_RECOVERY_ENABLED:"true"}),false);
