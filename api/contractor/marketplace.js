@@ -29,6 +29,7 @@ module.exports=async function handler(req,res){
    return json(res,200,{...result,profile_path:"/professionals/"+profile.slug});
   }
   if(action==="review-invitation"){
+   if(!process.env.RESEND_API_KEY)return json(res,503,{error:"Review invitations are temporarily unavailable while email verification is not configured."});
    const token=crypto.randomBytes(32).toString("base64url");
    const purchase=body.purchase_id?uuid(body.purchase_id):null;
    const result=await rpc("gef_create_review_invitation",{p_contractor:user.id,p_hash:tokenHash(token),p_purchase:purchase});
