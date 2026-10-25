@@ -1,1 +1,60 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer"><title>Leave a customer review | GetEstimateFast</title><link rel="stylesheet" href="/assets/marketplace.css"></head><body><header class="topbar"><a href="/">GetEstimateFast</a><span>We Connect. You Decide.</span></header><main class="shell"><section class="panel"><p class="eyebrow">Customer feedback</p><h1>Tell us about your experience</h1><p>Use the invitation shared by your professional. Enter your email so we can confirm the review was submitted by a real customer. Your email stays private and is never shown on the public profile. Reviews are moderated before publication.</p><p id="reviewProfessional"></p><form id="reviewForm" hidden><label>Name to display<input name="display_name" minlength="2" maxlength="80" required autocomplete="name"></label><label>Email for verification<input type="email" name="email" maxlength="254" required autocomplete="email"><small>Your email is used only to verify this review and prevent duplicate reviews.</small></label><label for="reviewRating">Rating</label><select id="reviewRating" name="rating" required><option value="">Choose a rating</option><option value="5">5 — Excellent</option><option value="4">4 — Good</option><option value="3">3 — Average</option><option value="2">2 — Poor</option><option value="1">1 — Very poor</option></select><label>Your experience<textarea name="comment" minlength="10" maxlength="1500" rows="6" required></textarea></label><div class="honeypot" aria-hidden="true"><label>Website<input name="website" tabindex="-1" autocomplete="off"></label></div><label class="check"><input type="checkbox" name="consent" required>I confirm that this review describes my own experience and agree to publish my display name, rating and comment after verification and moderation.</label><button id="submitReview">Email me a confirmation link</button></form><p id="reviewStatus" tabindex="-1" class="status" role="status" aria-live="polite"></p></section></main><script src="/assets/review-form.js?v=20261025-email1" defer></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="referrer" content="no-referrer">
+  <title>Leave a customer review | GetEstimateFast</title>
+  <link rel="stylesheet" href="/assets/marketplace.css">
+</head>
+<body>
+<header class="topbar"><a href="/">GetEstimateFast</a><span>We Connect. You Decide.</span></header>
+<main class="shell">
+<section class="panel">
+  <p class="eyebrow">Customer feedback</p>
+  <h1>Tell us about your experience</h1>
+  <p>Use the invitation shared by your professional. Google sign-in is the fastest way to verify that the review comes from a real customer. Reviews are moderated before publication.</p>
+  <p id="reviewProfessional"></p>
+
+  <div id="googleReviewStart" hidden>
+    <button id="continueGoogle" type="button">Continue with Google</button>
+    <p><small>Your Google identity is used only to verify the review and prevent duplicate or self-reviews. Your email is not displayed publicly.</small></p>
+  </div>
+
+  <form id="googleReviewForm" hidden>
+    <label>Name to display<input name="display_name" minlength="2" maxlength="80" required autocomplete="name"></label>
+    <label for="googleReviewRating">Rating</label>
+    <select id="googleReviewRating" name="rating" required>
+      <option value="">Choose a rating</option><option value="5">5 — Excellent</option><option value="4">4 — Good</option><option value="3">3 — Average</option><option value="2">2 — Poor</option><option value="1">1 — Very poor</option>
+    </select>
+    <label>Your experience<textarea name="comment" minlength="10" maxlength="1500" rows="6" required></textarea></label>
+    <div class="honeypot" aria-hidden="true"><label>Website<input name="website" tabindex="-1" autocomplete="off"></label></div>
+    <label class="check"><input type="checkbox" name="consent" required>I confirm that this review describes my own experience and agree to publish my display name, rating and comment after moderation.</label>
+    <button id="submitGoogleReview">Submit verified review</button>
+  </form>
+
+  <div id="emailFallback" hidden>
+    <p><strong>Don't want to use Google?</strong></p>
+    <button id="showEmailReview" type="button" class="secondary">Use email instead</button>
+  </div>
+
+  <form id="emailReviewForm" hidden>
+    <label>Name to display<input name="display_name" minlength="2" maxlength="80" required autocomplete="name"></label>
+    <label>Email for verification<input type="email" name="email" maxlength="254" required autocomplete="email"><small>We'll send a one-time confirmation link. Your email stays private.</small></label>
+    <label for="emailReviewRating">Rating</label>
+    <select id="emailReviewRating" name="rating" required>
+      <option value="">Choose a rating</option><option value="5">5 — Excellent</option><option value="4">4 — Good</option><option value="3">3 — Average</option><option value="2">2 — Poor</option><option value="1">1 — Very poor</option>
+    </select>
+    <label>Your experience<textarea name="comment" minlength="10" maxlength="1500" rows="6" required></textarea></label>
+    <div class="honeypot" aria-hidden="true"><label>Website<input name="website" tabindex="-1" autocomplete="off"></label></div>
+    <label class="check"><input type="checkbox" name="consent" required>I confirm that this review describes my own experience and agree to publish my display name, rating and comment after verification and moderation.</label>
+    <button id="submitEmailReview">Email me a confirmation link</button>
+  </form>
+
+  <p id="reviewStatus" tabindex="-1" class="status" role="status" aria-live="polite"></p>
+</section>
+</main>
+<script src="/assets/review-form.js?v=20261025-hybrid1" defer></script>
+</body>
+</html>
