@@ -1,14 +1,35 @@
 (()=>{"use strict";
-const form=document.getElementById("reviewForm"),status=document.getElementById("reviewStatus"),submit=document.getElementById("submitReview"),login=document.getElementById("googleReviewLogin"),logout=document.getElementById("reviewLogout"),profile=document.getElementById("reviewProfessional");
-let token=location.hash.slice(1),csrf="";
-const alreadyMessage="You've already reviewed this professional. Thank you for sharing your experience. Each Google account can submit one review per professional.";
+const form=document.getElementById("reviewForm"),status=document.getElementById("reviewStatus"),submit=document.getElementById("submitReview"),profile=document.getElementById("reviewProfessional");
+let token=location.hash.slice(1);
 if(token&&!/^[A-Za-z0-9_-]{43}$/.test(token))token="";
 if(location.hash)history.replaceState(null,"",location.pathname+location.search);
 const say=(message,focus=false)=>{status.textContent=message;if(focus)status.focus();};
-async function api(path,body){const r=await fetch("/api/reviews/"+path,{method:body?"POST":"GET",headers:body?{"Content-Type":"application/json"}:{},body:body?JSON.stringify({...body,csrf}):undefined,cache:"no-store"});const d=await r.json();if(!r.ok){const e=Error(d.error||"Review service temporarily unavailable.");e.code=d.code;throw e;}return d;}
-async function refresh(){const s=await api("session");csrf=s.csrf;profile.textContent=s.profile&&!token?"Review "+s.profile.display_name:"";const reviewed=Boolean(s.authenticated&&s.profile&&!token&&s.already_reviewed===true),ready=s.authenticated&&s.profile&&!token&&!reviewed;form.hidden=!ready;if(ready)submit.disabled=false;login.hidden=Boolean(ready||reviewed);logout.hidden=!s.authenticated;login.disabled=!token&&!s.profile;if(reviewed){form.reset();say(alreadyMessage,true);}else if(!token&&!s.profile)say("Open the exclusive review invitation shared by your professional.");else if(new URLSearchParams(location.search).get("auth")==="cancelled")say("Google sign-in was not completed. You can try again.");else say(ready?"Your email stays private. Choose the name you want to publish.":"Continue with Google to leave your review. No password or additional signup is required.");}
-login.onclick=async()=>{login.disabled=true;try{const s=await api("auth-start",token?{token}:{});location.assign(s.redirect);}catch(e){say(e.message,true);login.disabled=false;}};
-logout.onclick=async()=>{logout.disabled=true;try{await api("logout",{});await refresh();say("Signed out. Continue with Google to choose an account.");}catch(e){say(e.message,true);}finally{logout.disabled=false;}};
-form.onsubmit=async e=>{e.preventDefault();submit.disabled=true;const f=new FormData(form);try{await api("submit",{display_name:f.get("display_name"),rating:Number(f.get("rating")),comment:f.get("comment"),website:f.get("website"),consent:f.get("consent")==="on"});form.reset();form.hidden=true;login.hidden=true;say("Thank you. Your review is pending administrative moderation.",true);}catch(e){if(e.code==="review_already_submitted"){form.reset();form.hidden=true;login.hidden=true;say(alreadyMessage,true);}else{say(e.message,true);submit.disabled=false;}}};
-refresh().catch(e=>{form.hidden=true;login.disabled=true;say(e.message);});
+async function json(url,options){const r=await fetch(url,{...options,cache:"no-store"});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||"Review service temporarily unavailable.");return d;}
+async function load(){
+ if(!token){say("Open the exclusive review invitation shared by your professional.",true);return;}
+ try{
+  const data=await json("/api/reviews/session?token="+encodeURIComponent(token));
+  profile.textContent="Review "+data.profile.display_name;
+  form.hidden=false;
+  say("Your email stays private. After submitting, check your inbox to confirm the review.");
+ }catch(e){form.hidden=true;say(e.message,true);}
+}
+form.onsubmit=async e=>{
+ e.preventDefault();submit.disabled=true;
+ const f=new FormData(form);
+ try{
+  const data=await json("/api/reviews/submit",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+   token,
+   display_name:f.get("display_name"),
+   email:f.get("email"),
+   rating:Number(f.get("rating")),
+   comment:f.get("comment"),
+   website:f.get("website"),
+   consent:f.get("consent")==="on"
+  })});
+  form.reset();form.hidden=true;token="";
+  say(data.message||"Check your email to confirm your review.",true);
+ }catch(e){say(e.message,true);submit.disabled=false;}
+};
+load();
 })();
