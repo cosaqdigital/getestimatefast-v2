@@ -20,6 +20,7 @@ function productionEnv(overrides={}){
     GETESTIMATEFAST_STRIPE_TEST_CHECKOUT_APPROVED:"false",
     GETESTIMATEFAST_STRIPE_TEST_WEBHOOK_ENABLED:"false",
     GETESTIMATEFAST_REVIEW_GOOGLE_ENABLED:"false",
+    GETESTIMATEFAST_REVIEW_SCHEMA_APPROVED:"true",
     GETESTIMATEFAST_ADMIN_RECOVERY_ENABLED:"false",
     ...overrides
   };
@@ -30,6 +31,8 @@ test("production marketplace requires explicit exact production gates",()=>{
   assert.equal(productionMarketplaceEnabled(ok),true);
   assert.equal(marketplaceCommercialEnabled(ok),true);
 
+  assert.equal(productionMarketplaceEnabled(productionEnv({GETESTIMATEFAST_REVIEW_GOOGLE_ENABLED:"true"})),true);
+
   for(const bad of [
     {GETESTIMATEFAST_MARKETPLACE_PRODUCTION_ENABLED:"false"},
     {GETESTIMATEFAST_MARKETPLACE_SCHEMA_APPROVED:"false"},
@@ -38,7 +41,7 @@ test("production marketplace requires explicit exact production gates",()=>{
     {GETESTIMATEFAST_SMS_MODE:"dry_run"},
     {GETESTIMATEFAST_STRIPE_TEST_CHECKOUT_APPROVED:"true"},
     {GETESTIMATEFAST_STRIPE_TEST_WEBHOOK_ENABLED:"true"},
-    {GETESTIMATEFAST_REVIEW_GOOGLE_ENABLED:"true"},
+    {GETESTIMATEFAST_REVIEW_GOOGLE_ENABLED:"true",GETESTIMATEFAST_REVIEW_SCHEMA_APPROVED:"false"},
     {GETESTIMATEFAST_ADMIN_RECOVERY_ENABLED:"true"}
   ]){
     assert.equal(productionMarketplaceEnabled(productionEnv(bad)),false,JSON.stringify(bad));
