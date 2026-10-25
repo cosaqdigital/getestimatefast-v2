@@ -10,7 +10,8 @@ module.exports=async function handler(req,res){
   const path="contractor_profiles?user_id=eq."+encodeURIComponent(user.id);
   if(req.method==="GET"){
    const rows=await queryDb(path+"&select=user_id,display_name,business_name,contact_phone,contact_email,base_zip,city,state_code,service_radius_miles,service_categories,bio,account_status,email_verified_at,sms_opt_in,created_at,updated_at&limit=1");
-   return json(res,200,{profile:rows[0]||null,categories:CATEGORIES,capabilities:{
+   const publicRows=rows[0]?await queryDb("contractor_public_profiles?contractor_id=eq."+encodeURIComponent(user.id)+"&select=published&limit=1"):[];
+   return json(res,200,{profile:rows[0]||null,public_profile_published:publicRows[0]?.published===true,categories:CATEGORIES,capabilities:{
     marketplace_enabled:marketplaceCommercialEnabled(),
     profile_editing_enabled:process.env.CONTRACTOR_PROFILE_EDITING_ENABLED==="true",
     payments_enabled:livePaymentsApproved(),live_sms_enabled:false
