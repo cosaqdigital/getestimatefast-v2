@@ -67,7 +67,7 @@ on:
       - tests/production-release-safety.test.js
       - review.html
       - assets/review-form.js
-      - tests/review-google-auth.test.js
+      - tests/review-google-auth.test.js tests/marketplace-access-flags.test.js
       - api/_lib/review-email.js
       - tests/review-email-flow.test.js
       - tests/review-google-auth.test.js
