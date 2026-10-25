@@ -2,7 +2,7 @@
 const {json,method,readJson,queryDb}=require("../admin/_auth");
 const {marketplaceReady}=require("../_lib/marketplace-access");
 const {tokenHash,text}=require("../_lib/public-profile-policy");
-const {normalizeEmail,validEmail,identityHash,createVerificationToken,trustedIp,requestHash,sendVerificationEmail}=require("../_lib/review-email");
+const {normalizeEmail,validEmail,matchesOwnedEmail,identityHash,createVerificationToken,trustedIp,requestHash,sendVerificationEmail}=require("../_lib/review-email");
 
 const rpc=(name,payload)=>queryDb("rpc/"+name,{method:"POST",body:JSON.stringify(payload)});
 
@@ -18,6 +18,15 @@ module.exports=async function handler(req,res){
     const invite=String(body.token||"");
     if(!/^[A-Za-z0-9_-]{43}$/.test(invite))return json(res,400,{error:"Invalid review invitation."});
     const email=normalizeEmail(body.email);
+    const inviteContext=await rpc("gef_review_invitation_context",{p_hash:tokenHash(invite)});
+    if(!inviteContext?.contractor_id)return json(res,409,{error:"This review invitation is unavailable or expired."});
+    const [ownerRows,publicRows]=await Promise.all([
+      queryDb("contractor_profiles?user_id=eq."+encodeURIComponent(inviteContext.contractor_id)+"&select=contact_email&limit=1"),
+      queryDb("contractor_public_profiles?contractor_id=eq."+encodeURIComponent(inviteContext.contractor_id)+"&select=public_email&limit=1")
+    ]);
+    if(matchesOwnedEmail(email,[ownerRows?.[0]?.contact_email,publicRows?.[0]?.public_email])){
+      return json(res,409,{error:"Professionals cannot review their own public profile."});
+    }
     if(!validEmail(email)||!Number.isInteger(body.rating)||body.rating<1||body.rating>5||body.consent!==true)
       return json(res,400,{error:"Enter a valid email, choose a rating and confirm that this review describes your own experience."});
     let displayName,comment;

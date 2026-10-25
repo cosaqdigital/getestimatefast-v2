@@ -6,6 +6,7 @@ const EMAIL=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function normalizeEmail(value){return String(value||"").trim().toLowerCase();}
 function validEmail(value){const email=normalizeEmail(value);return email.length>=5&&email.length<=254&&EMAIL.test(email);}
+function matchesOwnedEmail(value,candidates){const email=normalizeEmail(value);return Array.isArray(candidates)&&candidates.some(candidate=>normalizeEmail(candidate)===email&&email.length>0);}
 function identityHash(email,secret){
   if(typeof secret!=="string"||secret.length<32)throw Error("Review identity secret is not configured");
   return crypto.createHmac("sha256",secret).update(normalizeEmail(email)).digest("hex");
@@ -57,4 +58,4 @@ async function sendVerificationEmail({to,professionalName,verificationUrl,review
     return response.ok;
   }catch{return false;}
 }
-module.exports={normalizeEmail,validEmail,identityHash,createVerificationToken,hashVerificationToken,trustedIp,requestHash,sendVerificationEmail};
+module.exports={normalizeEmail,validEmail,matchesOwnedEmail,identityHash,createVerificationToken,hashVerificationToken,trustedIp,requestHash,sendVerificationEmail};

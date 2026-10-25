@@ -2,7 +2,7 @@
 const test=require("node:test");
 const assert=require("node:assert/strict");
 const crypto=require("node:crypto");
-const {normalizeEmail,validEmail,identityHash,createVerificationToken,hashVerificationToken}=require("../api/_lib/review-email");
+const {normalizeEmail,validEmail,matchesOwnedEmail,identityHash,createVerificationToken,hashVerificationToken}=require("../api/_lib/review-email");
 
 test("review email normalization and validation",()=>{
   assert.equal(normalizeEmail(" Customer@Example.COM "),"customer@example.com");
@@ -26,4 +26,10 @@ test("review verification tokens are random and hashable",()=>{
   assert.equal(hashVerificationToken(first.token),first.tokenHash);
   assert.notEqual(first.token,second.token);
   assert.equal(hashVerificationToken("bad"),null);
+});
+
+
+test("self-review guard matches normalized professional emails",()=>{
+  assert.equal(matchesOwnedEmail("Owner@Example.com",[" owner@example.com ",null]),true);
+  assert.equal(matchesOwnedEmail("customer@example.com",["owner@example.com"]),false);
 });
