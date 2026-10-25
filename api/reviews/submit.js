@@ -11,6 +11,7 @@ module.exports=async function handler(req,res){
   try{
     if(!marketplaceReady(req,res))return;
     const origin=new URL(process.env.GETESTIMATEFAST_PUBLIC_ORIGIN||"https://www.getestimatefast.com").origin;
+    if(!process.env.RESEND_API_KEY)return json(res,503,{error:"Review email verification is temporarily unavailable."});
     if(String(req.headers.origin||"")!==origin)return json(res,403,{error:"Please reopen the review invitation and try again."});
     const body=await readJson(req,7000);
     if(body.website)return json(res,202,{pending_verification:true});
