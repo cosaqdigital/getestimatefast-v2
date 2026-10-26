@@ -13,3 +13,14 @@ test("expired opportunities are separated without exposing contacts",()=>{
  const expired={...o,commercial:{available:false,reason:"expired"}};
  assert(!matchesFilters(expired,p,parseFilters({}),lookup));assert(matchesFilters(expired,p,parseFilters({availability:"expired"}),lookup));assert(!matchesFilters(o,p,parseFilters({availability:"expired"}),lookup));
 });
+
+test("direct opportunity filter narrows but never expands access",()=>{
+ const id="123e4567-e89b-42d3-a456-426614174000";
+ const other="123e4567-e89b-42d3-a456-426614174001";
+ const direct=parseFilters({opportunity_id:id});
+ assert.equal(direct.opportunity_id,id);
+ assert(matchesFilters({...o,opportunity_id:id},p,direct,lookup));
+ assert(!matchesFilters({...o,opportunity_id:other},p,direct,lookup));
+ assert(!matchesFilters({...o,opportunity_id:id,service_category:"Flooring"},p,direct,lookup));
+ assert.throws(()=>parseFilters({opportunity_id:"not-a-uuid"}));
+});
