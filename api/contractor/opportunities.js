@@ -69,11 +69,15 @@ async function attachProjectPhotos(items){
  for(const item of items){
   const leadId=byOpportunity.get(item.opportunity_id);
   const details=detailsByLead.get(leadId)||{};
+  item.project_details=publicProjectDetails(details);
   const paths=parsePhotoPaths(details["Project Photo Paths"],details["Submission Token"]);
   pathsByOpportunity.set(item.opportunity_id,paths);
   allPaths.push(...paths);
  }
- if(!allPaths.length)return;
+ if(!allPaths.length){
+  for(const item of items){item.photos=[];item.photo_count=0;}
+  return;
+ }
  const {url,secret}=config();
  const signed=await signPhotoUrls(url,secret,[...new Set(allPaths)],900);
  const signedByPath=new Map(signed.map(photo=>[photo.path,photo.url]));
