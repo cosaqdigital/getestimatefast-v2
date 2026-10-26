@@ -1,5 +1,5 @@
 const {json,method,requireAdmin,fail}=require("./_auth");
-const {readiness,normalizeUsPhone,prepareZenviaUsPayload}=require("../_lib/zenvia-us-provider");
+const {readiness,normalizeUsPhone,prepareTelnyxPayload}=require("../_lib/telnyx-us-provider");
 module.exports=async function handler(req,res){
  if(!method(req,res,["GET"]))return;
  try{
@@ -7,8 +7,12 @@ module.exports=async function handler(req,res){
   const status=readiness();
   return json(res,200,{...status,example:{
     recipient_valid:!!normalizeUsPhone("+1 813 555 0134"),
-    payload_structure_valid:!!prepareZenviaUsPayload({senderId:"PREVIEW",phone:"+1 813 555 0134",city:"Riverview"}),
-    customer_details_included:false
+    payload_structure_valid:!!prepareTelnyxPayload({
+      from:"+1 813 303 9893",phone:"+1 813 555 0134",city:"Riverview",
+      opportunityId:"123e4567-e89b-42d3-a456-426614174000"
+    }),
+    customer_details_included:false,
+    direct_opportunity_link:true
   }});
  }catch(e){fail(res,e);}
 };

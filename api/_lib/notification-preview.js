@@ -1,7 +1,7 @@
 "use strict";
-function formatOpportunityNotification(city) {
-  if (typeof city !== "string" || !/^[A-Za-z][A-Za-z .-]{1,79}$/.test(city.trim())) throw Error("Invalid city");
-  return "GetEstimateFast: New service opportunity near " + city.trim() + ", FL. Sign in to view details. Reply STOP to opt out.";
+const {formatTelnyxOpportunityNotice}=require("./telnyx-us-provider");
+function formatOpportunityNotification(city,opportunityId) {
+  return formatTelnyxOpportunityNotice({city,opportunityId});
 }
 function simulate(recipients) {
   if (!Array.isArray(recipients) || recipients.length > 5) throw Error("Invalid recipient list");

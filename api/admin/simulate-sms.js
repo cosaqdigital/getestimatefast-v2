@@ -15,7 +15,7 @@ module.exports=async function handler(req,res){
   if(leads[0]?.status!=="published")return json(res,409,{error:"Opportunity not currently published"});
   const assignments=await queryDb("opportunity_matching_recipients?opportunity_id=eq."+encodeURIComponent(opportunity.id)+"&select=id,contractor_user_id&limit=26");
   if(assignments.length>25)return json(res,503,{error:"Recipient cap exceeded"});
-  const text=formatOpportunityNotification(opportunity.city);
+  const text=formatOpportunityNotification(opportunity.city,opportunity.id);
   const ids=assignments.map(x=>x.contractor_user_id);
   const profiles=ids.length?await queryDb("contractor_profiles?user_id=in.("+ids.map(encodeURIComponent).join(",")+")&select=user_id,account_status,email_verified_at,sms_opt_in,sms_opt_in_at"): [];
   const existing=assignments.length?await queryDb("opportunity_sms_simulations?matching_recipient_id=in.("+assignments.map(a=>a.id).join(",")+")&select=matching_recipient_id,status"):[];

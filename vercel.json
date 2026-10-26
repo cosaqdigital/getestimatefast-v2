@@ -10,6 +10,10 @@
   },
   "rewrites": [
     {
+      "source": "/o/:opportunity_id",
+      "destination": "/contractor-portal.html?opportunity=:opportunity_id"
+    },
+    {
       "source": "/professionals/:slug",
       "destination": "/api/public-profile?slug=:slug&format=html"
     }
