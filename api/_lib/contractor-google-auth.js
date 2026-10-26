@@ -44,6 +44,15 @@ async function hasProfessionalRecord(userId){
  ]);
  return Boolean(profiles[0]||consents[0]);
 }
+function accessTokenForRequest(req){
+ try{
+  const c=settings(),state=stateFor(req,c);
+  for(const value of Object.values(state.kv||{})){
+   try{const parsed=JSON.parse(value);if(typeof parsed?.access_token==="string"&&parsed.access_token.length>20)return parsed.access_token;}catch{}
+  }
+ }catch{}
+ return "";
+}
 function wrap(allowed,fn){return async(req,res)=>{if(!method(req,res,allowed))return;let c,state;try{c=settings();state=stateFor(req,c);await fn(req,res,state,c,clientFor(state,c));}catch(e){json(res,e.status||503,{error:e instanceof ContractorGoogleError?e.message:"Google sign-in is temporarily unavailable."});}};}
 function handlers(){
  return{
@@ -80,6 +89,7 @@ function handlers(){
    if(result!=="success")state.kv={};
    save(res,state,c);res.statusCode=303;res.setHeader("Cache-Control","no-store");res.setHeader("Location",c.origin+"/contractor-portal.html?google="+result);res.end();
   }),
+  logout:wrap(["POST"],async(req,res,state,c)=>{sameOrigin(req,c);state.kv={};clear(res);json(res,200,{signed_out:true});}),
   session:wrap(["GET"],async(req,res,state,c,client)=>{
    const {data,error}=await client.auth.getSession();
    if(error||!data?.session?.access_token)throw new ContractorGoogleError(401,"Google session not found.");
@@ -90,4 +100,4 @@ function handlers(){
   })
  };
 }
-module.exports={handlers,seal,open,googleAvailable,COOKIE};
+module.exports={handlers,seal,open,googleAvailable,accessTokenForRequest,COOKIE};
