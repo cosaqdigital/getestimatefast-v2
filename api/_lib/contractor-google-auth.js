@@ -14,7 +14,7 @@ function settings(){
  if(typeof secret!=="string"||secret.length<43)throw new ContractorGoogleError(503,"Google sign-in is not configured.");
  const u=new URL(process.env.GETESTIMATEFAST_PUBLIC_ORIGIN||"https://www.getestimatefast.com");
  if(u.protocol!=="https:"||u.username||u.password||u.search||u.hash||u.pathname!=="/")throw new ContractorGoogleError(503,"Portal origin is not configured.");
- return {...c,origin:u.origin,key:crypto.createHash("sha256").update(secret).digest()};
+ return {...c,origin:u.origin,key:crypto.createHash("sha256").update("contractor-google-v1:"+secret).digest()};
 }
 function seal(state,key){const iv=crypto.randomBytes(12),cipher=crypto.createCipheriv("aes-256-gcm",key,iv);const data=Buffer.concat([cipher.update(JSON.stringify(state)),cipher.final()]);return Buffer.concat([iv,cipher.getAuthTag(),data]).toString("base64url");}
 function open(value,key){try{const b=Buffer.from(value,"base64url"),d=crypto.createDecipheriv("aes-256-gcm",key,b.subarray(0,12));d.setAuthTag(b.subarray(12,28));const state=JSON.parse(Buffer.concat([d.update(b.subarray(28)),d.final()]));if(!state||state.exp<=Date.now()||!state.kv||Array.isArray(state.kv))throw Error();return state;}catch{return null;}}
