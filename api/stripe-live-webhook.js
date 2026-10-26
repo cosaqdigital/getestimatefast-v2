@@ -2,6 +2,7 @@
 const {json,method}=require("./admin/_auth");
 const {liveWebhookApproved}=require("./_lib/stripe-live-policy");
 const {liveConfiguration,readRaw,processWebhook,clientFor}=require("./_lib/stripe-live");
+const {processTopupWebhook}=require("./_lib/stripe-live-topup");
 const {createLiveRepository}=require("./_lib/stripe-live-repository");
 
 module.exports=async function handler(req,res){
@@ -12,13 +13,12 @@ module.exports=async function handler(req,res){
     const settings=liveConfiguration();
     const raw=await readRaw(req);
     const repository=createLiveRepository();
-    const result=await processWebhook(
-      raw,
-      req.headers["stripe-signature"],
-      settings,
-      repository,
-      clientFor(settings.key)
-    );
+    const client=clientFor(settings.key);
+    const event=client.webhooks.constructEvent(raw,req.headers["stripe-signature"],settings.secret,300);
+    const purpose=event?.data?.object?.metadata?.gef_purpose;
+    const result=purpose==="wallet_topup"
+      ? await processTopupWebhook(raw,req.headers["stripe-signature"],settings,repository,client)
+      : await processWebhook(raw,req.headers["stripe-signature"],settings,repository,client);
     if(result?.pending===true)return json(res,503,{error:"Payment is not confirmed yet; retry required"});
     return json(res,200,result);
   }catch(error){
