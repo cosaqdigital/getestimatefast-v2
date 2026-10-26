@@ -34,13 +34,13 @@ module.exports=async function handler(req,res){
     persisted=Array.isArray(saved)&&saved.length===1;
    }catch{console.error("GetEstimateFast signup consent persistence failed.");}
   }
-  if(persisted){try{await notifyContractorSignup(email);}catch{console.error("GetEstimateFast contractor signup notification failed.");}}
+  if(persisted){try{await notifyContractorSignup(email,phone,data.smsOptIn);}catch{console.error("GetEstimateFast contractor signup notification failed.");}}
   return json(res,202,{message:"If this address can register, a confirmation email will be sent. Check your inbox."});
  }catch(e){fail(res,e);}
 };
 
 
-async function notifyContractorSignup(email){
+async function notifyContractorSignup(email,phone="",smsOptIn=false){
  const apiKey=process.env.RESEND_API_KEY;
  const to=String(process.env.CONTRACTOR_NOTIFICATION_TO_EMAIL||"").trim();
  if(!apiKey||!to){console.error("GetEstimateFast contractor signup notification not configured.");return false;}
@@ -50,6 +50,8 @@ async function notifyContractorSignup(email){
   "A new professional registration was submitted on GetEstimateFast.",
   "",
   "Email: "+email,
+  "Mobile phone: "+phone,
+  "Opportunity SMS consent: "+(smsOptIn?"Yes":"No"),
   "Status: Email confirmation pending",
   "Source: Professional Portal",
   "Time: "+new Date().toISOString()
