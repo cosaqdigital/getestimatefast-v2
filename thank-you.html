@@ -24,6 +24,32 @@
   <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"WebPage","name":"Your request has been received.","description":"Your request has been submitted to GetEstimateFast. Learn what happens next and explore more services.","url":"https://www.getestimatefast.com/thank-you.html","isPartOf":{"@type":"WebSite","name":"GetEstimateFast","url":"https://www.getestimatefast.com/"}}
   </script>
+
+  <script>
+    (function () {
+      var pixelId = "1444720010946620";
+      if (!pixelId) return;
+      !function(f,b,e,v,n,t,s){
+        if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)
+      }(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', pixelId);
+      fbq('track', 'PageView');
+
+      var params = new URLSearchParams(window.location.search);
+      var eventId = params.get('gef_event_id');
+      if (eventId) {
+        fbq('track', 'Lead', {}, { eventID: eventId });
+        params.delete('gef_event_id');
+        var clean = window.location.pathname + (params.toString() ? '?' + params.toString() : '') + window.location.hash;
+        window.history.replaceState({}, document.title, clean);
+      }
+    })();
+  </script>
 </head>
 <body>
   <header class="site-header">
