@@ -51,7 +51,20 @@ async function loadOpportunities(append=false){
   const view=document.createElement("button");view.type="button";view.className="secondary";view.textContent="View Details";
   const details=document.createElement("div");details.hidden=true;details.className="pro-opportunity-details";
   const summary=document.createElement("p");summary.textContent=item.public_summary;
-  const privacy=document.createElement("p");privacy.textContent="Customer name, phone and email remain private until the contact is purchased and payment is confirmed.";
+  const detailEntries=Object.entries(item.project_details||{}).filter(([,value])=>value!==null&&value!==undefined&&String(value).trim()!=="");
+  if(detailEntries.length){
+    const project=document.createElement("div");project.className="pro-project-details";
+    const heading=document.createElement("h3");heading.textContent="Project details";project.append(heading);
+    const grid=document.createElement("div");grid.className="pro-project-grid";
+    for(const [key,value] of detailEntries){
+      const entry=document.createElement("div");entry.className="pro-project-item";
+      const label=document.createElement("span");label.textContent=key;
+      const text=document.createElement("p");text.textContent=Array.isArray(value)?value.join(", "):String(value);
+      entry.append(label,text);grid.append(entry);
+    }
+    project.append(grid);details.append(summary,project);
+  }else details.append(summary);
+  const privacy=document.createElement("p");privacy.textContent="Customer name, phone, email and preferred contact method remain private until the contact is purchased and payment is confirmed.";
   const purchase=document.createElement("button");purchase.type="button";
   if(item.origin_free){
     purchase.disabled=true;
@@ -81,7 +94,7 @@ async function loadOpportunities(append=false){
     purchase.disabled=true;
     purchase.textContent="Contact purchases are not enabled";
   }
-  details.append(summary);renderProjectPhotos(details,item);details.append(privacy,purchase);
+  renderProjectPhotos(details,item);details.append(privacy,purchase);
   view.addEventListener("click",()=>{details.hidden=!details.hidden;view.textContent=details.hidden?"View Details":"Hide Details";});
   card.append(title,status,date,photoCount,price,view,details);
   el("opportunityCards").appendChild(card);
