@@ -37,3 +37,16 @@ test("public opportunity details expose useful scope fields but never customer P
   assert.equal(Object.prototype.hasOwnProperty.call(safe,blocked),false);
  }
 });
+
+test("opportunity response binding keeps safe details available without photos",()=>{
+ const safe=opportunities.publicProjectDetails({
+  "Project Description":"Replace damaged drywall in living room.",
+  "Timeline":"Within 30 days",
+  "Full Name":"Private Customer",
+  "Project Photo Paths":"[]",
+  "Submission Token":"00000000-0000-4000-8000-000000000000"
+ });
+ assert.equal(safe["Project Description"],"Replace damaged drywall in living room.");
+ assert.equal(safe["Timeline"],"Within 30 days");
+ assert.equal(safe["Full Name"],undefined);
+});
