@@ -168,9 +168,9 @@ why.append(
 readiness.append(checklist,why);
 
 const coming=make("section",undefined,"pro-coming");
-coming.append(make("h2","Coming soon to your account"),make("p","Some optional account features are still being expanded. Your core marketplace access remains available."));
+coming.append(make("h2","More tools coming to your account"),make("p","Your core marketplace, wallet, customer contact and purchase history are available. We are continuing to expand optional business tools."));
 const comingGrid=make("div",undefined,"pro-coming-grid");
-for(const [title,text] of [["Marketplace Opportunities","Browse local home-service requests."],["Wallet & Payments","Manage credits and payments when enabled."],["Customer Contact","Access approved customer contacts through the secure platform."],["Purchase History","Review future contact transactions and status."]]){const card=make("article",undefined,"pro-coming-card");card.append(make("strong",title),make("p",text),make("span","Coming Soon","pro-pill"));comingGrid.append(card);}
+for(const [title,text] of [["Referral rewards","Earn promotional credits from eligible professional referrals when this program launches."],["Saved payment preferences","Make repeat checkout faster while keeping payment details with the payment processor."],["Opportunity alerts","Expand notification options as messaging channels are approved."],["Business insights","Review more marketplace activity and performance trends over time."]]){const card=make("article",undefined,"pro-coming-card");card.append(make("strong",title),make("p",text),make("span","Planned","pro-pill"));comingGrid.append(card);}
 coming.append(comingGrid);
 
 dash.prepend(hero,summary,readiness,coming);
