@@ -17,6 +17,32 @@ module.exports=async function handler(req,res){
   const {url,publishable}=config();
   const response=await fetch(url+"/auth/v1/signup",{method:"POST",headers:{"Content-Type":"application/json",apikey:publishable},body:JSON.stringify({email,password}),signal:AbortSignal.timeout(10000)});
   if(!response.ok){console.warn("Contractor signup unsuccessful:",response.status);return json(res,429,{error:"We could not complete signup. Please wait and try again."});}
+  try{await notifyContractorSignup(email);}catch{console.error("GetEstimateFast contractor signup notification failed.");}
   return json(res,202,{message:"If this address can register, a confirmation email will be sent. Check your inbox."});
  }catch(e){fail(res,e);}
 };
+
+
+async function notifyContractorSignup(email){
+ const apiKey=process.env.RESEND_API_KEY;
+ const to=String(process.env.CONTRACTOR_NOTIFICATION_TO_EMAIL||"").trim();
+ if(!apiKey||!to){console.error("GetEstimateFast contractor signup notification not configured.");return false;}
+ const from=String(process.env.CONTRACTOR_NOTIFICATION_FROM_EMAIL||"GetEstimateFast Contractors <contractors@getestimatefast.com>").trim();
+ const subject="New professional registration - "+email;
+ const text=[
+  "A new professional registration was submitted on GetEstimateFast.",
+  "",
+  "Email: "+email,
+  "Status: Email confirmation pending",
+  "Source: Professional Portal",
+  "Time: "+new Date().toISOString()
+ ].join("\n");
+ const response=await fetch("https://api.resend.com/emails",{
+  method:"POST",
+  headers:{Authorization:"Bearer "+apiKey,"Content-Type":"application/json"},
+  body:JSON.stringify({from,to:[to],subject,text})
+ });
+ if(!response.ok){console.error("GetEstimateFast contractor signup notification provider failed:",response.status);return false;}
+ return true;
+}
+module.exports.notifyContractorSignup=notifyContractorSignup;
