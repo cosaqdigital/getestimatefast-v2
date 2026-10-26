@@ -1,4 +1,4 @@
-const {normalizeUsPhone}=require("../_lib/zenvia-us-provider");
+const {normalizeUsPhone}=require("../_lib/telnyx-us-provider");
 const {marketplaceCommercialEnabled}=require("../_lib/marketplace-access");
 const {livePaymentsApproved}=require("../_lib/stripe-live-policy");
 const {json,method,readJson,queryDb,fail,CATEGORIES,userFor}=require("./_shared");
