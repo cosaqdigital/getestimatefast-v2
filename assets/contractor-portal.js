@@ -80,7 +80,7 @@ async function loadOpportunities(append=false){
  el("moreOpportunities").hidden=d.opportunities.length<25;
  if(!d.opportunities.length&&!append)el("opportunityCards").textContent=directOpportunity?"This opportunity is unavailable or does not match your professional profile.":"No matching opportunities have been published yet.";
  if(directOpportunity&&!append&&d.opportunities.some(item=>item.opportunity_id===directOpportunity)){
-  const target=el("opportunityCards").querySelector("[data-opportunity-id=\\""+CSS.escape(directOpportunity)+"\\"]");
+  const target=el("opportunityCards").querySelector('[data-opportunity-id="'+CSS.escape(directOpportunity)+'"]');
   target?.scrollIntoView({block:"center",behavior:"smooth"});
   say("Opportunity opened from your GetEstimateFast alert.");
  }
