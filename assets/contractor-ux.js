@@ -261,8 +261,16 @@ window.addEventListener("gef-profile",e=>{
  updateLaunchDashboard(p,e.detail?.public_profile_published===true);
  hasProfile=Boolean(p?.account_status==="active"&&p.base_zip&&p.contact_phone&&p.service_categories?.length);
  queueMicrotask(drawServices);
- if(hasProfile)go(wasReady?current:(views[location.hash.slice(1)]?location.hash.slice(1):"contractorDashboard"));
- else go("accountSettingsPanel");
+ if(hasProfile){
+  const justCompleted=!wasReady;
+  const destination=justCompleted?"opportunityPanel":(views[location.hash.slice(1)]?location.hash.slice(1):(current||"contractorDashboard"));
+  go(destination);
+  if(justCompleted){
+   try{history.replaceState(null,"","#opportunityPanel");}catch{}
+   queueMicrotask(()=>$("loadOpportunities")?.click());
+   window.GetEstimateFastPortal?.say?.("Business profile saved. Your matching opportunities are ready below.");
+  }
+ }else go("accountSettingsPanel");
 });
 window.addEventListener("gef-public-profile",e=>{const p=e.detail?.profile;if($("proPublicValue"))$("proPublicValue").textContent=p?.published===true?"Published":"Not published";});
 window.addEventListener("gef-opportunities",e=>{if($("proOpportunityValue"))$("proOpportunityValue").textContent=String(e.detail?.matching_total??0);});
