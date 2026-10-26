@@ -66,7 +66,7 @@ function handlers(){
     if(!smsPhone||phone.length>35||body.privacyConsent!==true||body.termsConsent!==true||typeof body.smsOptIn!=="boolean")throw new ContractorGoogleError(400,"Enter a valid US mobile number and accept the Privacy Policy and Terms of Use.");
     state.signup={phone,smsOptIn:body.smsOptIn};
    }
-   const {data,error}=await client.auth.signInWithOAuth({provider:"google",options:{redirectTo:c.origin+"/api/contractor/google-callback",skipBrowserRedirect:true,scopes:"openid email profile",queryParams:{prompt:"select_account"}}});
+   const {data,error}=await client.auth.signInWithOAuth({provider:"google",options:{redirectTo:c.origin+"/api/reviews/auth-callback",skipBrowserRedirect:true,scopes:"openid email profile",queryParams:{prompt:"select_account"}}});
    if(error||!data?.url)throw new ContractorGoogleError(503,"Google sign-in could not be started.");
    save(res,state,c);json(res,200,{redirect:data.url});
   }),
