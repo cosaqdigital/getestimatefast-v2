@@ -929,9 +929,28 @@ function setDynamicSubject() {
   document.getElementById("pageSourceInput").value = window.location.href;
 }
 
+function generateServiceSubmissionToken() {
+  const cryptoApi = window.crypto;
+  if (cryptoApi && typeof cryptoApi.randomUUID === "function") return cryptoApi.randomUUID();
+  if (!cryptoApi || typeof cryptoApi.getRandomValues !== "function") return "";
+  const bytes = new Uint8Array(16);
+  cryptoApi.getRandomValues(bytes);
+  bytes[6] = (bytes[6] & 15) | 64;
+  bytes[8] = (bytes[8] & 63) | 128;
+  const hex = Array.from(bytes, byte => byte.toString(16).padStart(2, "0")).join("");
+  return hex.slice(0, 8) + "-" + hex.slice(8, 12) + "-" + hex.slice(12, 16) + "-" + hex.slice(16, 20) + "-" + hex.slice(20);
+}
+
 function init() {
   if (!serviceConfig || !serviceForm) {
     return;
+  }
+  if (!serviceForm.querySelector('input[name="Submission Token"]')) {
+    const token = document.createElement("input");
+    token.type = "hidden";
+    token.name = "Submission Token";
+    token.value = generateServiceSubmissionToken();
+    serviceForm.appendChild(token);
   }
 
   renderProjectTypes();
@@ -954,16 +973,28 @@ function init() {
     button.addEventListener("click", prevStep);
   });
 
-  serviceForm.addEventListener("submit", (event) => {
-    if (!validateStep(state.currentStep)) {
-      event.preventDefault();
-      return;
-    }
+  let photoSubmitInFlight = false;
+  serviceForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (photoSubmitInFlight || !validateStep(state.currentStep)) return;
 
     setDynamicSubject();
     const submitButton = document.getElementById("submitButton");
-    submitButton.disabled = true;
-    submitButton.textContent = "Sending...";
+    const originalLabel = submitButton.textContent;
+    try {
+      photoSubmitInFlight = true;
+      submitButton.disabled = true;
+      submitButton.textContent = "Uploading photos...";
+      if (!window.GetEstimateFastLeadPhotos) await import("/assets/lead-photo-upload.js?v=20261024-photos1");
+      await window.GetEstimateFastLeadPhotos.prepare(serviceForm);
+      submitButton.textContent = "Sending...";
+      HTMLFormElement.prototype.submit.call(serviceForm);
+    } catch (error) {
+      photoSubmitInFlight = false;
+      submitButton.disabled = false;
+      submitButton.textContent = originalLabel;
+      showError(state.currentStep, error?.message || "We couldn't upload your project photos. Please try again.");
+    }
   });
 
   showStep(0);

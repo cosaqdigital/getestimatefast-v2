@@ -1,11 +1,30 @@
 ﻿(function () {
   initServiceStarter();
 
+  function generateGuidedSubmissionToken() {
+    const cryptoApi = window.crypto;
+    if (cryptoApi && typeof cryptoApi.randomUUID === "function") return cryptoApi.randomUUID();
+    if (!cryptoApi || typeof cryptoApi.getRandomValues !== "function") return "";
+    const bytes = new Uint8Array(16);
+    cryptoApi.getRandomValues(bytes);
+    bytes[6] = (bytes[6] & 15) | 64;
+    bytes[8] = (bytes[8] & 63) | 128;
+    const hex = Array.from(bytes, byte => byte.toString(16).padStart(2, "0")).join("");
+    return hex.slice(0, 8) + "-" + hex.slice(8, 12) + "-" + hex.slice(12, 16) + "-" + hex.slice(16, 20) + "-" + hex.slice(20);
+  }
+
   const flow = window.flowConfig;
   if (!flow) return;
 
   const form = document.querySelector("[data-quote-flow-form]");
   if (!form) return;
+
+  // Stable for retries of the same form, new value for each fresh request.
+  const submissionToken = document.createElement("input");
+  submissionToken.type = "hidden";
+  submissionToken.name = "Submission Token";
+  submissionToken.value = generateGuidedSubmissionToken();
+  form.appendChild(submissionToken);
 
   const steps = Array.from(form.querySelectorAll(".step"));
   const progressFill = document.getElementById("progressFill");
@@ -13,37 +32,33 @@
   const stepMiniTitle = document.getElementById("stepMiniTitle");
   const state = { currentStep: 0, lockedService: false };
 
-  const standardServiceQuestions = {
-    "bathroom-remodeling": { title: "What bathroom remodeling work do you need?", options: ["Full bathroom remodel", "Shower or tub", "Vanity / fixtures", "Tile", "Small update", "Not sure yet"] },
-    "home-remodeling": { title: "What home remodeling work do you need?", options: ["Whole-home remodel", "Multiple rooms", "Layout changes", "Interior update", "Repair / replacement", "Not sure yet"] },
-    "remodeling-services": { title: "What remodeling help do you need?", options: ["General remodel", "Planning help", "Multiple trades", "Interior renovation", "Exterior renovation", "Not sure yet"] },
-    "room-additions": { title: "What type of addition are you planning?", options: ["Bedroom addition", "Office addition", "Garage conversion", "Enclosed patio", "Other addition", "Not sure yet"] },
-    "general-contractors": { title: "What contractor help do you need?", options: ["Project planning", "Multiple trades", "Major renovation", "Addition / expansion", "Repair coordination", "Not sure yet"] },
-    "office-cleaning": { title: "What office cleaning help do you need?", options: ["One-time cleaning", "Recurring cleaning", "Deep cleaning", "Move-in / move-out", "Post-construction cleaning", "Not sure yet"] },
-    "commercial-cleaning": { title: "What commercial cleaning help do you need?", options: ["Office / workspace", "Retail / storefront", "Deep cleaning", "Recurring janitorial", "Post-construction cleaning", "Not sure yet"] },
-    "roofing": { title: "What roofing help do you need?", options: ["Roof repair", "Roof replacement", "Leak", "Storm damage", "Inspection", "Not sure yet"] },
-    "plumbing": { title: "What plumbing work do you need help with?", options: ["Leak repair", "Drain or clog", "Faucet / fixture", "Toilet", "Water heater", "Not sure yet"] },
-    "electrical": { title: "What electrical work do you need?", options: ["Panel / breaker", "Outlet / switch", "Lighting", "Fan / fixture", "EV charger", "Not sure yet"] },
-    "hvac": { title: "What HVAC service do you need?", options: ["AC repair", "New installation", "Replacement", "Ductwork", "Maintenance / tune-up", "Not sure yet"] },
-    "drywall": { title: "What drywall work do you need?", options: ["Patch / repair", "New drywall", "Ceiling repair", "Texture matching", "Water damage", "Not sure yet"] },
-    "painting": { title: "What painting work do you need?", options: ["Interior painting", "Exterior painting", "Cabinets", "Touch-ups", "Whole home", "Not sure yet"] },
-    "flooring": { title: "What flooring work do you need?", options: ["Vinyl / laminate", "Tile", "Hardwood", "Floor repair", "Floor replacement", "Not sure yet"] },
-    "landscaping": { title: "What landscaping help do you need?", options: ["Yard cleanup", "New planting", "Mulch / rock", "Sod / lawn", "Irrigation", "Not sure yet"] },
-    "pressure-washing": { title: "What pressure washing do you need?", options: ["Driveway", "House exterior", "Patio / pavers", "Fence / deck", "Commercial surface", "Not sure yet"] },
-    "fence-installation": { title: "What fence project do you need?", options: ["New fence", "Fence replacement", "Fence repair", "Gate", "Privacy fence", "Not sure yet"] },
-    "paver-installation": { title: "What paver project do you need?", options: ["Patio", "Driveway", "Walkway", "Pool deck", "Repair / reset", "Not sure yet"] },
-    "gutter-services": { title: "What gutter service do you need?", options: ["Gutter installation", "Gutter replacement", "Gutter repair", "Cleaning", "Drainage issue", "Not sure yet"] },
-    "junk-removal": { title: "What junk removal help do you need?", options: ["Furniture removal", "Appliance removal", "Garage cleanout", "Yard debris", "Construction debris", "Not sure yet"] },
-    "pest-control": { title: "What pest control help do you need?", options: ["Ants / roaches", "Rodents", "Termites", "Mosquitoes", "General treatment", "Not sure yet"] },
-    "pool-services": { title: "What pool service do you need?", options: ["Pool cleaning", "Pool maintenance", "Equipment repair", "Green pool", "Inspection", "Not sure yet"] }
+  const catalog = window.GetEstimateFastLaunch;
+  const standardServiceQuestions = Object.fromEntries((catalog ? catalog.categories : []).map(item => [item.slug, {title:item.question, options:item.options}]));
+  const minimumOtherDescription = catalog ? catalog.MIN_OTHER_DESCRIPTION : 60;
+  // This US-only intake route is manual review, not an approved matching category.
+  standardServiceQuestions["bathroom-remodeling"] = {
+    title: "What type of bathroom remodeling work do you need?",
+    options: ["Full bathroom remodel", "Shower remodel", "Tub-to-shower conversion", "Vanity or fixtures", "Tile or waterproofing", "Other bathroom work"]
   };
+  const approvedLandingSources = new Set(["bathroom-remodeling.html","bathroom-remodeling-riverview.html","flooring-installation.html","flooring-installation-riverview.html","painting.html","painting-riverview.html","kitchen-remodeling.html","kitchen-remodeling-riverview.html"]);
 
   ensureLeadEndpointDefaults();
+  captureOriginalLandingSource();
   prepareDynamicService();
   annotateFlow();
   bindInteractive();
   bindNavigation();
   showStep(getInitialStepIndex());
+
+  function captureOriginalLandingSource() {
+    const source = new URLSearchParams(window.location.search).get("source");
+    if (!approvedLandingSources.has(source)) return;
+    const field = document.createElement("input");
+    field.type = "hidden";
+    field.name = "Original Landing Page";
+    field.value = source;
+    form.appendChild(field);
+  }
 
   function prepareDynamicService() {
     if (flow.type !== "standard") return;
@@ -55,8 +70,9 @@
     const requested = slugify(params.get("service"));
     if (!requested) return;
 
-    const selected = serviceStep.options.find((option) => slugify(option) === requested);
-    if (!selected) return;
+    const selected = serviceStep.options.find((option) => slugify(option) === requested)
+      || (requested === "bathroom-remodeling" ? "Bathroom Remodeling" : null);
+    if (!selected) { window.location.replace("services.html"); return; }
 
     const serviceField = document.getElementById("field-0");
     if (serviceField) serviceField.value = selected;
@@ -78,6 +94,20 @@
     flow.steps[1].field = "Project Type";
     flow.steps[1].options = custom.options;
 
+    if (steps[2] && flow.steps[2]) {
+      const isOther = serviceSlug === "other-services";
+      const isCleanup = serviceSlug === "yard-cleanup-other-cleanup";
+      if (isOther || isCleanup) {
+        const descStep = steps[2], heading2 = descStep.querySelector("h2"), label2 = descStep.querySelector(".field-label"), help2 = descStep.querySelector(".step-help"), textarea = descStep.querySelector("textarea");
+        const title2 = isOther ? "Describe the service you need" : "Describe what you need cleaned up";
+        flow.steps[2].title = title2;
+        flow.steps[2].required = true;
+        if (heading2) heading2.textContent = title2;
+        if (label2) label2.textContent = isOther ? "What work needs to be done? (at least 60 characters)" : "What needs cleaning, and approximately how much is there?";
+        if (help2) help2.textContent = isOther ? "Describe the type of work, approximate scope and any useful details. Other Services requests are reviewed before being made available to professionals." : "Tell us what needs cleaning. Hazardous materials, household trash hauling and demolition debris removal are outside the initial scope.";
+        if (textarea) { textarea.placeholder = isOther ? "Example: I need someone to help with a small household project not listed in the categories. The work involves..." : "Example: A backyard with leaves and palm fronds; the area needs cleaning."; textarea.minLength = isOther ? minimumOtherDescription : 8; }
+      }
+    }
     const step = steps[1];
     const heading = step.querySelector("h2");
     const hidden = step.querySelector('input[type="hidden"]');
@@ -207,8 +237,25 @@
       });
     });
 
-    form.addEventListener("submit", (event) => {
-      if (!validateStep(state.currentStep)) event.preventDefault();
+    let photoSubmitInFlight = false;
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (photoSubmitInFlight || !validateStep(state.currentStep)) return;
+      const submitButton = form.querySelector(".submit-btn");
+      const originalLabel = submitButton ? submitButton.textContent : "";
+      try {
+        photoSubmitInFlight = true;
+        if (submitButton) { submitButton.disabled = true; submitButton.textContent = "Uploading photos..."; }
+        if (!window.GetEstimateFastLeadPhotos) await import("/assets/lead-photo-upload.js?v=20261024-photos1");
+        await window.GetEstimateFastLeadPhotos.prepare(form);
+        if (submitButton) submitButton.textContent = "Sending...";
+        HTMLFormElement.prototype.submit.call(form);
+      } catch (error) {
+        photoSubmitInFlight = false;
+        if (submitButton) { submitButton.disabled = false; submitButton.textContent = originalLabel; }
+        const box = steps[state.currentStep]?.querySelector(".error");
+        showError(box, error?.message || "We couldn't upload your project photos. Please try again.");
+      }
     });
   }
 
@@ -235,7 +282,7 @@
     if (config.type === "multi" && !step.querySelectorAll('input[type="checkbox"]:checked').length) return showError(error, "Please select at least one option to continue.");
     if (config.type === "textarea") {
       const textarea = step.querySelector("textarea");
-      if (config.required && (!textarea || textarea.value.trim().length < 8)) return showError(error, "Please add a short project note before continuing.");
+      if (config.required && (!textarea || textarea.value.trim().length < (flow.type === "standard" && slugify(flow.serviceLabel) === "other-services" ? minimumOtherDescription : 8))) return showError(error, flow.type === "standard" && slugify(flow.serviceLabel) === "other-services" ? `Please describe your request in at least ${minimumOtherDescription} characters.` : "Please add a short project note before continuing.");
     }
     if (config.type === "location") {
       const city = getValue("city");
@@ -320,11 +367,19 @@
     const sourceItems = Array.isArray(config && config.items) ? config.items : [];
     const items = sourceItems.map((item) => ({ ...item, normalized: normalizeText(`${item.label} ${item.summary || ""} ${(item.keywords || []).join(" ")}`) }));
     if (!items.length) return;
-    render(items.slice(0, 5));
-    input.addEventListener("input", () => { const query = normalizeText(input.value); if (!query) { render(items.slice(0, 5)); return; } render(items.filter((item) => item.normalized.includes(query)).slice(0, 6)); });
+    clearResults();
+    input.addEventListener("input", () => {
+      const query = normalizeText(input.value);
+      if (!query) { clearResults(); return; }
+      render(items.filter((item) => item.normalized.includes(query)).slice(0, 6));
+    });
     input.addEventListener("keydown", (event) => { if (event.key !== "Enter") return; const firstLink = results.querySelector("a.service-starter-item"); if (!firstLink) return; event.preventDefault(); window.location.href = firstLink.getAttribute("href"); });
+    function clearResults() {
+      results.innerHTML = "";
+      results.classList.remove("is-visible");
+    }
     function render(itemsToRender) {
-      if (!itemsToRender.length) { results.innerHTML = '<div class="service-starter-empty">No close match yet. Try kitchen, cleaning, roofing, or plumbing.</div>'; results.classList.add("is-visible"); return; }
+      if (!itemsToRender.length) { results.innerHTML = '<div class="service-starter-empty">No close match yet. Try yard cleanup, painting, flooring, or other services.</div>'; results.classList.add("is-visible"); return; }
       results.innerHTML = itemsToRender.map((item) => `<a class="service-starter-item" href="${item.href}" data-service-option data-track="service_selected" data-cta="service-search-result" data-service="${item.key}" data-action="starter-result-click"><strong>${escapeHtml(item.label)}</strong><span>${escapeHtml(item.cta)} · ${escapeHtml(item.summary || "")}</span></a>`).join("");
       results.classList.add("is-visible");
     }

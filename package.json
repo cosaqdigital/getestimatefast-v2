@@ -1,0 +1,23 @@
+{
+  "name": "getestimatefast-v2",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Florida-first independent contractor marketplace",
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "test": "node --require ./tests/helpers/offline-fetch.cjs --test --test-concurrency=2 tests/*.test.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.117.3",
+    "stripe": "23.0.0",
+    "zipcodes": "8.0.0"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.8",
+    "embedded-postgres": "17.10.0-beta.17",
+    "jsdom": "30.1.2",
+    "pg": "8.23.1"
+  }
+}
