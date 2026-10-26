@@ -65,17 +65,32 @@ async function loadOpportunities(append=false){
     project.append(grid);details.append(summary,project);
   }else details.append(summary);
   const privacy=document.createElement("p");privacy.textContent="Customer name, phone, email and preferred contact method remain private until the contact is purchased and payment is confirmed.";
-  const purchase=document.createElement("button");purchase.type="button";
+  const purchaseActions=document.createElement("div");purchaseActions.className="pro-contact-actions";
   if(item.origin_free){
-    purchase.disabled=true;
-    purchase.textContent="Your profile lead";
+    const free=document.createElement("button");free.type="button";free.disabled=true;free.textContent="Your profile lead";purchaseActions.append(free);
   }else if(capabilities.payments_enabled===true&&item.commercial?.available===true){
-    purchase.disabled=false;
-    purchase.textContent=item.commercial?.amount_cents!=null?"Buy Contact - "+new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(item.commercial.amount_cents/100):"Buy Contact";
-    purchase.addEventListener("click",async()=>{
-      purchase.disabled=true;
+    const amountLabel=item.commercial?.amount_cents!=null?new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(item.commercial.amount_cents/100):"";
+    const walletPurchase=document.createElement("button");walletPurchase.type="button";walletPurchase.className="secondary";walletPurchase.textContent="Unlock with Credits"+(amountLabel?" - "+amountLabel:"");
+    const cardPurchase=document.createElement("button");cardPurchase.type="button";cardPurchase.textContent="Pay with Card"+(amountLabel?" - "+amountLabel:"");
+    walletPurchase.addEventListener("click",async()=>{
+      walletPurchase.disabled=true;cardPurchase.disabled=true;
       try{
-        say("Preparing secure checkout...");
+        say("Checking your wallet credits...");
+        const quote=await api("live-checkout","POST",{action:"quote",opportunity_id:item.opportunity_id});
+        const result=await api("wallet-purchase","POST",{quote_id:quote.quote_id,operation_key:"wallet_buy_"+crypto.randomUUID()});
+        if(result.contact_release_enabled){
+          say("Contact unlocked with wallet credits.");
+          await loadOpportunities();
+          window.dispatchEvent(new CustomEvent("gef-wallet-updated"));
+        }else throw Error("Contact could not be unlocked.");
+      }catch(ex){
+        walletPurchase.disabled=false;cardPurchase.disabled=false;say(ex.message);
+      }
+    });
+    cardPurchase.addEventListener("click",async()=>{
+      walletPurchase.disabled=true;cardPurchase.disabled=true;
+      try{
+        say("Preparing secure Stripe checkout...");
         const quote=await api("live-checkout","POST",{action:"quote",opportunity_id:item.opportunity_id});
         const checkout=await api("live-checkout","POST",{
           action:"checkout",
@@ -86,15 +101,14 @@ async function loadOpportunities(append=false){
         sessionStorage.setItem("gef_pending_order_id",checkout.order_id);
         window.location.assign(checkout.checkout_url);
       }catch(ex){
-        purchase.disabled=false;
-        say(ex.message);
+        walletPurchase.disabled=false;cardPurchase.disabled=false;say(ex.message);
       }
     });
+    purchaseActions.append(walletPurchase,cardPurchase);
   }else{
-    purchase.disabled=true;
-    purchase.textContent="Contact purchases are not enabled";
+    const unavailable=document.createElement("button");unavailable.type="button";unavailable.disabled=true;unavailable.textContent="Contact purchases are not enabled";purchaseActions.append(unavailable);
   }
-  renderProjectPhotos(details,item);details.append(privacy,purchase);
+  renderProjectPhotos(details,item);details.append(privacy,purchaseActions);
   view.addEventListener("click",()=>{details.hidden=!details.hidden;view.textContent=details.hidden?"View Details":"Hide Details";});
   card.append(title,status,date,photoCount,price,view,details);
   el("opportunityCards").appendChild(card);

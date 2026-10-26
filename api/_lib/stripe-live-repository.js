@@ -17,6 +17,19 @@ function createLiveRepository(query=queryDb){
       p_currency:c.currency,
       p_mode:c.mode
     }),
+    topup:id=>rpc("gef_live_topup_read",{p_intent:id}),
+    topupEvent:id=>rpc("gef_live_topup_event_read",{p_event:id}),
+    bindTopup:(id,session)=>rpc("gef_bind_live_topup_session",{p_intent:id,p_session:session}),
+    confirmTopup:t=>rpc("gef_confirm_live_topup",{
+      p_intent:t.intentId,
+      p_event:t.eventId,
+      p_session:t.sessionId,
+      p_payment:t.paymentId,
+      p_outcome:t.outcome,
+      p_amount:t.amount,
+      p_currency:t.currency,
+      p_mode:t.mode
+    }),
     confirmRefund:r=>rpc("gef_confirm_live_refund",{
       p_order:r.orderId,
       p_refund:r.refundId,
