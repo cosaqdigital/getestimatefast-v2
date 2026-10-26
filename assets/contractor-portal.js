@@ -38,19 +38,27 @@ async function loadOpportunities(append=false){
   card.style.cssText="border:1px solid #dce4eb;border-radius:10px;padding:15px;background:#f7fafd";
   const title=document.createElement("h3");
   title.textContent=item.service_category+" - "+item.city+", "+item.zip_code;
-  const summary=document.createElement("p");
-  summary.textContent=item.public_summary;
+  const status=document.createElement("p");
+  status.textContent=item.commercial?.reason==="expired"?"Expired":"Available";
+  status.style.fontWeight="700";
   const date=document.createElement("small");
   date.textContent="Published: "+new Intl.DateTimeFormat("en-US",{dateStyle:"medium",timeZone:"America/New_York"}).format(new Date(item.published_at));
+  const photos=Array.isArray(item.photos)?item.photos.filter(photo=>photo&&photo.url):[];
+  const photoCount=document.createElement("p");
+  photoCount.textContent=photos.length?photos.length+(photos.length===1?" project photo available":" project photos available"):"No project photos";
   const price=document.createElement("p");
   price.textContent=item.origin_free?"Free contact - from your public profile":item.commercial?.amount_cents!=null?"Contact price: "+new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(item.commercial.amount_cents/100):item.commercial?.reason==="expired"?"Expired opportunity":"Contact price not configured";
+  const view=document.createElement("button");view.type="button";view.className="secondary";view.textContent="View Details";
+  const details=document.createElement("div");details.hidden=true;details.className="pro-opportunity-details";
+  const summary=document.createElement("p");summary.textContent=item.public_summary;
+  const privacy=document.createElement("p");privacy.textContent="Customer name, phone and email remain private until the contact is purchased and payment is confirmed.";
   const purchase=document.createElement("button");purchase.type="button";
   if(item.origin_free){
     purchase.disabled=true;
     purchase.textContent="Your profile lead";
   }else if(capabilities.payments_enabled===true&&item.commercial?.available===true){
     purchase.disabled=false;
-    purchase.textContent="Buy Contact";
+    purchase.textContent=item.commercial?.amount_cents!=null?"Buy Contact - "+new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(item.commercial.amount_cents/100):"Buy Contact";
     purchase.addEventListener("click",async()=>{
       purchase.disabled=true;
       try{
@@ -73,7 +81,9 @@ async function loadOpportunities(append=false){
     purchase.disabled=true;
     purchase.textContent="Contact purchases are not enabled";
   }
-  card.append(title,summary,date);renderProjectPhotos(card,item);card.append(price,purchase);
+  details.append(summary);renderProjectPhotos(details,item);details.append(privacy,purchase);
+  view.addEventListener("click",()=>{details.hidden=!details.hidden;view.textContent=details.hidden?"View Details":"Hide Details";});
+  card.append(title,status,date,photoCount,price,view,details);
   el("opportunityCards").appendChild(card);
  }
  opportunityPage=page;
@@ -82,6 +92,8 @@ async function loadOpportunities(append=false){
  if(directOpportunity&&!append&&d.opportunities.some(item=>item.opportunity_id===directOpportunity)){
   const target=el("opportunityCards").querySelector('[data-opportunity-id="'+CSS.escape(directOpportunity)+'"]');
   target?.scrollIntoView({block:"center",behavior:"smooth"});
+  const viewButton=target?.querySelector("button.secondary");
+  if(viewButton&&viewButton.textContent==="View Details")viewButton.click();
   say("Opportunity opened from your GetEstimateFast alert.");
  }
 }
