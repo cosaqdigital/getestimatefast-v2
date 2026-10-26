@@ -83,3 +83,22 @@ async function attachProjectPhotos(items){
   item.photo_count=item.photos.length;
  }
 }
+
+
+function publicProjectDetails(details){
+ const source=details&&typeof details==="object"&&!Array.isArray(details)?details:{};
+ const blocked=new Set([
+  "Full Name","Phone Number","Email Address","Preferred contact method",
+  "Submission Token","Project Photo Paths","Project Photo Count","Landing Page","Landing Page URL",
+  "City","ZIP Code","Service Type","_platform_review","_profile_referral"
+ ]);
+ const out={};
+ for(const [key,value] of Object.entries(source)){
+  if(blocked.has(key)||key.startsWith("_")||value===null||value===undefined)continue;
+  if(typeof value==="string"&&!value.trim())continue;
+  if(typeof value==="object"&&!Array.isArray(value))continue;
+  out[key]=value;
+ }
+ return out;
+}
+module.exports.publicProjectDetails=publicProjectDetails;
