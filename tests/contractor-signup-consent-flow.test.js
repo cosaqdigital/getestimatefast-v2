@@ -40,3 +40,11 @@ test("changing phone does not transfer prior SMS opt-in",()=>{
  assert.match(profile,/existing\[0\]\.sms_phone_e164===smsPhone&&existing\[0\]\.sms_opt_in===true/);
  assert.match(profile,/sameSignupPhone&&signup\.sms_opt_in===true/);
 });
+
+test("first completed profile continues to opportunities automatically",()=>{
+ const ux=read("assets/contractor-ux.js");
+ assert.match(ux,/const justCompleted=!wasReady/);
+ assert.match(ux,/destination=justCompleted\?"opportunityPanel"/);
+ assert.match(ux,/loadOpportunities/);
+ assert.match(ux,/Business profile saved\. Your matching opportunities are ready below\./);
+});
