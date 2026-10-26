@@ -25,13 +25,16 @@ let opportunityPage=0;
 async function loadOpportunities(append=false){
  const page=append?opportunityPage+1:0;
  const city=el("opportunityCity").value.trim();
- const params=new URLSearchParams({page:String(page),city});\n const directOpportunity=new URLSearchParams(window.location.search).get("opportunity")||"";\n if(directOpportunity)params.set("opportunity_id",directOpportunity);
+ const params=new URLSearchParams({page:String(page),city});
+ const directOpportunity=new URLSearchParams(window.location.search).get("opportunity")||"";
+ if(directOpportunity)params.set("opportunity_id",directOpportunity);
  for(const [id,key] of [["opportunityCategory","category"],["opportunityZip","zip"],["opportunityRadius","radius"],["opportunityAvailability","availability"]])if(el(id)?.value)params.set(key,el(id).value);
  const d=await api("opportunities?"+params);
  window.dispatchEvent(new CustomEvent("gef-opportunities",{detail:d}));
  if(!append)el("opportunityCards").replaceChildren();
  for(const item of d.opportunities){
   const card=document.createElement("div");
+  card.dataset.opportunityId=item.opportunity_id;
   card.style.cssText="border:1px solid #dce4eb;border-radius:10px;padding:15px;background:#f7fafd";
   const title=document.createElement("h3");
   title.textContent=item.service_category+" - "+item.city+", "+item.zip_code;
@@ -75,7 +78,12 @@ async function loadOpportunities(append=false){
  }
  opportunityPage=page;
  el("moreOpportunities").hidden=d.opportunities.length<25;
- if(!d.opportunities.length&&!append)el("opportunityCards").textContent=directOpportunity?"This opportunity is unavailable or does not match your professional profile.":"No matching opportunities have been published yet.";\n if(directOpportunity&&!append&&d.opportunities.some(item=>item.opportunity_id===directOpportunity)){\n  const target=el("opportunityCards").querySelector("[data-opportunity-id=\\""+CSS.escape(directOpportunity)+"\\"]");\n  target?.scrollIntoView({block:"center",behavior:"smooth"});\n  say("Opportunity opened from your GetEstimateFast alert.");\n }
+ if(!d.opportunities.length&&!append)el("opportunityCards").textContent=directOpportunity?"This opportunity is unavailable or does not match your professional profile.":"No matching opportunities have been published yet.";
+ if(directOpportunity&&!append&&d.opportunities.some(item=>item.opportunity_id===directOpportunity)){
+  const target=el("opportunityCards").querySelector("[data-opportunity-id=\\""+CSS.escape(directOpportunity)+"\\"]");
+  target?.scrollIntoView({block:"center",behavior:"smooth"});
+  say("Opportunity opened from your GetEstimateFast alert.");
+ }
 }
 el("loadOpportunities").addEventListener("click",()=>loadOpportunities().catch(e=>say(e.message)));
 el("moreOpportunities").addEventListener("click",()=>loadOpportunities(true).catch(e=>say(e.message)));
