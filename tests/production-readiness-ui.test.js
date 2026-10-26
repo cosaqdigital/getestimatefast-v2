@@ -55,7 +55,7 @@ test('Closed commercial portal shows unavailable states, avoids commercial calls
   assert.match(d.querySelector('.pro-hero h1').textContent,/Get More Local Service Leads/);
   assert.ok(d.querySelector('.pro-hero-actions a[href="#accountSettingsPanel"]'));
   assert.equal([...d.querySelectorAll('.pro-hero-actions a')].some(a=>/public profile/i.test(a.textContent)),false);
-  assert.match(d.querySelector('.pro-coming').textContent,/Coming soon to your account/);
+  assert.match(d.querySelector('.pro-coming').textContent,/More tools coming to your account/);
   assert.equal(d.querySelector('#workspace > h1').hidden,true);
   const legacyWorkspaceCopy=[...d.querySelectorAll('#workspace > p')].filter(p=>!p.id);assert.ok(legacyWorkspaceCopy.every(p=>p.hidden));
   for(const screen of ['opportunityPanel','myReferralsPanel','publicProfilePanel','walletPanel','purchasePanel']){
