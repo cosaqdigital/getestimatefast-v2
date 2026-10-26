@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 const THANK_YOU_URL = "https://www.getestimatefast.com/thank-you.html";
 const DEFAULT_FROM_EMAIL = "GetEstimateFast <onboarding@resend.dev>";
 const MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024;
@@ -56,7 +57,14 @@ module.exports = async function handler(req, res) {
       return sendErrorPage(res, 502, "We couldn't deliver your request right now. Please try again in a moment.");
     }
 
-    return redirectToThankYou(res);
+    const metaEventId = createMetaEventId();
+    try {
+      await sendMetaLeadEvent(req, fields, metaEventId);
+    } catch (metaError) {
+      console.error("Meta CAPI lead event failed:", metaError);
+    }
+
+    return redirectToThankYou(res, metaEventId);
   } catch (error) {
     console.error("Lead submission failed:", error);
     return sendErrorPage(res, 500, "We couldn't send your request right now. Please go back and try again in a moment.");
@@ -220,10 +228,141 @@ function renderLeadText(subject, fields, attachments) {
   return lines.join("\n");
 }
 
-function redirectToThankYou(res) {
+function redirectToThankYou(res, eventId = "") {
+  const location = eventId
+    ? `${THANK_YOU_URL}?gef_event_id=${encodeURIComponent(eventId)}`
+    : THANK_YOU_URL;
   res.statusCode = 303;
-  res.setHeader("Location", THANK_YOU_URL);
+  res.setHeader("Location", location);
   res.end();
+}
+
+function createMetaEventId() {
+  if (typeof crypto.randomUUID === "function") return crypto.randomUUID();
+  return crypto.randomBytes(16).toString("hex");
+}
+
+async function sendMetaLeadEvent(req, fields, eventId) {
+  const datasetId = process.env.META_DATASET_ID;
+  const accessToken = process.env.META_CAPI_ACCESS_TOKEN;
+  if (!datasetId || !accessToken) {
+    console.warn("Meta CAPI is not configured; skipping Lead event.");
+    return;
+  }
+
+  const fullName = firstValue(fields["Full Name"]);
+  const { firstName, lastName } = splitName(fullName);
+  const email = normalizeEmail(firstValue(fields["Email Address"]));
+  const phone = normalizeUsPhone(firstValue(fields["Phone Number"]));
+  const city = normalizeText(firstValue(fields["City"]));
+  const zip = String(firstValue(fields["ZIP Code"]) || "").replace(/\D/g, "");
+  const cookies = parseCookies(req.headers.cookie || "");
+  const forwardedFor = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim();
+  const clientIp = forwardedFor || req.socket?.remoteAddress || undefined;
+  const userAgent = String(req.headers["user-agent"] || "").trim() || undefined;
+  const eventSourceUrl = String(req.headers.referer || "https://www.getestimatefast.com/");
+
+  const userData = {
+    em: email ? [sha256(email)] : undefined,
+    ph: phone ? [sha256(phone)] : undefined,
+    fn: firstName ? [sha256(normalizeText(firstName))] : undefined,
+    ln: lastName ? [sha256(normalizeText(lastName))] : undefined,
+    ct: city ? [sha256(city)] : undefined,
+    zp: zip ? [sha256(zip)] : undefined,
+    country: [sha256("us")],
+    client_ip_address: clientIp,
+    client_user_agent: userAgent,
+    fbp: cookies._fbp || undefined,
+    fbc: cookies._fbc || buildFbcFromReferrer(eventSourceUrl)
+  };
+
+  Object.keys(userData).forEach((key) => {
+    if (userData[key] == null || userData[key] === "") delete userData[key];
+  });
+
+  const endpoint = `https://graph.facebook.com/v24.0/${encodeURIComponent(datasetId)}/events`;
+  const metaResponse = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      data: [
+        {
+          event_name: "Lead",
+          event_time: Math.floor(Date.now() / 1000),
+          event_id: eventId,
+          action_source: "website",
+          event_source_url: eventSourceUrl,
+          user_data: userData
+        }
+      ]
+    })
+  });
+
+  if (!metaResponse.ok) {
+    const body = await metaResponse.text();
+    throw new Error(`Meta CAPI responded with ${metaResponse.status}: ${body}`);
+  }
+}
+
+function parseCookies(header) {
+  return String(header || "")
+    .split(";")
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .reduce((acc, part) => {
+      const index = part.indexOf("=");
+      if (index === -1) return acc;
+      const key = part.slice(0, index).trim();
+      const value = part.slice(index + 1).trim();
+      if (key) acc[key] = value;
+      return acc;
+    }, {});
+}
+
+function buildFbcFromReferrer(referrer) {
+  try {
+    const url = new URL(referrer);
+    const fbclid = url.searchParams.get("fbclid");
+    if (!fbclid) return undefined;
+    return `fb.1.${Date.now()}.${fbclid}`;
+  } catch {
+    return undefined;
+  }
+}
+
+function splitName(value) {
+  const parts = String(value || "").trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return { firstName: "", lastName: "" };
+  return {
+    firstName: parts[0],
+    lastName: parts.length > 1 ? parts.slice(1).join(" ") : ""
+  };
+}
+
+function normalizeEmail(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function normalizeUsPhone(value) {
+  const digits = String(value || "").replace(/\D/g, "");
+  if (digits.length === 10) return `1${digits}`;
+  return digits;
+}
+
+function normalizeText(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, "");
+}
+
+function sha256(value) {
+  return crypto.createHash("sha256").update(String(value)).digest("hex");
 }
 
 function sendErrorPage(res, statusCode, message) {
