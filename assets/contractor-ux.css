@@ -293,3 +293,7 @@ body.pro-simple .pro-service-purchased{border-color:#b9dfc9;background:#f3fbf6}
  body.pro-simple .pro-portfolio-editor-grid{grid-template-columns:1fr}
  body.pro-simple .pro-publish-actions{display:grid}
 }
+
+
+/* Navigation safety: author display rules must never override hidden screens. */
+body.pro-simple #workspace [hidden]{display:none!important}
