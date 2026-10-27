@@ -15,6 +15,14 @@ function profileHtml(data,origin,storageOrigin,referral={}){
  const portfolio=Array.isArray(p.portfolio)?p.portfolio:[];
  const reviews=Array.isArray(data.reviews)?data.reviews:[];
  const summary=data.review_summary||{};
+ const ranking=data.ranking_summary||{};
+ const badges=ranking.badges||{};
+ const badgeItems=[
+  badges.top_rated&&["Top Rated","top"],
+  badges.highly_rated&&["Highly Rated","high"],
+  badges.profile_complete&&["Profile Complete","complete"],
+  badges.new_professional&&["New Professional","new"]
+ ].filter(Boolean);
  const reviewCount=Number(summary.approved_count)||0;
  const average=reviewCount>0&&Number.isFinite(Number(summary.average_rating))?Number(summary.average_rating):null;
  const serviceOptions=categories.map(s=>'<option value="'+esc(s)+'">'+esc(s)+'</option>').join("");
@@ -55,6 +63,7 @@ function profileHtml(data,origin,storageOrigin,referral={}){
  const reputation=average!==null
   ?'<div class="gef-profile-rating-block"><span class="gef-profile-rating-stars" aria-hidden="true">'+esc(stars(average))+'</span><strong>'+esc(average.toFixed(1))+'</strong><a href="#reviews">('+esc(reviewCount)+' '+(reviewCount===1?"review":"reviews")+')</a></div>'
   :'<div class="gef-profile-rating-block"><strong>New professional</strong><span>No approved reviews yet</span></div>';
+ const badgeHtml=badgeItems.length?'<div class="gef-profile-ranking-badges">'+badgeItems.map(([label,type])=>'<span class="gef-profile-ranking-badge '+esc(type)+'">'+esc(label)+'</span>').join("")+'</div>':"";
  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="referrer" content="same-origin"><title>${esc(title)}</title><meta name="description" content="${esc(p.headline||p.about.slice(0,160))}"><link rel="canonical" href="${esc(url)}"><meta property="og:type" content="profile"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(p.headline||p.about.slice(0,160))}"><meta property="og:url" content="${esc(url)}"><meta property="og:image" content="${esc(image)}"><link rel="stylesheet" href="/assets/marketplace.css"><link rel="stylesheet" href="/assets/profile-request.css"></head><body class="gef-public-profile"><header class="gef-profile-topbar"><a class="gef-profile-brand" href="/">GetEstimate<span>Fast</span></a><span class="gef-profile-brand-divider"></span><strong>Find Local Professionals</strong><nav><a href="/services.html">Back to Search</a><a href="/">Home</a></nav></header><main class="gef-profile-page">
 <section class="gef-profile-hero">
   <div class="gef-profile-hero-overlay"></div>
@@ -64,6 +73,7 @@ function profileHtml(data,origin,storageOrigin,referral={}){
     <h1>${esc(p.display_name)}</h1>
     <p class="gef-profile-headline">${esc(p.headline||"Local service professional")}</p>
     ${reputation}
+    ${badgeHtml}
     <div class="gef-profile-service-chips">${serviceChips||'<span class="gef-profile-service-chip">Services available on request</span>'}</div>
     <p class="gef-profile-location">⌖ ${esc(p.city)}, ${esc(p.state_code)} · Serving customers within ${esc(p.radius_miles)} miles</p>
     <div class="gef-profile-hero-actions">${requestButton}</div>
