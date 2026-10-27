@@ -133,6 +133,10 @@ panels.innerHTML=`<nav class="portal-nav" aria-label="Contractor navigation"><a 
       <button type="submit">Submit information to our team</button>
     </form>
   </section>
+</section>
+<section id="profilePreviewPanel" class="pro-profile-preview-screen" hidden>
+  <div class="pro-preview-toolbar"><div><p class="eyebrow">PROFILE PREVIEW</p><h2>See what customers will see</h2><p>This preview uses your current editor information. Save and publish only when you are satisfied.</p></div><a class="button secondary" href="#publicProfilePanel">Back to editing</a></div>
+  <div id="profilePreviewCanvas" class="pro-preview-canvas"></div>
 </section>`;
 workspace.insertBefore(panels,workspace.querySelector("h1"));
 el("categories").multiple=true;el("categories").size=5;
