@@ -16,7 +16,8 @@ module.exports=async function handler(req,res){
    if(action==="dashboard"){const payments=livePaymentsApproved();return json(res,200,{...await rpc("gef_dashboard",{p_contractor:user.id}),payments_enabled:payments,contact_release_enabled:payments});}
    if(action==="public-profile"){
     const rows=await queryDb("contractor_public_profiles?contractor_id=eq."+encodeURIComponent(user.id)+"&select=slug,display_name,headline,about,city,state_code,zip_code,radius_miles,categories,languages,portfolio,published,profile_image_path,cover_image_path,years_experience&limit=1");
-    return json(res,200,{profile:rows[0]||null});
+    const {url}=config();
+    return json(res,200,{profile:rows[0]||null,storage_origin:url});
    }
    return json(res,400,{error:"Unknown action"});
   }
@@ -49,7 +50,7 @@ module.exports=async function handler(req,res){
    const {url,secret}=config(),imagePath=user.id+"/"+crypto.randomUUID()+"."+ext;
    const response=await fetch(url+"/storage/v1/object/gef-portfolio/"+imagePath,{method:"POST",headers:headers(secret,{"Content-Type":mime,"x-upsert":"false"}),body:data,signal:AbortSignal.timeout(15000)});
    if(!response.ok)throw Error("Portfolio upload failed");
-   return json(res,201,{image_path:imagePath});
+   return json(res,201,{image_path:imagePath,public_url:url+"/storage/v1/object/public/gef-portfolio/"+imagePath});
   }
   if(action==="profile-service-preview"){
    const d=await rpc("gef_dashboard",{p_contractor:user.id});
