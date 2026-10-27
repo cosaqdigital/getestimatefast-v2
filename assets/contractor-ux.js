@@ -268,7 +268,12 @@ window.addEventListener("gef-profile",e=>{
   if(justCompleted){
    try{history.replaceState(null,"","#opportunityPanel");}catch{}
    queueMicrotask(()=>$("loadOpportunities")?.click());
-   window.GetEstimateFastPortal?.say?.("Business profile saved. Your matching opportunities are ready below.");
+   const confirmation="Business profile saved. Your matching opportunities are ready below.";
+   window.GetEstimateFastPortal?.say?.(confirmation);
+   window.setTimeout(()=>{
+    const message=document.getElementById("message");
+    if(message?.textContent===confirmation)window.GetEstimateFastPortal?.say?.("");
+   },4200);
   }
  }else go("accountSettingsPanel");
 });
