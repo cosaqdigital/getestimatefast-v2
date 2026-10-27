@@ -27,18 +27,36 @@ module.exports=async function handler(req,res){
       }
       const rows=await queryDb("profile_service_prices?effective_at=lte."+encodeURIComponent(new Date().toISOString())+"&select=id,version,amount_cents,currency,effective_at&order=effective_at.desc&limit=1");
       const active=rows[0];
-      const existing=await queryDb("gef_private.profile_service_orders?contractor_id=eq."+encodeURIComponent(user.id)+"&select=id,status,amount_cents,created_at&order=created_at.desc&limit=1").catch(()=>[]);
+      const existing=await rpc("gef_profile_service_status",{p_contractor:user.id});
       return json(res,200,{
         available:Boolean(active),
         payments_enabled:true,
         price:active?{amount_cents:Number(active.amount_cents),currency:active.currency,version:active.version}:null,
         standard_price_cents:18000,
         offer_label:"Launch offer",
-        existing_order:existing?.[0]||null
+        existing_order:existing||null
       });
     }
 
-    const body=await readJson(req,8000);
+    const body=await readJson(req,18000);
+    if(body.action==="intake"){
+      const orderId=uuid(body.order_id);
+      const intake={
+        business_name:String(body.business_name||"").trim(),
+        logo_plan:String(body.logo_plan||""),
+        services:Array.isArray(body.services)?body.services.map(x=>String(x).trim()).filter(Boolean).slice(0,20):[],
+        years_experience:String(body.years_experience||"").trim().slice(0,60),
+        city:String(body.city||"").trim().slice(0,80),
+        zip_code:String(body.zip_code||"").trim(),
+        radius_miles:Number(body.radius_miles),
+        languages:Array.isArray(body.languages)?body.languages.map(x=>String(x).trim()).filter(Boolean).slice(0,10):[],
+        company_story:String(body.company_story||"").trim().slice(0,3000),
+        portfolio_notes:String(body.portfolio_notes||"").trim().slice(0,3000),
+        notes:String(body.notes||"").trim().slice(0,3000)
+      };
+      const result=await rpc("gef_submit_profile_service_intake",{p_contractor:user.id,p_order:orderId,p_intake:intake});
+      return json(res,200,result);
+    }
     if(body.action!=="checkout")return json(res,400,{error:"Unknown action"});
     const operation=String(body.operation_key||("profile_"+crypto.randomUUID()));
     const created=await rpc("gef_create_live_profile_service",{p_contractor:user.id,p_operation_key:operation});
