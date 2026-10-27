@@ -174,6 +174,28 @@ function renderPortfolio(){
  const add=el("addPortfolio");if(add){add.disabled=portfolio.length>=10;add.textContent=portfolio.length>=10?"10-photo limit reached":"Add project to portfolio";}
  updateProfileStrength();
 }
+function renderProfilePreview(){
+ const canvas=el("profilePreviewCanvas"),f=el("publicProfileForm");if(!canvas||!f)return;
+ const name=f.elements.namedItem("display_name")?.value.trim()||"Your business name";
+ const headline=f.elements.namedItem("headline")?.value.trim()||"Your professional headline";
+ const about=f.elements.namedItem("about")?.value.trim()||"Your business description will appear here.";
+ const city=f.elements.namedItem("city")?.value.trim()||"Your city";
+ const state=f.elements.namedItem("state_code")?.value.trim()||"FL";
+ const radius=f.elements.namedItem("radius_miles")?.value||"25";
+ const years=f.elements.namedItem("years_experience")?.value;
+ const services=[...el("publicCategories").selectedOptions].map(o=>o.value);
+ const languages=String(f.elements.namedItem("languages")?.value||"").split("\n").map(x=>x.trim()).filter(Boolean);
+ const cover=mediaUrl(coverImagePath),avatar=mediaUrl(profileImagePath);
+ canvas.innerHTML='<section class="pro-preview-hero"><div class="pro-preview-cover"></div><div class="pro-preview-avatar"></div><div class="pro-preview-copy"><span>Active GetEstimateFast Professional</span><h1></h1><p class="pro-preview-headline"></p><div class="pro-preview-services"></div><p class="pro-preview-location"></p></div></section><div class="pro-preview-body"><section><p class="eyebrow">ABOUT</p><h3>About this professional</h3><p class="pro-preview-about"></p><div class="pro-preview-facts"></div></section><section><div class="pro-section-head"><div><p class="eyebrow">PORTFOLIO</p><h3>Recent work</h3></div><span>'+portfolio.length+' / 10 photos</span></div><div class="pro-preview-portfolio"></div></section></div>';
+ if(cover)canvas.querySelector(".pro-preview-cover").style.backgroundImage='linear-gradient(90deg,rgba(5,38,83,.72),rgba(8,83,164,.45)),url("'+cover.replace(/"/g,"%22")+'")';
+ const av=canvas.querySelector(".pro-preview-avatar");if(avatar){const img=node("img");img.src=avatar;img.alt=name+" profile image";av.append(img);}else av.textContent=name.split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join("").toUpperCase()||"PRO";
+ canvas.querySelector("h1").textContent=name;canvas.querySelector(".pro-preview-headline").textContent=headline;
+ const servicesBox=canvas.querySelector(".pro-preview-services");if(services.length)for(const service of services)servicesBox.append(node("span",service));else servicesBox.append(node("span","Your services will appear here"));
+ canvas.querySelector(".pro-preview-location").textContent=city+", "+state+" · Serving customers within "+radius+" miles";
+ canvas.querySelector(".pro-preview-about").textContent=about;
+ const facts=canvas.querySelector(".pro-preview-facts");facts.append(node("span","Experience: "+(years?years+" years":"Not specified")),node("span","Languages: "+(languages.length?languages.join(", "):"Not specified")));
+ const gallery=canvas.querySelector(".pro-preview-portfolio");if(portfolio.length){portfolio.slice(0,10).forEach(p=>{const card=node("article");const url=mediaUrl(p.image_path);if(url){const img=node("img");img.src=url;img.alt=p.title;card.append(img);}card.append(node("strong",p.title),node("p",p.description||""));gallery.append(card);});}else gallery.append(node("p","Your project photos will appear here."));
+}
 function table(container,head,rows){const holder=el(container);holder.replaceChildren();if(!rows.length){holder.append(node("p","No records yet."));return;}const t=node("table"),thead=node("thead"),tr=node("tr");for(const h of head)tr.append(node("th",h));thead.append(tr);t.append(thead);const body=node("tbody");for(const row of rows){const r=node("tr");for(const v of row)r.append(node("td",v));body.append(r);}t.append(body);holder.append(t);}
 function renderPurchases(purchases,contactRelease){
  const holder=el("purchaseHistory");holder.replaceChildren();
@@ -342,6 +364,7 @@ el("createReviewInvite").onclick=async()=>{const b=el("createReviewInvite");b.di
 el("customTopupButton").onclick=async()=>{const b=el("customTopupButton");b.disabled=true;try{await startTopup({amount_cents:topupCents(el("customTopupAmount").value)});}catch(e){b.disabled=false;portal.say(e.message);}};
 el("publicProfileForm").addEventListener("input",updateProfileStrength);
 el("publicProfileForm").addEventListener("change",updateProfileStrength);
+window.addEventListener("gef-profile-preview-request",renderProfilePreview);
 window.addEventListener("gef-wallet-updated",()=>{if(signedIn)loadMarketplace();});
 const assistOpen=el("profileAssistOpen"),servicePurchased=el("profileServicePurchased"),assistState=el("profileServiceState"),assistIntake=el("profileServiceIntake"),assistCategories=el("profileServiceCategories");
 let profileServiceOrder=null;
