@@ -1,9 +1,7 @@
 "use strict";
 const crypto=require("node:crypto");
 const catalog=require("../../assets/launch-categories");
-const {normalizeUsPhone}=require("./zenvia-us-provider");
 function text(v,min,max){if(typeof v!=="string"||v.trim().length<min||v.trim().length>max)throw Error("Invalid text field");return v.trim();}
-function httpsUrl(v){if(!v)return null;const u=new URL(text(v,8,500));if(u.protocol!=="https:"||u.username||u.password)throw Error("Use a public HTTPS link");return u.href;}
 function parsePublicProfile(v){
  if(!v||typeof v!=="object"||Array.isArray(v))throw Error("Invalid profile");
  const slug=text(v.slug,3,80);if(!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug))throw Error("Use lowercase letters, numbers and hyphens for your link");
@@ -15,7 +13,7 @@ function parsePublicProfile(v){
  const state=text(v.state_code,2,2).toUpperCase();if(state!=="FL"||!require("./florida-matching").coordinates(zip))throw Error("Choose a recognized Florida ZIP Code");
  if(!Number.isInteger(v.radius_miles)||v.radius_miles<1||v.radius_miles>100)throw Error("Choose a radius from 1 to 100 miles");
  const portfolio=v.portfolio||[];
- if(!Array.isArray(portfolio)||portfolio.length>12)throw Error("At most 12 portfolio items");
+ if(!Array.isArray(portfolio)||portfolio.length>10)throw Error("At most 10 portfolio photos");
  const assetPath=value=>{if(value==null||value==="")return null;const path=text(value,1,200);if(!/^[0-9a-f-]{36}\/[0-9a-f-]{36}\.(jpg|png|webp)$/.test(path))throw Error("Upload the profile image first");return path;};
  const years=v.years_experience==null||v.years_experience===""?null:Number(v.years_experience);
  if(years!==null&&(!Number.isInteger(years)||years<0||years>80))throw Error("Years of experience must be from 0 to 80");
@@ -34,6 +32,6 @@ function parseReview(v,secret){
 }
 function publicProjection(row){
  if(!row||row.published!==true)return null;
- return Object.fromEntries(["slug","display_name","headline","about","city","state_code","zip_code","radius_miles","categories","languages","social_links","portfolio"].map(k=>[k,row[k]]).concat([["public_email",row.publish_email===true?row.public_email:null],["public_phone",row.publish_phone===true?row.public_phone:null]]));
+ return Object.fromEntries(["slug","display_name","headline","about","city","state_code","zip_code","radius_miles","categories","languages","portfolio","profile_image_path","cover_image_path","years_experience"].map(k=>[k,row[k]]));
 }
-module.exports={text,httpsUrl,parsePublicProfile,tokenHash,identityHash,parseReview,publicProjection};
+module.exports={text,parsePublicProfile,tokenHash,identityHash,parseReview,publicProjection};
