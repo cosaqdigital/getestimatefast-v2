@@ -18,17 +18,18 @@ main{max-width:1500px;margin:0 auto;padding:0 34px 34px}
 #auth{padding:0;border:0;background:transparent;margin:0;display:grid;grid-template-columns:minmax(0,1.62fr) minmax(430px,.95fr);gap:22px;align-items:stretch}
 .pro-login-promo{min-height:680px;border-radius:22px;overflow:hidden;position:relative;padding:46px 46px 34px;color:white;background:
 linear-gradient(90deg,rgba(5,39,99,.97) 0%,rgba(9,61,143,.93) 48%,rgba(0,120,231,.73) 100%),
-url('/assets/images/hero-home-improvement.jpg') center/cover no-repeat;box-shadow:0 22px 55px rgba(11,45,107,.14)}
-.pro-login-promo:after{content:"";position:absolute;right:4%;top:7%;width:46%;aspect-ratio:1;border:34px solid rgba(255,255,255,.075);border-bottom-width:45px;transform:rotate(45deg);border-radius:22px;pointer-events:none}
+url('/assets/images/service-handyman.jpg') center right/cover no-repeat;box-shadow:0 22px 55px rgba(11,45,107,.14)}
+.pro-login-promo:after{content:"✓";position:absolute;right:7%;top:8%;width:310px;height:310px;display:grid;place-items:center;border:28px solid rgba(255,255,255,.07);border-radius:28px;color:rgba(126,211,33,.18);font-size:240px;line-height:1;font-weight:900;transform:rotate(-8deg);pointer-events:none}
 .pro-promo-content{position:relative;z-index:2;max-width:670px}
 .pro-eyebrow{display:inline-flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,.27);background:rgba(0,120,231,.18);border-radius:999px;padding:9px 15px;font-size:13px;font-weight:850;text-transform:uppercase;letter-spacing:.06em}
 .pro-eyebrow:before{content:"●";color:var(--gef-lime);font-size:9px}
 .pro-login-promo h1{font-size:clamp(43px,4.3vw,72px);line-height:.99;letter-spacing:-2.5px;margin:27px 0 20px;max-width:700px}
 .pro-login-promo h1 span{display:block;color:var(--gef-lime)}
 .pro-promo-lead{font-size:19px;max-width:680px;color:#eef6ff;margin:0 0 27px}
-.pro-benefits{display:grid;gap:13px;margin:26px 0 30px;padding:0;list-style:none;max-width:660px}
-.pro-benefits li{display:grid;grid-template-columns:34px 1fr;gap:13px;align-items:center;font-size:16px;font-weight:650}
-.pro-benefits li:before{content:"✓";display:grid;place-items:center;width:31px;height:31px;border-radius:50%;background:var(--gef-green);color:#fff;font-weight:900}
+.pro-benefits{display:grid;gap:11px;margin:26px 0 30px;padding:0;list-style:none;max-width:610px}
+.pro-benefits li{display:grid;grid-template-columns:52px 1fr;gap:15px;align-items:center;min-height:54px}
+.pro-benefit-icon{width:48px;height:48px;display:grid;place-items:center;border-radius:12px;background:rgba(5,46,105,.82);border:1px solid rgba(255,255,255,.11);color:var(--gef-lime);font-size:26px;font-weight:900}
+.pro-benefit-copy strong{display:block;font-size:16px;line-height:1.2;color:#fff}.pro-benefit-copy span{display:block;margin-top:3px;color:#e6f2ff;font-size:13px;line-height:1.35}
 .pro-cta{display:inline-flex;align-items:center;justify-content:center;gap:12px;min-width:330px;padding:16px 22px;border-radius:11px;background:linear-gradient(180deg,#a8f522,#83dd00);color:#10284d;text-decoration:none;font-size:17px;font-weight:900;box-shadow:0 10px 25px rgba(54,121,0,.22)}
 .pro-cta:hover{filter:brightness(.98);transform:translateY(-1px)}.pro-cta:after{content:"→";font-size:22px}
 .pro-free-note{display:flex;align-items:center;gap:8px;margin:16px 0 0;color:#eef8ff;font-size:13px}.pro-free-note:before{content:"✓";font-weight:900}
@@ -55,7 +56,18 @@ button{border:0;border-radius:8px;padding:11px 15px;background:var(--gef-blue);c
 .columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}.flag{padding:10px 14px;background:#eef8ff;border-radius:8px;margin-bottom:18px;color:#234f72}.check{font-weight:400;display:flex;align-items:baseline;gap:9px}#message{min-height:30px;font-weight:600;margin:14px 2px}
 @media(max-width:1080px){#auth{grid-template-columns:1fr}.pro-login-promo{min-height:auto}.trade-strip{grid-template-columns:repeat(4,1fr)}.trade-strip span:first-child{grid-column:1/-1;justify-content:center;border-bottom:1px solid #e5ebf2}.login-card{padding:34px}.portal-name-divider,.portal-name-sub{display:none}}
 @media(max-width:650px){.portal-header{padding:18px 18px 14px}.portal-wordmark{font-size:22px}.portal-mark{width:36px;transform:scale(.84);transform-origin:left center}.portal-home{font-size:13px}main{padding:0 14px 24px}.pro-login-promo{padding:28px 22px;border-radius:17px}.pro-login-promo h1{font-size:42px;letter-spacing:-1.6px}.pro-promo-lead{font-size:16px}.pro-cta{min-width:0;width:100%}.login-card{padding:28px 20px;border-radius:17px}.login-card h1{font-size:34px}.trade-strip{grid-template-columns:repeat(2,1fr)}.trade-strip span{min-height:58px}.columns{grid-template-columns:1fr}}
-</style><link rel="stylesheet" href="/assets/marketplace.css?v=20261026-104"><link rel="stylesheet" href="/assets/contractor-ux.css?v=20261026-104"></head><body>
+</style><link rel="stylesheet" href="/assets/marketplace.css?v=20261026-104"><link rel="stylesheet" href="/assets/contractor-ux.css?v=20261026-104"><style id="professional-login-final">
+body.pro-simple{background:linear-gradient(180deg,#fff 0,#f7faff 52%,#f4f7fb 100%);color:var(--gef-text)}
+body.pro-simple main{max-width:1500px;padding:0 34px 34px}
+body.pro-simple #auth{display:grid;grid-template-columns:minmax(0,1.48fr) minmax(500px,.92fr);gap:22px;max-width:none}
+body.pro-simple .pro-login-promo{min-height:790px;padding:48px 48px 36px}
+body.pro-simple .login-card{min-height:790px;padding:48px 42px 34px}
+body.pro-simple .pro-login-promo h1{font-size:clamp(46px,4.1vw,67px);max-width:680px;margin-top:26px}
+body.pro-simple .pro-promo-lead{max-width:610px}
+body.pro-simple .trade-strip{grid-column:1/-1}
+@media(max-width:1080px){body.pro-simple main{padding:0 18px 28px}body.pro-simple #auth{grid-template-columns:1fr}body.pro-simple .pro-login-promo,body.pro-simple .login-card{min-height:auto}}
+@media(max-width:650px){body.pro-simple main{padding:0 14px 24px}}
+</style></head><body>
 <header class="portal-header"><a class="portal-brand" href="/index.html" aria-label="GetEstimateFast home"><span class="portal-mark" aria-hidden="true"></span><span class="portal-wordmark">GetEstimate<span class="fast">Fast</span></span><span class="portal-name-divider" aria-hidden="true"></span><span class="portal-name-sub">Professional Portal</span></a><a class="portal-home" href="/index.html">Back to Home</a></header><main>
 <section id="auth">
   <div class="pro-login-promo">
@@ -64,10 +76,10 @@ button{border:0;border-radius:8px;padding:11px 15px;background:var(--gef-blue);c
       <h1>Get more local jobs.<span>Grow your business.</span></h1>
       <p class="pro-promo-lead">Connect with homeowners looking for trusted local professionals. Review opportunities, choose the projects that fit your business, and grow your reputation with GetEstimateFast.</p>
       <ul class="pro-benefits">
-        <li>Local opportunities matched to your services and service area</li>
-        <li>Review project details before unlocking customer contacts</li>
-        <li>Build a professional public profile</li>
-        <li>Showcase your work and collect customer reviews</li>
+        <li><span class="pro-benefit-icon" aria-hidden="true">⌖</span><span class="pro-benefit-copy"><strong>Local opportunities</strong><span>Matched to your services and service area.</span></span></li>
+        <li><span class="pro-benefit-icon" aria-hidden="true">▣</span><span class="pro-benefit-copy"><strong>Review project details</strong><span>Before unlocking customer contacts.</span></span></li>
+        <li><span class="pro-benefit-icon" aria-hidden="true">☆</span><span class="pro-benefit-copy"><strong>Build a professional profile</strong><span>Showcase your work, services and qualifications.</span></span></li>
+        <li><span class="pro-benefit-icon" aria-hidden="true">▧</span><span class="pro-benefit-copy"><strong>Showcase your work</strong><span>With photos and collect customer reviews.</span></span></li>
       </ul>
       <a class="pro-cta" href="/contractor-portal.html?signup=1">Create your free account</a>
       <p class="pro-free-note">Free to join. No monthly commitment to create your profile.</p>
