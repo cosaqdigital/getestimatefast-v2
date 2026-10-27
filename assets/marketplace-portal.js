@@ -111,7 +111,7 @@ panels.innerHTML=`<nav class="portal-nav" aria-label="Contractor navigation"><a 
 
   <aside class="pro-profile-help-card">
     <div><span class="pro-assist-kicker">NEED HELP?</span><h3>Not sure what to write — or want our team to build it for you?</h3><p>Your self-service profile is always free. If you prefer, our team can prepare the complete presentation, organize your portfolio and create a basic logo if needed.</p></div>
-    <a id="profileAssistOpen" class="button secondary" href="/professional-profile-setup.html" target="_blank" rel="noopener">See Professional Profile Setup</a>
+    <a id="profileAssistOpen" class="button secondary" href="/professional-profile-setup.html" target="_blank">See Professional Profile Setup</a>
   </aside>
 
   <section id="profileServicePurchased" class="pro-editor-section pro-service-purchased" hidden>
