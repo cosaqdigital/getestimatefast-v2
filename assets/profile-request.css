@@ -34,3 +34,5 @@
 .gef-profile-ranking-badge.high{background:#fff7df;color:#6f4c00;border-color:#f4d77d}
 .gef-profile-ranking-badge.complete{background:#e6f5ff;color:#0a4f86;border-color:#b9ddf6}
 .gef-profile-ranking-badge.new{background:#eef3f8;color:#405a70;border-color:#d7e1ea}
+
+.gef-profile-hero[style]:after{display:none}
