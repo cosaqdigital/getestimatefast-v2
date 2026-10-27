@@ -236,3 +236,60 @@ body.pro-simple .pro-assist-close{margin-top:14px}
  body.pro-simple .pro-assist-head h3{font-size:27px}
  body.pro-simple .pro-assist-price strong{font-size:42px}
 }
+
+
+/* Full self-service public profile editor */
+body.pro-simple .pro-profile-editor{display:grid;gap:18px}
+body.pro-simple .pro-profile-editor-head{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:22px;align-items:center}
+body.pro-simple .pro-profile-editor-head h2{margin:4px 0 8px;font-size:30px;color:#143955}
+body.pro-simple .pro-profile-editor-head p{margin:0;color:#637b8e}
+body.pro-simple .pro-profile-strength{padding:18px;border:1px solid #d8e5ef;border-radius:14px;background:#f9fcff}
+body.pro-simple .pro-profile-strength>span,body.pro-simple .pro-profile-strength small{display:block;color:#667d91;font-size:12px}
+body.pro-simple .pro-profile-strength strong{display:block;font-size:30px;color:#0b2d6b;margin:4px 0}
+body.pro-simple .pro-profile-strength>div{height:8px;border-radius:99px;background:#e4edf4;overflow:hidden;margin:7px 0 9px}
+body.pro-simple .pro-profile-strength i{display:block;height:100%;width:0;background:#7ed321;border-radius:99px;transition:width .25s ease}
+body.pro-simple .pro-editor-section{padding:22px;border:1px solid #d9e5ee;border-radius:16px;background:#fff}
+body.pro-simple .pro-section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px}
+body.pro-simple .pro-section-head h3{margin:3px 0 5px;color:#173b59;font-size:22px}
+body.pro-simple .pro-section-head p{margin:0;color:#647b8f}
+body.pro-simple .pro-step{display:inline-grid;place-items:center;min-width:32px;height:28px;padding:0 8px;border-radius:8px;background:#eaf4ff;color:#0c66b3;font-size:11px;font-weight:900;letter-spacing:.08em}
+body.pro-simple .pro-identity-grid{display:grid;grid-template-columns:1fr 1.35fr;gap:14px}
+body.pro-simple .pro-media-editor{display:grid;grid-template-columns:140px 1fr;gap:15px;padding:15px;border:1px solid #dbe6ee;border-radius:14px;background:#fbfdff;align-items:center}
+body.pro-simple .pro-cover-editor{grid-template-columns:220px 1fr}
+body.pro-simple .pro-media-preview{overflow:hidden;border:1px dashed #b8cad8;border-radius:14px;background:#eef5fa;display:grid;place-items:center;color:#688094;font-size:12px;font-weight:800;text-align:center}
+body.pro-simple .pro-logo-preview{width:140px;height:140px;border-radius:50%}
+body.pro-simple .pro-cover-preview{width:220px;aspect-ratio:16/9}
+body.pro-simple .pro-media-preview img{width:100%;height:100%;object-fit:cover}
+body.pro-simple .pro-media-editor p{margin:6px 0 10px;color:#647b8f;font-size:13px}
+body.pro-simple .pro-file-label{display:inline-grid;gap:5px;margin-bottom:8px}
+body.pro-simple .pro-file-label input{max-width:100%}
+body.pro-simple .pro-count-pill{padding:7px 10px;border-radius:999px;background:#eef4f8;color:#557087;font-size:12px;font-weight:800}
+body.pro-simple .pro-portfolio-editor-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:14px}
+body.pro-simple .pro-portfolio-edit-card{overflow:hidden;border:1px solid #dce6ee;border-radius:13px;background:#fff}
+body.pro-simple .pro-portfolio-edit-card img{display:block;width:100%;height:150px;object-fit:cover}
+body.pro-simple .pro-portfolio-edit-card>div{padding:12px}
+body.pro-simple .pro-portfolio-edit-card p{font-size:13px;color:#647b8f;margin:5px 0 10px}
+body.pro-simple .pro-portfolio-add{padding:16px;border:1px dashed #bed0df;border-radius:13px;background:#f9fcff}
+body.pro-simple .pro-publish-section{background:linear-gradient(135deg,#f8fcff,#f2faef)}
+body.pro-simple .pro-publish-check{font-size:15px;font-weight:800}
+body.pro-simple .pro-publish-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:15px}
+body.pro-simple .pro-reviews-editor{background:#fbfdff}
+body.pro-simple .pro-profile-help-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:center;padding:20px;border-radius:16px;background:linear-gradient(135deg,#0b2d6b,#0d5aa8);color:#fff}
+body.pro-simple .pro-profile-help-card .pro-assist-kicker{color:#bfe1ff}
+body.pro-simple .pro-profile-help-card h3{margin:4px 0 6px;color:#fff}
+body.pro-simple .pro-profile-help-card p{margin:0;color:#e3eef8}
+body.pro-simple .pro-profile-help-card .button{background:#9af000;color:#0b2d6b;border:0;white-space:nowrap}
+body.pro-simple .pro-service-purchased{border-color:#b9dfc9;background:#f3fbf6}
+@media(max-width:980px){
+ body.pro-simple .pro-profile-editor-head{grid-template-columns:1fr}
+ body.pro-simple .pro-identity-grid{grid-template-columns:1fr}
+ body.pro-simple .pro-media-editor,body.pro-simple .pro-cover-editor{grid-template-columns:160px 1fr}
+ body.pro-simple .pro-portfolio-editor-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ body.pro-simple .pro-profile-help-card{grid-template-columns:1fr}
+}
+@media(max-width:650px){
+ body.pro-simple .pro-media-editor,body.pro-simple .pro-cover-editor{grid-template-columns:1fr}
+ body.pro-simple .pro-logo-preview,body.pro-simple .pro-cover-preview{width:100%;height:auto;aspect-ratio:16/9;border-radius:14px}
+ body.pro-simple .pro-portfolio-editor-grid{grid-template-columns:1fr}
+ body.pro-simple .pro-publish-actions{display:grid}
+}
