@@ -15,8 +15,8 @@ function installLogin(){
  const auth=el("auth"),form=el("login");if(!auth||!form||el("googleLogin"))return;
  const button=document.createElement("button");button.type="button";button.id="googleLogin";button.className="secondary";button.textContent="Continue with Google";
  button.addEventListener("click",()=>start("login"));
- const divider=document.createElement("p");divider.textContent="or sign in with email and password";divider.style.textAlign="center";
- auth.insertBefore(button,form);auth.insertBefore(divider,form);
+ const divider=document.createElement("p");divider.className="login-divider";divider.textContent="or continue with email";
+ const card=auth.querySelector(".login-card")||auth;const intro=card.querySelector(".login-intro");if(intro){intro.insertAdjacentElement("afterend",button);button.insertAdjacentElement("afterend",divider);}else{card.insertBefore(button,form);card.insertBefore(divider,form);}
 }
 function check(label,input,text){
  const wrap=document.createElement("label");wrap.className="check";wrap.htmlFor=input.id;
