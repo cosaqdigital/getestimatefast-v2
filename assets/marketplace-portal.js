@@ -354,6 +354,8 @@ async function loadProfileService(){
    servicePurchased.hidden=false;
    if(check.status==="confirmed"){sessionStorage.removeItem("gef_profile_service_intent_id");profileServiceOrder={...(profileServiceOrder||{}),order_id:check.order_id,status:check.order_status||"intake_pending"};assistState.textContent="Payment received. Complete the information below so our team can begin.";assistIntake.hidden=false;fillAssistCategories();}
    else assistState.textContent="Payment is still being confirmed by Stripe.";
+  }else if(state==="buy"&&!profileServiceOrder){
+   const clean=new URL(location.href);clean.searchParams.delete("profile_service");history.replaceState(null,"",clean.pathname+clean.search+"#publicProfilePanel");queueMicrotask(()=>startProfileServiceCheckout());
   }else if(state==="canceled")portal.say("Checkout was canceled. No profile service was purchased.");
  }catch(e){if(servicePurchased&&!servicePurchased.hidden)assistState.textContent=e.message||"Profile setup status is temporarily unavailable.";}
 }
