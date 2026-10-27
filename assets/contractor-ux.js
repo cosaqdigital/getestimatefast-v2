@@ -84,13 +84,13 @@ async function showReferrals(){
 referralReload.addEventListener("click",()=>showReferrals());
 
 // Reuse every existing module, showing one section at a time.
-const views={contractorDashboard:$("contractorDashboard"),opportunityPanel:$("opportunityPanel"),myReferralsPanel:referrals,publicProfilePanel:$("publicProfilePanel"),accountSettingsPanel:settings,walletPanel:$("walletPanel"),purchasePanel:$("purchasePanel")};
+const views={contractorDashboard:$("contractorDashboard"),opportunityPanel:$("opportunityPanel"),myReferralsPanel:referrals,publicProfilePanel:$("publicProfilePanel"),profilePreviewPanel:$("profilePreviewPanel"),accountSettingsPanel:settings,walletPanel:$("walletPanel"),purchasePanel:$("purchasePanel")};
 nav.replaceChildren();
-for(const [id,label] of [["contractorDashboard","Home"],["opportunityPanel","Opportunities"],["myReferralsPanel","Direct Leads"],["publicProfilePanel","Public profile"],["accountSettingsPanel","My details"],["walletPanel","Wallet"],["purchasePanel","Purchase history"]]){
+for(const [id,label] of [["contractorDashboard","Home"],["opportunityPanel","Opportunities"],["myReferralsPanel","Direct Leads"],["publicProfilePanel","Public profile"],["profilePreviewPanel","Profile preview"],["accountSettingsPanel","My details"],["walletPanel","Wallet"],["purchasePanel","Purchase history"]]){
  const link=make("a",label);link.href="#"+id;link.dataset.screen=id;nav.append(link);
 }
 nav.classList.add("pro-navigation");
-const commercialScreens=new Set(["opportunityPanel","myReferralsPanel","publicProfilePanel","walletPanel","purchasePanel"]);
+const commercialScreens=new Set(["opportunityPanel","myReferralsPanel","publicProfilePanel","profilePreviewPanel","walletPanel","purchasePanel"]);
 function syncNavigationAvailability(){
  const closed=capabilities?.marketplace_enabled===false;
  for(const link of nav.querySelectorAll("a[data-screen]")){
@@ -241,6 +241,7 @@ function go(id){
  for(const link of nav.querySelectorAll("a"))link.dataset.active=link.dataset.screen===dest?"true":"false";
  if(dest==="accountSettingsPanel"){drawServices();if(current!==dest)selectStep(1);}
  if(dest==="publicProfilePanel")drawPublic();
+ if(dest==="profilePreviewPanel")window.dispatchEvent(new CustomEvent("gef-profile-preview-request"));
  if(dest==="myReferralsPanel")showReferrals();
  current=dest;
 }
