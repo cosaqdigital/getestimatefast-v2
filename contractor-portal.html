@@ -57,47 +57,116 @@ button{border:0;border-radius:8px;padding:11px 15px;background:var(--gef-blue);c
 @media(max-width:1080px){#auth{grid-template-columns:1fr}.pro-login-promo{min-height:auto}.trade-strip{grid-template-columns:repeat(4,1fr)}.trade-strip span:first-child{grid-column:1/-1;justify-content:center;border-bottom:1px solid #e5ebf2}.login-card{padding:34px}.portal-name-divider,.portal-name-sub{display:none}}
 @media(max-width:650px){.portal-header{padding:18px 18px 14px}.portal-wordmark{font-size:22px}.portal-mark{width:36px;transform:scale(.84);transform-origin:left center}.portal-home{font-size:13px}main{padding:0 14px 24px}.pro-login-promo{padding:28px 22px;border-radius:17px}.pro-login-promo h1{font-size:42px;letter-spacing:-1.6px}.pro-promo-lead{font-size:16px}.pro-cta{min-width:0;width:100%}.login-card{padding:28px 20px;border-radius:17px}.login-card h1{font-size:34px}.trade-strip{grid-template-columns:repeat(2,1fr)}.trade-strip span{min-height:58px}.columns{grid-template-columns:1fr}}
 </style><link rel="stylesheet" href="/assets/marketplace.css?v=20261026-104"><link rel="stylesheet" href="/assets/contractor-ux.css?v=20261026-104"><style id="professional-login-final">
-body.pro-simple{background:linear-gradient(180deg,#fff 0,#f7faff 52%,#f4f7fb 100%);color:var(--gef-text)}
-body.pro-simple main{max-width:1500px;padding:0 34px 34px}
-body.pro-simple #auth{display:grid;grid-template-columns:minmax(0,1.48fr) minmax(500px,.92fr);gap:22px;max-width:none}
-body.pro-simple .pro-login-promo{min-height:790px;padding:48px 48px 36px}
-body.pro-simple .login-card{min-height:790px;padding:48px 42px 34px}
-body.pro-simple .pro-login-promo h1{font-size:clamp(46px,4.1vw,67px);max-width:680px;margin-top:26px}
-body.pro-simple .pro-promo-lead{max-width:610px}
-body.pro-simple .trade-strip{grid-column:1/-1}
-@media(max-width:1080px){body.pro-simple main{padding:0 18px 28px}body.pro-simple #auth{grid-template-columns:1fr}body.pro-simple .pro-login-promo,body.pro-simple .login-card{min-height:auto}}
-@media(max-width:650px){body.pro-simple main{padding:0 14px 24px}}
+body.pro-simple{background:#f5f8fc;color:#10284d}
+body.pro-simple main{max-width:1536px;padding:0 32px 26px}
+body.pro-simple .portal-header{max-width:1536px;padding:20px 40px 18px}
+body.pro-simple .portal-mark{transform:scale(1.08);transform-origin:left center}
+body.pro-simple .portal-wordmark{font-size:34px;letter-spacing:-1.6px}
+body.pro-simple .portal-name-sub{font-size:20px}
+body.pro-simple .portal-home{font-size:17px}
+body.pro-simple .portal-home:before{content:"⌂";font-size:26px;color:#0d5aad}
+body.pro-simple #auth.approved-login-shell{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(475px,.94fr);gap:22px;align-items:stretch}
+body.pro-simple .approved-hero{position:relative;min-height:812px;overflow:hidden;border-radius:0;background:
+linear-gradient(90deg,rgba(5,43,104,.99) 0%,rgba(6,55,129,.96) 45%,rgba(0,120,231,.70) 100%),
+url('/assets/images/service-handyman.jpg') 88% 54%/52% auto no-repeat;
+box-shadow:none}
+body.pro-simple .approved-hero:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(1,29,79,.25),transparent 65%);pointer-events:none}
+body.pro-simple .approved-hero-copy{position:relative;z-index:4;width:60%;padding:55px 0 34px 52px;color:#fff}
+body.pro-simple .approved-eyebrow{display:flex;align-items:center;gap:12px;font-size:17px;letter-spacing:.025em;margin-bottom:20px}
+body.pro-simple .approved-eyebrow span{width:31px;height:4px;background:var(--gef-lime);display:inline-block}
+body.pro-simple .approved-hero h1{margin:0 0 20px;font-size:clamp(47px,4.25vw,67px);line-height:.98;letter-spacing:-2.7px;color:#fff;max-width:620px}
+body.pro-simple .approved-hero h1 strong{display:block;color:var(--gef-lime)}
+body.pro-simple .approved-lead{font-size:19px;line-height:1.38;max-width:585px;margin:0 0 24px;color:#fff}
+body.pro-simple .approved-benefits{display:grid;gap:10px;margin:0 0 24px}
+body.pro-simple .approved-benefit{display:grid;grid-template-columns:62px 1fr;gap:15px;align-items:center}
+body.pro-simple .approved-icon{width:58px;height:58px;border-radius:11px;display:grid;place-items:center;background:rgba(1,40,94,.88);color:var(--gef-lime);font-size:33px;font-weight:900;box-shadow:inset 0 0 0 1px rgba(255,255,255,.05)}
+body.pro-simple .approved-benefit b{display:block;font-size:18px;color:#fff;line-height:1.1}
+body.pro-simple .approved-benefit small{display:block;color:#fff;font-size:14px;line-height:1.25;margin-top:4px}
+body.pro-simple .approved-primary-cta{display:flex;align-items:center;justify-content:space-between;width:405px;max-width:100%;padding:17px 22px;border-radius:11px;background:linear-gradient(180deg,#a9ff00,#7fe600);color:#10284d;text-decoration:none;font-size:19px;font-weight:900;box-shadow:0 10px 28px rgba(74,131,0,.18)}
+body.pro-simple .approved-primary-cta span{font-size:28px;line-height:1}
+body.pro-simple .approved-free-note{font-size:14px;color:#fff;margin:14px 0 0}
+body.pro-simple .approved-house-mark{position:absolute;right:2.5%;top:8%;width:43%;height:48%;opacity:.38;z-index:2}
+body.pro-simple .approved-house-mark:before{content:"";position:absolute;left:12%;top:18%;width:65%;height:65%;border:25px solid #168ce9;border-top:0;transform:rotate(45deg);border-radius:16px}
+body.pro-simple .approved-house-mark:after{content:"✓";position:absolute;left:28%;top:12%;font-size:245px;line-height:1;color:rgba(126,211,33,.58);font-weight:900;transform:rotate(-8deg)}
+body.pro-simple .approved-pro-photo{position:absolute;z-index:3;right:0;bottom:0;width:48%;height:72%;background:url('/assets/images/service-handyman.jpg') 65% center/cover no-repeat;filter:saturate(1.05) contrast(1.03);-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 18%,#000 100%);mask-image:linear-gradient(90deg,transparent 0,#000 18%,#000 100%)}
+body.pro-simple .approved-houses{position:absolute;z-index:3;left:0;bottom:0;width:49%;height:110px;background:url('/assets/images/hero-home-real.jpeg') center 62%/cover no-repeat;-webkit-mask-image:linear-gradient(180deg,transparent 0,#000 40%);mask-image:linear-gradient(180deg,transparent 0,#000 40%)}
+body.pro-simple .approved-login-card{min-height:812px;border-radius:24px;padding:44px 42px 34px;border:1px solid #dce5ef;box-shadow:0 16px 45px rgba(16,48,90,.10)}
+body.pro-simple .approved-login-card h1{font-size:45px;color:#07152f;margin:0 0 10px}
+body.pro-simple .approved-login-card .login-intro{font-size:19px;color:#263a59;line-height:1.38;margin-bottom:28px}
+body.pro-simple #googleLogin{height:58px;border-radius:9px;font-size:17px}
+body.pro-simple #googleLogin:before{content:"G";font-size:25px;color:#4285f4}
+body.pro-simple .login-divider{margin:24px 0 18px;font-size:16px}
+body.pro-simple #login label{font-size:16px;margin-top:16px}
+body.pro-simple .approved-field{position:relative;margin-top:7px}
+body.pro-simple .approved-field input{height:52px!important;padding-left:57px!important;background:#fff!important;border-color:#b8c9dc!important}
+body.pro-simple .field-icon{position:absolute;left:18px;top:50%;transform:translateY(-50%);z-index:2;color:#526b8a;font-size:21px}
+body.pro-simple .password-toggle{right:10px}
+body.pro-simple .approved-login-options{display:flex;justify-content:space-between;align-items:center;margin:16px 0 0;gap:16px}
+body.pro-simple .approved-login-options .remember-row{display:flex;align-items:center;gap:8px;margin:0;font-weight:500;font-size:15px}
+body.pro-simple .approved-login-options .remember-row input{width:20px;height:20px;margin:0;accent-color:#076bc7}
+body.pro-simple .approved-login-options a{font-size:15px;font-weight:700}
+body.pro-simple #login>p:last-of-type{margin-top:18px}
+body.pro-simple #login>p:last-of-type button{height:57px;font-size:18px;border-radius:9px;background:#076bc7}
+body.pro-simple .login-signup{margin-top:25px;padding:19px;background:#edf9ef;border-color:#d5efd9;border-radius:12px}
+body.pro-simple .login-signup strong{display:block;font-size:16px;color:#0d1831;margin-bottom:6px}
+body.pro-simple .login-signup a{font-size:17px;color:#087b19}
+body.pro-simple .approved-trades{grid-column:1/-1;display:grid;grid-template-columns:1.45fr repeat(7,1fr);border-radius:0;margin-top:0;border:0;border-top:1px solid #dbe4ee;box-shadow:none;background:#fff}
+body.pro-simple .approved-trades>span{min-height:96px;display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center;border-right:1px solid #e1e7ee;font-size:14px;color:#0b2d6b;padding:8px}
+body.pro-simple .approved-trades>span i{font-style:normal;color:#075db5;font-size:30px;line-height:1}
+body.pro-simple .approved-trades .trade-intro{flex-direction:row;gap:12px;justify-content:flex-start;padding-left:28px;font-size:17px}
+body.pro-simple .trade-svg{font-size:34px;color:#075db5}
+body.pro-simple #register[hidden]{display:none!important}
+body.pro-simple #register:not([hidden]){max-width:900px;margin:28px auto;background:#fff}
+body.pro-simple #auth + #register[hidden] + #workspace[hidden] + #message:empty{display:none}
+@media(max-width:1120px){body.pro-simple #auth.approved-login-shell{grid-template-columns:1fr}.approved-pro-photo{opacity:.75}.approved-trades{grid-template-columns:repeat(4,1fr)!important}.approved-trades .trade-intro{grid-column:1/-1!important;justify-content:center!important}}
+@media(max-width:700px){body.pro-simple main{padding:0 12px 22px}body.pro-simple .portal-header{padding:16px 14px}.portal-name-sub,.portal-name-divider{display:none}.approved-hero{min-height:auto!important}.approved-hero-copy{width:100%!important;padding:34px 24px 30px!important}.approved-hero h1{font-size:43px!important}.approved-pro-photo,.approved-houses{display:none}.approved-house-mark{right:-10%;opacity:.18}.approved-login-card{min-height:auto!important;padding:30px 22px!important}.approved-login-options{align-items:flex-start}.approved-trades{grid-template-columns:repeat(2,1fr)!important}.approved-trades .trade-intro{grid-column:1/-1!important}.approved-trades>span{min-height:72px!important}}
 </style></head><body>
 <header class="portal-header"><a class="portal-brand" href="/index.html" aria-label="GetEstimateFast home"><span class="portal-mark" aria-hidden="true"></span><span class="portal-wordmark">GetEstimate<span class="fast">Fast</span></span><span class="portal-name-divider" aria-hidden="true"></span><span class="portal-name-sub">Professional Portal</span></a><a class="portal-home" href="/index.html">Back to Home</a></header><main>
-<section id="auth">
-  <div class="pro-login-promo">
-    <div class="pro-promo-content">
-      <div class="pro-eyebrow">For local contractors</div>
-      <h1>Get more local jobs.<span>Grow your business.</span></h1>
-      <p class="pro-promo-lead">Connect with homeowners looking for trusted local professionals. Review opportunities, choose the projects that fit your business, and grow your reputation with GetEstimateFast.</p>
-      <ul class="pro-benefits">
-        <li><span class="pro-benefit-icon" aria-hidden="true">⌖</span><span class="pro-benefit-copy"><strong>Local opportunities</strong><span>Matched to your services and service area.</span></span></li>
-        <li><span class="pro-benefit-icon" aria-hidden="true">▣</span><span class="pro-benefit-copy"><strong>Review project details</strong><span>Before unlocking customer contacts.</span></span></li>
-        <li><span class="pro-benefit-icon" aria-hidden="true">☆</span><span class="pro-benefit-copy"><strong>Build a professional profile</strong><span>Showcase your work, services and qualifications.</span></span></li>
-        <li><span class="pro-benefit-icon" aria-hidden="true">▧</span><span class="pro-benefit-copy"><strong>Showcase your work</strong><span>With photos and collect customer reviews.</span></span></li>
-      </ul>
-      <a class="pro-cta" href="/contractor-portal.html?signup=1">Create your free account</a>
-      <p class="pro-free-note">Free to join. No monthly commitment to create your profile.</p>
+<section id="auth" class="approved-login-shell">
+  <div class="approved-hero">
+    <div class="approved-hero-copy">
+      <div class="approved-eyebrow"><span></span>FOR LOCAL CONTRACTORS</div>
+      <h1>Get more local jobs.<strong>Grow your business.</strong></h1>
+      <p class="approved-lead">Connect with homeowners looking for trusted local professionals. Review opportunities, choose the projects that fit your business, and grow your reputation with GetEstimateFast.</p>
+      <div class="approved-benefits">
+        <div class="approved-benefit"><span class="approved-icon">⌖</span><div><b>Local opportunities</b><small>Matched to your services and service area.</small></div></div>
+        <div class="approved-benefit"><span class="approved-icon">▣</span><div><b>Review project details</b><small>Before unlocking customer contacts.</small></div></div>
+        <div class="approved-benefit"><span class="approved-icon">☆</span><div><b>Build a professional profile</b><small>Showcase your work, services and qualifications.</small></div></div>
+        <div class="approved-benefit"><span class="approved-icon">▧</span><div><b>Showcase your work</b><small>With photos and collect customer reviews.</small></div></div>
+      </div>
+      <a class="approved-primary-cta" href="/contractor-portal.html?signup=1">Create your free account <span>→</span></a>
+      <p class="approved-free-note">✓&nbsp;&nbsp; Free to join. No monthly commitment to create your profile.</p>
     </div>
+    <div class="approved-house-mark" aria-hidden="true"><span></span></div>
+    <div class="approved-pro-photo" aria-hidden="true"></div>
+    <div class="approved-houses" aria-hidden="true"></div>
   </div>
-  <div class="login-card">
+
+  <div class="login-card approved-login-card">
     <h1>Welcome back</h1>
     <p class="login-intro">Sign in to access your professional account and view available opportunities.</p>
     <form id="login">
-      <label>Email address<input type="email" name="email" autocomplete="username" placeholder="you@company.com" required></label>
-      <label>Password<div class="password-wrap"><input id="contractorPassword" type="password" name="password" autocomplete="current-password" required><button class="password-toggle" id="passwordToggle" type="button" aria-label="Show password">◉</button></div></label>
-      <div class="login-actions"><a href="/contractor-reset-password.html">Forgot password?</a></div>
-      <p><button type="submit">Sign in →</button></p>
+      <label>Email address
+        <div class="approved-field"><span class="field-icon" aria-hidden="true">✉</span><input type="email" name="email" autocomplete="username" placeholder="you@company.com" required></div>
+      </label>
+      <label>Password
+        <div class="approved-field password-wrap"><span class="field-icon" aria-hidden="true">♙</span><input id="contractorPassword" type="password" name="password" autocomplete="current-password" required><button class="password-toggle" id="passwordToggle" type="button" aria-label="Show password">◉</button></div>
+      </label>
+      <div class="approved-login-options"><label class="remember-row"><input type="checkbox" name="remember_session"> Remember me</label><a href="/contractor-reset-password.html">Forgot password?</a></div>
+      <p><button type="submit">Sign in</button></p>
     </form>
-    <div class="login-signup"><span>New to GetEstimateFast?</span><a href="/contractor-portal.html?signup=1">Create your free professional account →</a></div>
+    <div class="login-signup"><strong>New to GetEstimateFast?</strong><a href="/contractor-portal.html?signup=1">Create your free professional account →</a></div>
   </div>
-  <div class="trade-strip" aria-label="Services supported by GetEstimateFast">
-    <span>Built for local professionals</span><span>House Cleaning</span><span>Pressure Washing</span><span>Flooring</span><span>Painting</span><span>Handyman</span><span>Drywall</span><span>Lawn Care</span>
+
+  <div class="trade-strip approved-trades" aria-label="Services supported by GetEstimateFast">
+    <span class="trade-intro"><span class="trade-svg">⌂</span><b>Built for local professionals</b></span>
+    <span><i>⌁</i>House Cleaning</span>
+    <span><i>⌇</i>Pressure Washing</span>
+    <span><i>▤</i>Flooring</span>
+    <span><i>⚒</i>Painting</span>
+    <span><i>⌕</i>Handyman</span>
+    <span><i>▯</i>Drywall</span>
+    <span><i>♒</i>Lawn Care</span>
   </div>
 </section>
 <section id="register" hidden><h2>Create an account</h2><form id="signup"><label>Email<input type="email" name="email" autocomplete="email" required></label><label>Mobile phone<input type="tel" name="phone" autocomplete="tel" placeholder="e.g. (813) 555-0123" required></label><label>Password (minimum 12 characters)<input type="password" name="password" minlength="12" required></label><label class="check"><input type="checkbox" name="privacyConsent" required>I agree to the <a href="/privacy.html" target="_blank" rel="noopener">GetEstimateFast Privacy Policy</a></label><label class="check"><input type="checkbox" name="termsConsent" required>I accept the <a href="/terms.html" target="_blank" rel="noopener">GetEstimateFast Terms of Use</a></label><div class="flag" style="margin-top:16px"><strong>Optional opportunity SMS alerts</strong><p style="margin:7px 0">GetEstimateFast can text this mobile number about matching local job opportunities and account-related support. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for help. SMS consent is optional and is not required to create an account or buy a contact.</p><label class="check"><input type="checkbox" name="smsOptIn">I agree to receive SMS from GetEstimateFast at the mobile number entered above.</label></div><button>Create account</button></form></section>
