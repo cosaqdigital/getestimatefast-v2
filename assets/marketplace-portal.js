@@ -139,10 +139,36 @@ el("categories").multiple=true;el("categories").size=5;
 const filters=document.createElement("div");filters.className="form-grid";
 filters.innerHTML=`<label>Category<select id="opportunityCategory"><option value="">All my categories</option></select></label><label>ZIP Code near your search<input id="opportunityZip" pattern="[0-9]{5}" maxlength="5" placeholder="e.g. 33569"></label><label>Search radius in miles<input id="opportunityRadius" type="number" min="1" max="100" placeholder="Your profile radius"></label><label>Availability<select id="opportunityAvailability"><option value="available">Available</option><option value="expired">Expired</option><option value="all">All published</option></select></label>`;
 el("opportunityPanel").insertBefore(filters,el("opportunityCards"));
-let portfolio=[],profileSeeded=false,generation=0,signedIn=false,capabilities=null;
+let portfolio=[],profileImagePath="",coverImagePath="",profileStorageOrigin="",profileSeeded=false,generation=0,signedIn=false,capabilities=null;
 const availability=node("p",undefined,"notice");availability.id="profileAvailability";
 el("publicProfileForm").before(availability);
-function renderPortfolio(){el("portfolioItems").replaceChildren();portfolio.forEach((p,index)=>{const row=node("div",undefined,"card");row.append(node("strong",p.title),node("p",p.description));const remove=node("button","Remove photo","secondary");remove.type="button";remove.onclick=()=>{portfolio.splice(index,1);renderPortfolio();};row.append(remove);el("portfolioItems").append(row);});}
+function mediaUrl(path){return path&&profileStorageOrigin?profileStorageOrigin+"/storage/v1/object/public/gef-portfolio/"+path:"";}
+function setMediaPreview(id,path,label){const holder=el(id);if(!holder)return;holder.replaceChildren();const url=mediaUrl(path);if(url){const img=node("img");img.src=url;img.alt=label;img.loading="lazy";holder.append(img);}else holder.append(node("span",label));}
+function updateProfileStrength(){
+ const f=el("publicProfileForm");if(!f)return;
+ const checks=[
+  Boolean(f.elements.namedItem("display_name")?.value.trim()),
+  Boolean(f.elements.namedItem("slug")?.value.trim()),
+  Boolean(f.elements.namedItem("headline")?.value.trim()),
+  Boolean((f.elements.namedItem("about")?.value.trim().length||0)>=80),
+  Boolean(f.elements.namedItem("city")?.value.trim()&&/^\d{5}$/.test(f.elements.namedItem("zip_code")?.value||"")),
+  Boolean([...el("publicCategories").selectedOptions].length),
+  Boolean(f.elements.namedItem("languages")?.value.trim()),
+  Boolean(profileImagePath),
+  Boolean(coverImagePath),
+  portfolio.length>=3
+ ];
+ const value=Math.round(checks.filter(Boolean).length/checks.length*100);
+ el("profileStrengthValue").textContent=value+"%";
+ el("profileStrengthBar").style.width=value+"%";
+ el("profileStrengthHint").textContent=value>=90?"Your profile is ready to make a strong first impression.":value>=60?"Good progress. Add more visual proof and profile details.":"Add your business details, images and work examples to strengthen your profile.";
+}
+function renderPortfolio(){
+ const holder=el("portfolioItems");holder.replaceChildren();
+ portfolio.forEach((p,index)=>{const row=node("article",undefined,"pro-portfolio-edit-card");const url=mediaUrl(p.image_path);if(url){const img=node("img");img.src=url;img.alt=p.title;img.loading="lazy";row.append(img);}const body=node("div");body.append(node("strong",p.title),node("p",p.description||""));const remove=node("button","Remove","secondary");remove.type="button";remove.onclick=()=>{portfolio.splice(index,1);renderPortfolio();};body.append(remove);row.append(body);holder.append(row);});
+ el("portfolioCount").textContent=portfolio.length+" "+(portfolio.length===1?"project":"projects");
+ updateProfileStrength();
+}
 function table(container,head,rows){const holder=el(container);holder.replaceChildren();if(!rows.length){holder.append(node("p","No records yet."));return;}const t=node("table"),thead=node("thead"),tr=node("tr");for(const h of head)tr.append(node("th",h));thead.append(tr);t.append(thead);const body=node("tbody");for(const row of rows){const r=node("tr");for(const v of row)r.append(node("td",v));body.append(r);}t.append(body);holder.append(t);}
 function renderPurchases(purchases,contactRelease){
  const holder=el("purchaseHistory");holder.replaceChildren();
@@ -273,9 +299,10 @@ async function loadMarketplace(){
    sessionStorage.removeItem("gef_pending_topup_intent_id");
    el("dashboardNotice").textContent="Wallet top-up was canceled. No credits were added.";
   }
-  const saved=(await api("public-profile")).profile;if(current!==generation||!signedIn)return;if(saved){
+  const savedResponse=await api("public-profile");profileStorageOrigin=savedResponse.storage_origin||profileStorageOrigin;const saved=savedResponse.profile;if(current!==generation||!signedIn)return;if(saved){
    const form=el("publicProfileForm");for(const [k,v] of Object.entries(saved)){const field=form.elements.namedItem(k);if(!field)continue;if(field.type==="checkbox")field.checked=v===true;else if(k==="categories")for(const o of field.options)o.selected=v.includes(o.value);else field.value=Array.isArray(v)?v.join("\n"):v??"";}
-   portfolio=saved.portfolio||[];renderPortfolio();profileSeeded=true;
+   portfolio=saved.portfolio||[];profileImagePath=saved.profile_image_path||"";coverImagePath=saved.cover_image_path||"";setMediaPreview("profileImagePreview",profileImagePath,"Logo or profile image");setMediaPreview("coverImagePreview",coverImagePath,"Cover image");renderPortfolio();profileSeeded=true;
+   const view=el("viewPublicProfile");view.hidden=!saved.published;view.href=saved.published?"/professionals/"+saved.slug:"#";
    addShares("profileShare",saved.published?"/professionals/"+saved.slug:null,saved.display_name);
    window.dispatchEvent(new CustomEvent("gef-public-profile",{detail:{profile:saved}}));
   }
@@ -291,81 +318,55 @@ window.addEventListener("gef-profile",e=>{const {profile:p,categories}=e.detail;
  if(p&&!profileSeeded){const f=el("publicProfileForm");for(const [k,v] of Object.entries({display_name:p.business_name||p.display_name,city:p.city,zip_code:p.base_zip,radius_miles:p.service_radius_miles,about:p.bio||""}))f.elements.namedItem(k).value=v;for(const o of el("publicCategories").options)o.selected=p.service_categories.includes(o.value);}if(signedIn&&p)loadMarketplace();
 });
 window.addEventListener("gef-opportunities",e=>{el("opportunityCount").textContent=e.detail.matching_total;el("opportunityCountNote").textContent="Matches for your current search filters";});
-window.addEventListener("gef-signed-out",()=>{signedIn=false;generation++;for(const id of ["walletBalance","paidBalance","promoBalance","refundBalance","purchaseCount","opportunityCount","dashboardProfileStatus"])el(id).textContent="—";for(const id of ["walletStatement","purchaseHistory","paymentHistory","profileShare","reviewInviteShare"])el(id).replaceChildren();el("publicProfileForm").reset();portfolio=[];renderPortfolio();profileSeeded=false;});
-el("publicProfileForm").onsubmit=async e=>{e.preventDefault();const f=new FormData(e.currentTarget),obj=Object.fromEntries(f);obj.categories=f.getAll("categories");obj.languages=String(obj.languages).split("\n").map(s=>s.trim()).filter(Boolean);obj.social_links=String(obj.social_links).split("\n").map(s=>s.trim()).filter(Boolean);obj.radius_miles=Number(obj.radius_miles);for(const k of ["published","publish_email","publish_phone"])obj[k]=f.get(k)==="on";obj.portfolio=portfolio;try{const r=await api("public-profile","POST",obj);portal.say("Public profile saved.");addShares("profileShare",obj.published?r.profile_path:null,obj.display_name);window.dispatchEvent(new CustomEvent("gef-public-profile",{detail:{profile:obj}}));}catch(ex){portal.say(ex.message);}};
+window.addEventListener("gef-signed-out",()=>{signedIn=false;generation++;for(const id of ["walletBalance","paidBalance","promoBalance","refundBalance","purchaseCount","opportunityCount","dashboardProfileStatus"])el(id).textContent="—";for(const id of ["walletStatement","purchaseHistory","paymentHistory","profileShare","reviewInviteShare"])el(id).replaceChildren();el("publicProfileForm").reset();portfolio=[];profileImagePath="";coverImagePath="";profileStorageOrigin="";setMediaPreview("profileImagePreview","","Logo or profile image");setMediaPreview("coverImagePreview","","Cover image");renderPortfolio();el("viewPublicProfile").hidden=true;profileSeeded=false;});
+el("publicProfileForm").onsubmit=async e=>{e.preventDefault();const f=new FormData(e.currentTarget),obj=Object.fromEntries(f);obj.categories=f.getAll("categories");obj.languages=String(obj.languages||"").split("\n").map(s=>s.trim()).filter(Boolean);obj.radius_miles=Number(obj.radius_miles);obj.years_experience=obj.years_experience===""?null:Number(obj.years_experience);obj.published=f.get("published")==="on";obj.profile_image_path=profileImagePath||null;obj.cover_image_path=coverImagePath||null;obj.portfolio=portfolio;try{const r=await api("public-profile","POST",obj);portal.say("Public profile saved.");const view=el("viewPublicProfile");view.hidden=!obj.published;view.href=obj.published?r.profile_path:"#";addShares("profileShare",obj.published?r.profile_path:null,obj.display_name);updateProfileStrength();window.dispatchEvent(new CustomEvent("gef-public-profile",{detail:{profile:obj}}));}catch(ex){portal.say(ex.message);}};
+async function uploadProfileMedia(file,permission,button,target){
+ if(!file||file.size>3000000||!permission.checked){portal.say("Choose an image up to 3 MB and confirm permission to publish it.");return null;}
+ button.disabled=true;
+ try{
+  const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result).split(",")[1]);reader.onerror=reject;reader.readAsDataURL(file);});
+  const r=await api("portfolio-upload","POST",{data,rightsConsent:true});
+  profileStorageOrigin=profileStorageOrigin||new URL(r.public_url).origin.replace(/\/storage\/v1\/object\/public\/gef-portfolio.*$/,"");
+  return r;
+ }catch(e){portal.say(e.message);return null;}finally{button.disabled=false;}
+}
+el("uploadProfileImage").onclick=async()=>{const input=el("profileImageFile"),permission=el("profileImagePermission"),button=el("uploadProfileImage");const r=await uploadProfileMedia(input.files[0],permission,button,"profile");if(!r)return;profileImagePath=r.image_path;profileStorageOrigin=r.public_url.split("/storage/v1/object/public/gef-portfolio/")[0];setMediaPreview("profileImagePreview",profileImagePath,"Logo or profile image");input.value="";permission.checked=false;updateProfileStrength();portal.say("Profile image uploaded. Save your profile to keep the change.");};
+el("uploadCoverImage").onclick=async()=>{const input=el("coverImageFile"),permission=el("coverImagePermission"),button=el("uploadCoverImage");const r=await uploadProfileMedia(input.files[0],permission,button,"cover");if(!r)return;coverImagePath=r.image_path;profileStorageOrigin=r.public_url.split("/storage/v1/object/public/gef-portfolio/")[0];setMediaPreview("coverImagePreview",coverImagePath,"Cover image");input.value="";permission.checked=false;updateProfileStrength();portal.say("Cover image uploaded. Save your profile to keep the change.");};
 el("addPortfolio").onclick=async()=>{const file=el("portfolioFile").files[0];if(!file||file.size>3000000||!el("portfolioPermission").checked||el("portfolioTitle").value.trim().length<2){portal.say("Choose a photo up to 3 MB, enter a title and confirm permission.");return;}const button=el("addPortfolio");button.disabled=true;try{const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result).split(",")[1]);reader.onerror=reject;reader.readAsDataURL(file);});const r=await api("portfolio-upload","POST",{data,rightsConsent:true});portfolio.push({image_path:r.image_path,title:el("portfolioTitle").value.trim(),description:el("portfolioDescription").value.trim()});renderPortfolio();portal.say("Photo uploaded. Save your profile to publish it.");el("portfolioFile").value="";el("portfolioPermission").checked=false;}catch(e){portal.say(e.message);}finally{button.disabled=false;}};
 el("createReviewInvite").onclick=async()=>{const b=el("createReviewInvite");b.disabled=true;try{const r=await api("review-invitation","POST",{purchase_id:el("reviewPurchase").value||null});addShares("reviewInviteShare",r.review_path,"Please review my work on GetEstimateFast");portal.say("Invitation created. Share it manually with one customer. It expires in 30 days.");}catch(e){portal.say(e.message);}finally{b.disabled=false;}};
 el("customTopupButton").onclick=async()=>{const b=el("customTopupButton");b.disabled=true;try{await startTopup({amount_cents:topupCents(el("customTopupAmount").value)});}catch(e){b.disabled=false;portal.say(e.message);}};
+el("publicProfileForm").addEventListener("input",updateProfileStrength);
+el("publicProfileForm").addEventListener("change",updateProfileStrength);
 window.addEventListener("gef-wallet-updated",()=>{if(signedIn)loadMarketplace();});
-const assistDetails=el("profileAssistDetails"),assistOpen=el("profileAssistOpen"),assistClose=el("profileAssistClose"),assistCheckout=el("profileServiceCheckout"),assistState=el("profileServiceState"),assistIntake=el("profileServiceIntake"),assistCategories=el("profileServiceCategories");
+const assistOpen=el("profileAssistOpen"),servicePurchased=el("profileServicePurchased"),assistState=el("profileServiceState"),assistIntake=el("profileServiceIntake"),assistCategories=el("profileServiceCategories");
 let profileServiceOrder=null;
-
-function fillAssistCategories(){
- if(!assistCategories)return;
- const source=el("publicCategories");
- const selected=new Set([...assistCategories.selectedOptions].map(o=>o.value));
- assistCategories.replaceChildren();
- for(const option of source?.options||[]){
-  const o=node("option",option.textContent);o.value=option.value;o.selected=selected.has(option.value)||option.selected;assistCategories.append(o);
- }
-}
-function assistStatusLabel(status){
- return ({awaiting_payment:"Awaiting payment",paid:"Payment received",intake_pending:"Payment received — information needed",submitted:"Information submitted",in_progress:"Our team is building your profile",review_ready:"Profile ready for your review",completed:"Profile setup completed",failed:"Payment failed",expired:"Checkout expired",canceled:"Canceled",refund_required:"Refund review required",refunded:"Refunded"})[status]||String(status||"");
-}
+function fillAssistCategories(){if(!assistCategories)return;const source=el("publicCategories");assistCategories.replaceChildren();for(const option of source?.options||[]){const o=node("option",option.textContent);o.value=option.value;o.selected=option.selected;assistCategories.append(o);}}
+function assistStatusLabel(status){return ({awaiting_payment:"Awaiting payment",paid:"Payment received",intake_pending:"Payment received — information needed",submitted:"Information submitted",in_progress:"Our team is building your profile",review_ready:"Profile ready for your review",completed:"Profile setup completed",failed:"Payment failed",expired:"Checkout expired",canceled:"Canceled",refund_required:"Refund review required",refunded:"Refunded"})[status]||String(status||"");}
 async function loadProfileService(){
  if(!signedIn)return;
  try{
-  const r=await portal.api("profile-service-checkout");
-  profileServiceOrder=r.existing_order||null;
-  if(r.price?.amount_cents)assistCheckout.textContent="Build My Profile for "+money(r.price.amount_cents);
-  if(profileServiceOrder){
-   assistState.textContent=assistStatusLabel(profileServiceOrder.status);
-   const paidStates=new Set(["paid","intake_pending","submitted","in_progress","review_ready","completed"]);
-   assistCheckout.hidden=paidStates.has(profileServiceOrder.status);
-   assistIntake.hidden=!["paid","intake_pending"].includes(profileServiceOrder.status);
-   if(profileServiceOrder.status==="submitted")assistState.textContent="Information submitted. Our team can now begin preparing your profile.";
-   if(profileServiceOrder.status==="in_progress")assistState.textContent="Our team is currently preparing your professional profile.";
-   if(profileServiceOrder.status==="review_ready")assistState.textContent="Your profile is ready for review.";
-   if(profileServiceOrder.status==="completed")assistState.textContent="Your assisted profile setup is complete.";
-  }else{
-   assistCheckout.hidden=false;assistIntake.hidden=true;assistState.textContent="";
-  }
-  const state=new URLSearchParams(location.search).get("profile_service");
-  const pending=sessionStorage.getItem("gef_profile_service_intent_id");
+  const r=await portal.api("profile-service-checkout");profileServiceOrder=r.existing_order||null;
+  if(profileServiceOrder){servicePurchased.hidden=false;assistState.textContent=assistStatusLabel(profileServiceOrder.status);assistIntake.hidden=!["paid","intake_pending"].includes(profileServiceOrder.status);fillAssistCategories();}
+  else{servicePurchased.hidden=true;assistIntake.hidden=true;}
+  const state=new URLSearchParams(location.search).get("profile_service"),pending=sessionStorage.getItem("gef_profile_service_intent_id");
   if(state==="pending"&&pending){
    const check=await portal.api("profile-service-checkout?intent_id="+encodeURIComponent(pending));
-   if(check.status==="confirmed"){
-    sessionStorage.removeItem("gef_profile_service_intent_id");
-    assistDetails.hidden=false;profileServiceOrder={...(profileServiceOrder||{}),order_id:check.order_id,status:check.order_status||"intake_pending"};
-    assistCheckout.hidden=true;assistIntake.hidden=false;assistState.textContent="Payment received. Complete the information below so our team can begin.";
-   }else assistState.textContent="Payment is still being confirmed by Stripe.";
-  }else if(state==="canceled"){
-   sessionStorage.removeItem("gef_profile_service_intent_id");assistState.textContent="Checkout was canceled. No profile service was purchased.";
-  }
- }catch(e){assistState.textContent=e.message||"Profile setup service is temporarily unavailable.";}
+   servicePurchased.hidden=false;
+   if(check.status==="confirmed"){sessionStorage.removeItem("gef_profile_service_intent_id");profileServiceOrder={...(profileServiceOrder||{}),order_id:check.order_id,status:check.order_status||"intake_pending"};assistState.textContent="Payment received. Complete the information below so our team can begin.";assistIntake.hidden=false;fillAssistCategories();}
+   else assistState.textContent="Payment is still being confirmed by Stripe.";
+  }else if(state==="canceled")portal.say("Checkout was canceled. No profile service was purchased.");
+ }catch(e){if(servicePurchased&&!servicePurchased.hidden)assistState.textContent=e.message||"Profile setup status is temporarily unavailable.";}
 }
-assistOpen.addEventListener("click",()=>{assistDetails.hidden=false;fillAssistCategories();loadProfileService();assistDetails.scrollIntoView({behavior:"smooth",block:"start"});});
-assistClose.addEventListener("click",()=>{assistDetails.hidden=true;assistOpen.focus();});
-assistCheckout.addEventListener("click",async()=>{
- assistCheckout.disabled=true;
+async function startProfileServiceCheckout(){
+ if(!signedIn){portal.say("Sign in to purchase Professional Profile Setup.");return;}
  try{
   const r=await portal.api("profile-service-checkout","POST",{action:"checkout",operation_key:"profile_"+crypto.randomUUID()});
-  if(r.service_ready){assistDetails.hidden=false;assistCheckout.hidden=true;assistIntake.hidden=false;assistState.textContent="Payment already confirmed. Complete your business information below.";return;}
-  sessionStorage.setItem("gef_profile_service_intent_id",r.intent_id);
-  window.location.assign(r.checkout_url);
- }catch(e){assistCheckout.disabled=false;portal.say(e.message);}
-});
-assistIntake.addEventListener("submit",async e=>{
- e.preventDefault();
- if(!profileServiceOrder?.order_id){portal.say("Your paid profile setup order could not be found. Reload the page.");return;}
- const submit=e.submitter;submit.disabled=true;
- const f=new FormData(e.currentTarget);
- try{
-  const body={action:"intake",order_id:profileServiceOrder.order_id,business_name:f.get("business_name"),logo_plan:f.get("logo_plan"),years_experience:f.get("years_experience"),city:f.get("city"),zip_code:f.get("zip_code"),radius_miles:Number(f.get("radius_miles")),services:f.getAll("services"),languages:String(f.get("languages")||"").split("\n").map(x=>x.trim()).filter(Boolean),company_story:f.get("company_story"),portfolio_notes:f.get("portfolio_notes"),notes:f.get("notes")};
-  await portal.api("profile-service-checkout","POST",body);
-  assistIntake.hidden=true;assistState.textContent="Information submitted. Our team can now begin preparing your profile.";profileServiceOrder.status="submitted";
-  portal.say("Your Professional Profile Setup information was submitted.");
- }catch(err){portal.say(err.message);}finally{submit.disabled=false;}
-});
-window.addEventListener("gef-signed-in",()=>queueMicrotask(()=>{fillAssistCategories();loadProfileService();}));
+  if(r.service_ready){servicePurchased.hidden=false;assistState.textContent="Payment already confirmed.";assistIntake.hidden=false;fillAssistCategories();return;}
+  sessionStorage.setItem("gef_profile_service_intent_id",r.intent_id);window.location.assign(r.checkout_url);
+ }catch(e){portal.say(e.message);}
+}
+window.addEventListener("message",e=>{if(e.origin===location.origin&&e.data?.type==="gef-start-profile-service-checkout")startProfileServiceCheckout();});
+assistIntake.addEventListener("submit",async e=>{e.preventDefault();if(!profileServiceOrder?.order_id){portal.say("Your paid profile setup order could not be found. Reload the page.");return;}const submit=e.submitter;submit.disabled=true;const f=new FormData(e.currentTarget);try{const body={action:"intake",order_id:profileServiceOrder.order_id,business_name:f.get("business_name"),logo_plan:f.get("logo_plan"),years_experience:f.get("years_experience"),city:f.get("city"),zip_code:f.get("zip_code"),radius_miles:Number(f.get("radius_miles")),services:f.getAll("services"),languages:String(f.get("languages")||"").split("\n").map(x=>x.trim()).filter(Boolean),company_story:f.get("company_story"),portfolio_notes:f.get("portfolio_notes"),notes:f.get("notes")};await portal.api("profile-service-checkout","POST",body);assistIntake.hidden=true;assistState.textContent="Information submitted. Our team can now begin preparing your profile.";profileServiceOrder.status="submitted";portal.say("Your Professional Profile Setup information was submitted.");}catch(err){portal.say(err.message);}finally{submit.disabled=false;}});
+window.addEventListener("gef-signed-in",()=>queueMicrotask(()=>{updateProfileStrength();loadProfileService();}));
+
 })();
