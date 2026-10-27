@@ -11,13 +11,17 @@ module.exports=async function handler(req,res){
  try{
   if(!marketplaceReady(req,res))return;
   const admin=await requireAdmin(req,res);if(!admin)return;
-  if(req.method==="GET")return json(res,200,{...await rpc("gef_admin_marketplace",{p_actor:admin.id}),payments_enabled:false,financial_movements_enabled:false});
+  if(req.method==="GET"){const base=await rpc("gef_admin_marketplace",{p_actor:admin.id});const profile_service_orders=await rpc("gef_admin_profile_service_orders",{p_actor:admin.id});return json(res,200,{...base,profile_service_orders,payments_enabled:false,financial_movements_enabled:false});}
   const body=await readJson(req,14000),action=body.action;
   if(["credit","adjustment","refund","confirm-payment"].includes(action))return blockPayments(res);
   let args;
   try{
    const reason=text(body.reason,5,500),key=operationKey(body.operation_key);
-   if(action==="moderate-review"){
+   if(action==="profile-service-status"){
+    if(!["in_progress","review_ready","completed"].includes(body.status))throw Error("Choose a valid profile service status");
+    args={name:"gef_admin_profile_service_status",payload:{p_actor:admin.id,p_order:uuid(body.order_id),p_status:body.status,p_reason:reason,p_key:key}};
+   }
+   else if(action==="moderate-review"){
     if(!["approved","rejected","hidden"].includes(body.status))throw Error("Choose approve, reject or hide for this review");
     args={name:"gef_moderate_review",payload:{p_actor:admin.id,p_review:uuid(body.review_id),p_status:body.status,p_reason:reason,p_key:key}};
    }
