@@ -30,6 +30,19 @@ function createLiveRepository(query=queryDb){
       p_currency:t.currency,
       p_mode:t.mode
     }),
+    profileService:id=>rpc("gef_live_profile_service_read",{p_intent:id}),
+    profileServiceEvent:id=>rpc("gef_live_profile_service_event_read",{p_event:id}),
+    bindProfileService:(id,session)=>rpc("gef_bind_live_profile_service_session",{p_intent:id,p_session:session}),
+    confirmProfileService:t=>rpc("gef_confirm_live_profile_service",{
+      p_intent:t.intentId,
+      p_event:t.eventId,
+      p_session:t.sessionId,
+      p_payment:t.paymentId,
+      p_outcome:t.outcome,
+      p_amount:t.amount,
+      p_currency:t.currency,
+      p_mode:t.mode
+    }),
     confirmRefund:r=>rpc("gef_confirm_live_refund",{
       p_order:r.orderId,
       p_refund:r.refundId,
