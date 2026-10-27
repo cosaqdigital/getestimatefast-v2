@@ -15,7 +15,7 @@ module.exports=async function handler(req,res){
   if(req.method==="GET"){
    if(action==="dashboard"){const payments=livePaymentsApproved();return json(res,200,{...await rpc("gef_dashboard",{p_contractor:user.id}),payments_enabled:payments,contact_release_enabled:payments});}
    if(action==="public-profile"){
-    const rows=await queryDb("contractor_public_profiles?contractor_id=eq."+encodeURIComponent(user.id)+"&select=slug,display_name,headline,about,city,state_code,zip_code,radius_miles,categories,languages,social_links,portfolio,published,publish_email,publish_phone,public_email,public_phone&limit=1");
+    const rows=await queryDb("contractor_public_profiles?contractor_id=eq."+encodeURIComponent(user.id)+"&select=slug,display_name,headline,about,city,state_code,zip_code,radius_miles,categories,languages,portfolio,published,profile_image_path,cover_image_path,years_experience&limit=1");
     return json(res,200,{profile:rows[0]||null});
    }
    return json(res,400,{error:"Unknown action"});
