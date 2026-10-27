@@ -8,7 +8,7 @@ const stars=value=>{
 const initials=value=>String(value||"Professional").split(/\s+/).filter(Boolean).slice(0,2).map(part=>part[0]).join("").toUpperCase();
 function profileHtml(data,origin,storageOrigin,referral={}){
  const p=data.profile,url=origin+"/professionals/"+encodeURIComponent(p.slug),title=p.display_name+" | GetEstimateFast";
- const image=p.portfolio?.[0]?storageOrigin+"/storage/v1/object/public/gef-portfolio/"+p.portfolio[0].image_path:origin+"/assets/images/hero-home-improvement.jpg";
+ const image=p.profile_image_path?storageOrigin+"/storage/v1/object/public/gef-portfolio/"+p.profile_image_path:(p.portfolio?.[0]?storageOrigin+"/storage/v1/object/public/gef-portfolio/"+p.portfolio[0].image_path:origin+"/assets/images/hero-home-improvement.jpg");
  const demo=referral.synthetic===true;
  const categories=Array.isArray(p.categories)?p.categories:[];
  const languages=Array.isArray(p.languages)?p.languages:[];
@@ -28,7 +28,10 @@ function profileHtml(data,origin,storageOrigin,referral={}){
  const serviceOptions=categories.map(s=>'<option value="'+esc(s)+'">'+esc(s)+'</option>').join("");
  const requestButton=referral.token?'<a class="gef-profile-primary-button" href="#requestEstimate">Request a Free Estimate</a>':"";
  const demoMessage=demo?'<p class="notice" role="note"><strong>Development test only.</strong> Use the prefilled synthetic details below. Do not enter a real customer name, phone or email.</p>':"";
- const avatar='<span class="gef-profile-avatar-fallback" aria-hidden="true">'+esc(initials(p.display_name))+'</span>';
+ const avatar=p.profile_image_path
+  ?'<img class="gef-profile-avatar-image" src="'+esc(storageOrigin+"/storage/v1/object/public/gef-portfolio/"+p.profile_image_path)+'" alt="'+esc(p.display_name)+' profile image">'
+  :'<span class="gef-profile-avatar-fallback" aria-hidden="true">'+esc(initials(p.display_name))+'</span>';
+ const heroStyle=p.cover_image_path?' style="background-image:linear-gradient(90deg,rgba(3,33,78,.88),rgba(9,71,145,.66)),url(\''+esc(storageOrigin+"/storage/v1/object/public/gef-portfolio/"+p.cover_image_path)+'\')"':"";
  const serviceChips=categories.map((service,index)=>'<span class="gef-profile-service-chip"><span aria-hidden="true">'+(["⌂","▤","✦","⌁","▣","◇"][index%6])+'</span>'+esc(service)+'</span>').join("");
  const portfolioCards=portfolio.slice(0,6).map(item=>'<article class="gef-profile-work-card"><button type="button" class="gef-profile-work-image-button" aria-label="View '+esc(item.title)+'"><img loading="lazy" src="'+esc(storageOrigin+"/storage/v1/object/public/gef-portfolio/"+item.image_path)+'" alt="'+esc(item.title)+'"></button><div><h3>'+esc(item.title)+'</h3><p>'+esc(item.description)+'</p></div></article>').join("");
  const reviewCards=reviews.slice(0,6).map(r=>'<article class="gef-profile-review-card"><div class="gef-profile-review-top"><div><strong>'+esc(r.display_name)+'</strong><span class="gef-profile-review-stars" aria-label="'+esc(r.rating)+' out of 5 stars">'+esc(stars(r.rating))+'</span></div><span class="gef-profile-review-source">'+(r.source==="external"?"External customer review":"GetEstimateFast contact")+'</span></div><p>'+esc(r.comment)+'</p><small>'+(r.source==="external"?"External customer review":"Review from a platform contact; service completion is not verified")+'</small><button type="button" class="secondary report-review" data-review-id="'+esc(r.id)+'">Report review</button></article>').join("");
@@ -65,7 +68,7 @@ function profileHtml(data,origin,storageOrigin,referral={}){
   :'<div class="gef-profile-rating-block"><strong>New professional</strong><span>No approved reviews yet</span></div>';
  const badgeHtml=badgeItems.length?'<div class="gef-profile-ranking-badges">'+badgeItems.map(([label,type])=>'<span class="gef-profile-ranking-badge '+esc(type)+'">'+esc(label)+'</span>').join("")+'</div>':"";
  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="referrer" content="same-origin"><title>${esc(title)}</title><meta name="description" content="${esc(p.headline||p.about.slice(0,160))}"><link rel="canonical" href="${esc(url)}"><meta property="og:type" content="profile"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(p.headline||p.about.slice(0,160))}"><meta property="og:url" content="${esc(url)}"><meta property="og:image" content="${esc(image)}"><link rel="stylesheet" href="/assets/marketplace.css"><link rel="stylesheet" href="/assets/profile-request.css"></head><body class="gef-public-profile"><header class="gef-profile-topbar"><a class="gef-profile-brand" href="/">GetEstimate<span>Fast</span></a><span class="gef-profile-brand-divider"></span><strong>Find Local Professionals</strong><nav><a href="/services.html">Back to Search</a><a href="/">Home</a></nav></header><main class="gef-profile-page">
-<section class="gef-profile-hero">
+<section class="gef-profile-hero"${heroStyle}>
   <div class="gef-profile-hero-overlay"></div>
   <div class="gef-profile-avatar">${avatar}</div>
   <div class="gef-profile-identity">
@@ -94,7 +97,7 @@ function profileHtml(data,origin,storageOrigin,referral={}){
       <div class="gef-profile-facts">
         <div><span aria-hidden="true">⌖</span><p><strong>Service area</strong><small>${esc(p.city)}, ${esc(p.state_code)} · ${esc(p.radius_miles)} mile radius</small></p></div>
         <div><span aria-hidden="true">◉</span><p><strong>Languages</strong><small>${esc(languages.join(", ")||"Not specified")}</small></p></div>
-        <div><span aria-hidden="true">✓</span><p><strong>Platform status</strong><small>Active GetEstimateFast professional</small></p></div>
+        <div><span aria-hidden="true">✓</span><p><strong>Experience</strong><small>${p.years_experience!==null&&p.years_experience!==undefined?esc(p.years_experience)+" years":"Not specified"}</small></p></div>
       </div>
     </section>
 
