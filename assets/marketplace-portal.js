@@ -30,54 +30,90 @@ panels.innerHTML=`<nav class="portal-nav" aria-label="Contractor navigation"><a 
 <section id="contractorDashboard"><p class="eyebrow">Your professional workspace</p><h1>Welcome to GetEstimateFast</h1><p>We Connect. You Decide.</p><div class="metric-grid"><div class="metric">Matching opportunities<strong id="opportunityCount">—</strong><small id="opportunityCountNote">Load opportunities to see your matches</small></div><div class="metric">Acquired opportunities<strong id="purchaseCount">—</strong><small>See your purchase history below</small></div><div class="metric">Available credits<strong id="walletBalance">—</strong><small>USD · wallet and card payments</small></div><div class="metric">Profile status<strong id="dashboardProfileStatus">—</strong><small>Manage your services and service area</small></div></div><div class="actions"><a class="button" href="#opportunityPanel">Explore opportunities</a><a class="button secondary" href="#publicProfilePanel">Create your free public profile</a></div><p id="dashboardNotice" class="muted"></p></section>
 <section id="walletPanel"><h2>Your wallet</h2><p>Paid credits, promotional credits and refund credits are tracked separately. Pending payments are not available credits.</p><div class="metric-grid"><div class="metric">Paid credits<strong id="paidBalance">—</strong></div><div class="metric">Promotional credits<strong id="promoBalance">—</strong></div><div class="metric">Refund credits<strong id="refundBalance">—</strong></div></div><p class="notice">Add credits securely with Stripe. Bonus credits are promotional and cannot be withdrawn or transferred.</p><h3>Add Credits</h3><div id="creditPackages" class="pro-coming-grid"></div><div class="form-grid"><label>Custom amount (USD)<input id="customTopupAmount" inputmode="decimal" placeholder="25.00" pattern="\\d{1,6}(\\.\\d{1,2})?"></label><div style="align-self:end"><button id="customTopupButton" type="button" class="secondary">Add custom amount</button></div></div><p class="muted">Promotional packages are optional. You can also add only the amount you choose.</p><h3>Statement</h3><div id="walletStatement" class="table-wrap"><p>Your statement will appear when marketplace access is enabled.</p></div><h3>Payment history</h3><div id="paymentHistory" class="table-wrap"></div></section>
 <section id="purchasePanel"><h2>Purchased opportunities</h2><p>View your purchased opportunities and access unlocked customer contact details.</p><div id="purchaseHistory" class="table-wrap"><p>No history loaded.</p></div></section>
-<section id="publicProfilePanel"><h2>Your free public profile</h2><p>Create a shareable showcase for your services, work and customer reviews. Preparing your own profile is free.</p>
-<div class="pro-profile-assist-teaser" id="profileAssistTeaser">
-  <div><span class="pro-assist-kicker">OPTIONAL PROFESSIONAL SERVICE</span><h3>Want our team to build your profile for you?</h3><p>We can turn your business information, services and project photos into a complete, polished GetEstimateFast profile — while you keep the option to build it yourself for free.</p></div>
-  <button id="profileAssistOpen" type="button" class="secondary">See what our team can build</button>
-</div>
-<section class="pro-profile-assist" id="profileAssistDetails" hidden>
-  <div class="pro-assist-head"><span class="pro-assist-kicker">PROFESSIONAL PROFILE SETUP</span><h3>We build the profile. You focus on the work.</h3><p>Our team organizes your business information into a professional profile designed to clearly present your services, work and reputation inside GetEstimateFast.</p></div>
-  <div class="pro-assist-grid">
-    <article><span>01</span><strong>Business positioning</strong><p>We refine your headline, company description and service presentation so homeowners quickly understand what you do.</p></article>
-    <article><span>02</span><strong>Logo support</strong><p>If you already have a logo, we prepare it for the profile. If you do not, a basic business logo can be created as part of the setup.</p></article>
-    <article><span>03</span><strong>Services & service area</strong><p>We organize your active services, location, ZIP Code and service radius using the categories available on GetEstimateFast.</p></article>
-    <article><span>04</span><strong>Portfolio presentation</strong><p>We organize up to 6 initial work photos with clear project titles and descriptions. You must have permission to publish every image.</p></article>
-    <article><span>05</span><strong>Profile copy & search readiness</strong><p>We write clear customer-facing profile copy and structure the content so the profile is ready for future search visibility features when indexing is enabled.</p></article>
-    <article><span>06</span><strong>Review setup</strong><p>We help you prepare the profile to request legitimate customer reviews through the GetEstimateFast review flow.</p></article>
+<section id="publicProfilePanel" class="pro-profile-editor">
+  <div class="pro-profile-editor-head">
+    <div><p class="eyebrow">YOUR PUBLIC PROFILE</p><h2>Build your professional presence</h2><p>Complete your profile so homeowners can understand your business, services, service area, work and reputation before requesting an estimate.</p></div>
+    <div class="pro-profile-strength"><span>Profile strength</span><strong id="profileStrengthValue">0%</strong><div><i id="profileStrengthBar"></i></div><small id="profileStrengthHint">Add your business details to get started.</small></div>
   </div>
-  <div class="pro-assist-example">
-    <div><span>BEFORE</span><strong>Basic information</strong><p>Business name, a few services and little context.</p></div>
-    <div class="pro-assist-arrow">→</div>
-    <div><span>AFTER</span><strong>Complete professional presentation</strong><p>Logo, clear positioning, services, service area, portfolio, profile copy and review-ready presentation.</p></div>
-  </div>
-  <div class="pro-assist-rules">
-    <h4>What this service does — and does not do</h4>
-    <ul><li>Your GetEstimateFast account and self-service profile remain free.</li><li>The $100 service pays for our team's preparation work; it does not buy leads or wallet credits.</li><li>It does not guarantee jobs, customer contacts, reviews, search rankings or placement above other professionals.</li><li>Any “Profile Complete” status is based on profile completeness, not on payment.</li><li>You remain responsible for the accuracy of business information, rights to photos and any license or credential claims you provide.</li></ul>
-  </div>
-  <div class="pro-assist-offer">
-    <div><span class="pro-assist-kicker">LAUNCH OFFER</span><p class="pro-assist-price"><s>$180</s> <strong>$100</strong> <small>one-time</small></p><p>Launch pricing for the assisted Professional Profile Setup. Planned standard price after the promotion: $180.</p></div>
-    <div><button id="profileServiceCheckout" type="button">Build My Profile for $100</button><p class="pro-assist-safe">Secure payment through Stripe. Opportunity credits are not used.</p></div>
-  </div>
-  <div id="profileServiceState" class="pro-assist-state"></div>
-  <form id="profileServiceIntake" class="pro-assist-intake" hidden>
-    <div class="pro-section-head"><div><span class="pro-assist-kicker">AFTER PAYMENT</span><h3>Tell our team about your business</h3><p>Submit the information we should use to prepare your profile.</p></div></div>
-    <div class="form-grid">
-      <label>Business name<input name="business_name" maxlength="150" required></label>
-      <label>Logo<select name="logo_plan" required><option value="">Choose one</option><option value="have_logo">I already have a logo</option><option value="need_logo">I need a basic logo created</option></select></label>
-      <label>Years of experience<input name="years_experience" maxlength="60" placeholder="e.g. 8 years"></label>
-      <label>City<input name="city" maxlength="80" required></label>
-      <label>ZIP Code<input name="zip_code" pattern="[0-9]{5}" maxlength="5" required></label>
-      <label>Service radius in miles<input name="radius_miles" type="number" min="1" max="100" value="25" required></label>
-      <label class="wide">Services<select name="services" id="profileServiceCategories" multiple required></select></label>
-      <label class="wide">Languages (one per line)<textarea name="languages" rows="3" placeholder="English&#10;Spanish"></textarea></label>
-      <label class="wide">About your company<textarea name="company_story" rows="5" maxlength="3000" placeholder="Tell us what makes your business different, your experience and the type of work you prefer."></textarea></label>
-      <label class="wide">Portfolio notes<textarea name="portfolio_notes" rows="4" maxlength="3000" placeholder="Tell us about the projects or photos you want highlighted."></textarea></label>
-      <label class="wide">Anything else our team should know?<textarea name="notes" rows="3" maxlength="3000"></textarea></label>
-    </div>
-    <button type="submit">Submit Information to Our Team</button>
+
+  <form id="publicProfileForm">
+    <section class="pro-editor-section">
+      <div class="pro-section-head"><div><span class="pro-step">01</span><h3>Visual identity</h3><p>Add the images customers will see first on your public profile.</p></div></div>
+      <div class="pro-identity-grid">
+        <div class="pro-media-editor">
+          <div class="pro-media-preview pro-logo-preview" id="profileImagePreview"><span>Logo or profile image</span></div>
+          <div><strong>Logo / profile image</strong><p>Use your business logo or a clear professional image. JPG, PNG or WebP, up to 3 MB.</p>
+          <label class="pro-file-label">Choose image<input id="profileImageFile" type="file" accept="image/jpeg,image/png,image/webp"></label>
+          <label class="check"><input id="profileImagePermission" type="checkbox">I have permission to publish this image.</label>
+          <button id="uploadProfileImage" type="button" class="secondary">Upload profile image</button></div>
+        </div>
+        <div class="pro-media-editor pro-cover-editor">
+          <div class="pro-media-preview pro-cover-preview" id="coverImagePreview"><span>Cover image</span></div>
+          <div><strong>Profile cover</strong><p>Choose a wide image that represents your company or quality of work.</p>
+          <label class="pro-file-label">Choose cover<input id="coverImageFile" type="file" accept="image/jpeg,image/png,image/webp"></label>
+          <label class="check"><input id="coverImagePermission" type="checkbox">I have permission to publish this image.</label>
+          <button id="uploadCoverImage" type="button" class="secondary">Upload cover image</button></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="pro-editor-section">
+      <div class="pro-section-head"><div><span class="pro-step">02</span><h3>Business identity</h3><p>Tell customers who you are and what makes your company worth considering.</p></div></div>
+      <div class="form-grid">
+        <label>Professional or business name<input name="display_name" maxlength="150" required></label>
+        <label>Public profile link<input name="slug" pattern="[a-z0-9]+(-[a-z0-9]+)*" minlength="3" maxlength="80" placeholder="your-business-name" required></label>
+        <label class="wide">Professional headline<input name="headline" maxlength="180" placeholder="Painting, remodeling and home improvement services"></label>
+        <label>Years of experience<input name="years_experience" type="number" min="0" max="80" placeholder="e.g. 8"></label>
+        <label class="wide">About your business<textarea name="about" maxlength="2000" rows="6" placeholder="Describe your experience, the work you specialize in and what customers can expect when working with you."></textarea></label>
+      </div>
+    </section>
+
+    <section class="pro-editor-section">
+      <div class="pro-section-head"><div><span class="pro-step">03</span><h3>Services & service area</h3><p>Choose the work you perform and where you want customers to find you.</p></div></div>
+      <div class="form-grid">
+        <label>City<input name="city" required></label>
+        <label>State<input name="state_code" value="FL" readonly></label>
+        <label>ZIP Code<input name="zip_code" pattern="[0-9]{5}" maxlength="5" required></label>
+        <label>Service radius in miles<input name="radius_miles" type="number" min="1" max="100" value="25" required></label>
+        <label class="wide">Service categories<select name="categories" id="publicCategories" multiple required></select></label>
+        <label class="wide">Languages (one per line)<textarea name="languages" rows="3" placeholder="English&#10;Spanish"></textarea></label>
+      </div>
+    </section>
+
+    <section class="pro-editor-section">
+      <div class="pro-section-head"><div><span class="pro-step">04</span><h3>Recent work & portfolio</h3><p>Show real examples of your work. Six strong projects are enough to create a complete portfolio presentation.</p></div><span id="portfolioCount" class="pro-count-pill">0 projects</span></div>
+      <div id="portfolioItems" class="pro-portfolio-editor-grid"></div>
+      <div class="pro-portfolio-add">
+        <div class="form-grid">
+          <label>Project title<input id="portfolioTitle" maxlength="120" placeholder="Kitchen cabinet installation"></label>
+          <label>Project description<input id="portfolioDescription" maxlength="600" placeholder="Briefly explain the work completed"></label>
+          <label class="wide">Work photo (JPG, PNG or WebP, up to 3 MB)<input id="portfolioFile" type="file" accept="image/jpeg,image/png,image/webp"></label>
+        </div>
+        <label class="check"><input id="portfolioPermission" type="checkbox">I have permission to publish this photo and it does not expose private customer information.</label>
+        <button id="addPortfolio" type="button" class="secondary">Add project to portfolio</button>
+      </div>
+    </section>
+
+    <section class="pro-editor-section pro-publish-section">
+      <div class="pro-section-head"><div><span class="pro-step">05</span><h3>Preview & publish</h3><p>Save your work at any time. Publish only when you are ready for customers to view the profile.</p></div></div>
+      <label class="check pro-publish-check"><input name="published" type="checkbox">Publish my professional profile on GetEstimateFast.</label>
+      <div class="pro-publish-actions"><button type="submit">Save public profile</button><a id="viewPublicProfile" class="button secondary" href="#" target="_blank" rel="noopener" hidden>View public profile</a></div>
+      <div id="profileShare"></div>
+    </section>
   </form>
-  <button id="profileAssistClose" type="button" class="secondary pro-assist-close">Close details</button>
-</section><form id="publicProfileForm"><div class="form-grid"><label>Public link name<input name="slug" pattern="[a-z0-9]+(-[a-z0-9]+)*" minlength="3" maxlength="80" placeholder="your-business-name" required></label><label>Professional or business name<input name="display_name" maxlength="150" required></label><label class="wide">Headline<input name="headline" maxlength="180"></label><label class="wide">About your services<textarea name="about" maxlength="2000" rows="4"></textarea></label><label>City<input name="city" required></label><label>State<input name="state_code" value="FL" readonly></label><label>ZIP Code<input name="zip_code" pattern="[0-9]{5}" maxlength="5" required></label><label>Service radius in miles<input name="radius_miles" type="number" min="1" max="100" value="25" required></label><label>Service categories<select name="categories" id="publicCategories" multiple required></select></label><label>Languages (one per line)<textarea name="languages" rows="4" placeholder="English&#10;Spanish"></textarea></label><label class="wide">Social media links (one HTTPS link per line)<textarea name="social_links" rows="3"></textarea></label><label>Public email<input name="public_email" type="email"></label><label>Public US phone<input name="public_phone" type="tel"></label></div><label class="check"><input name="publish_email" type="checkbox">I consent to publishing the email entered above.</label><label class="check"><input name="publish_phone" type="checkbox">I consent to publishing the phone entered above.</label><label class="check"><input name="published" type="checkbox">Publish my profile and the information entered here.</label><h3>Work photos</h3><p>Publish only photos you have permission to share. Avoid customer faces, addresses and private information.</p><div id="portfolioItems"></div><label>Work title<input id="portfolioTitle" maxlength="120"></label><label>Work description<input id="portfolioDescription" maxlength="600"></label><label>Photo (JPG, PNG or WebP, up to 3 MB)<input id="portfolioFile" type="file" accept="image/jpeg,image/png,image/webp"></label><label class="check"><input id="portfolioPermission" type="checkbox">I have permission to publish this photo.</label><button id="addPortfolio" type="button" class="secondary">Add work photo</button><p><button>Save public profile</button></p></form><div id="profileShare"></div><h3>Request a customer review</h3><p>Invite a customer you have served, including customers from outside GetEstimateFast. Google verification is the fastest option; email verification remains available as an alternative. GetEstimateFast moderates reviews before publication. External reviews are labeled as external.</p><label>Review source<select id="reviewPurchase"><option value="">External customer</option></select></label><button id="createReviewInvite" type="button" class="secondary">Create review invitation</button><div id="reviewInviteShare"></div></section>`;
+
+  <section class="pro-editor-section pro-reviews-editor">
+    <div class="pro-section-head"><div><span class="pro-step">06</span><h3>Customer reviews</h3><p>Invite legitimate customers to review your work. Reviews are verified and moderated before publication.</p></div></div>
+    <label>Review source<select id="reviewPurchase"><option value="">External customer</option></select></label>
+    <button id="createReviewInvite" type="button" class="secondary">Create review invitation</button>
+    <div id="reviewInviteShare"></div>
+  </section>
+
+  <aside class="pro-profile-help-card">
+    <div><span class="pro-assist-kicker">NEED HELP?</span><h3>Not sure what to write — or want our team to build it for you?</h3><p>Your self-service profile is always free. If you prefer, our team can prepare the complete presentation, organize your portfolio and create a basic logo if needed.</p></div>
+    <a id="profileAssistOpen" class="button secondary" href="/professional-profile-setup.html" target="_blank" rel="noopener">See Professional Profile Setup</a>
+  </aside>
+</section>`;
 workspace.insertBefore(panels,workspace.querySelector("h1"));
 el("categories").multiple=true;el("categories").size=5;
 const filters=document.createElement("div");filters.className="form-grid";
