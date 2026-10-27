@@ -113,6 +113,26 @@ panels.innerHTML=`<nav class="portal-nav" aria-label="Contractor navigation"><a 
     <div><span class="pro-assist-kicker">NEED HELP?</span><h3>Not sure what to write — or want our team to build it for you?</h3><p>Your self-service profile is always free. If you prefer, our team can prepare the complete presentation, organize your portfolio and create a basic logo if needed.</p></div>
     <a id="profileAssistOpen" class="button secondary" href="/professional-profile-setup.html" target="_blank" rel="noopener">See Professional Profile Setup</a>
   </aside>
+
+  <section id="profileServicePurchased" class="pro-editor-section pro-service-purchased" hidden>
+    <div class="pro-section-head"><div><span class="pro-assist-kicker">PROFESSIONAL PROFILE SETUP</span><h3>Continue your assisted profile setup</h3><p id="profileServiceState">Payment status will appear here.</p></div></div>
+    <form id="profileServiceIntake" hidden>
+      <div class="form-grid">
+        <label>Business name<input name="business_name" maxlength="150" required></label>
+        <label>Logo<select name="logo_plan" required><option value="">Choose one</option><option value="have_logo">I already have a logo</option><option value="need_logo">I need a basic logo created</option></select></label>
+        <label>Years of experience<input name="years_experience" maxlength="60" placeholder="e.g. 8 years"></label>
+        <label>City<input name="city" maxlength="80" required></label>
+        <label>ZIP Code<input name="zip_code" pattern="[0-9]{5}" maxlength="5" required></label>
+        <label>Service radius in miles<input name="radius_miles" type="number" min="1" max="100" value="25" required></label>
+        <label class="wide">Services<select name="services" id="profileServiceCategories" multiple required></select></label>
+        <label class="wide">Languages (one per line)<textarea name="languages" rows="3" placeholder="English&#10;Spanish"></textarea></label>
+        <label class="wide">Anything our team should emphasize?<textarea name="company_story" rows="4" maxlength="3000"></textarea></label>
+        <label class="wide">Portfolio notes<textarea name="portfolio_notes" rows="3" maxlength="3000"></textarea></label>
+        <label class="wide">Additional notes<textarea name="notes" rows="3" maxlength="3000"></textarea></label>
+      </div>
+      <button type="submit">Submit information to our team</button>
+    </form>
+  </section>
 </section>`;
 workspace.insertBefore(panels,workspace.querySelector("h1"));
 el("categories").multiple=true;el("categories").size=5;
