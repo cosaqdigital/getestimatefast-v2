@@ -23,7 +23,7 @@ const controls=make("div",undefined,"pro-controls");
 const back=make("button","Back","secondary"),next=make("button","Continue to services →"),count=make("small","Step 1 of 2");
 back.type="button";next.type="button";controls.append(count,back,next,save);
 form.append(step1,step2,controls);settings.append(form);
-const sms=$("smsPreferences");if(sms){const extra=make("details",undefined,"pro-optional");extra.append(make("summary","Optional SMS alerts"),sms);settings.append(extra);}
+const sms=$("smsPreferences");if(sms){const extra=make("details",undefined,"pro-optional");extra.append(make("summary","Optional SMS alerts"),sms);step2.append(extra);}
 workspace.append(settings);
 let step=1;
 function selectStep(number){
