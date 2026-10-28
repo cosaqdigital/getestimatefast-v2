@@ -1,13 +1,23 @@
 (()=>{"use strict";
 function render(box){
  if(box.dataset.rendered)return;box.dataset.rendered="true";
- const url=box.dataset.shareUrl,title=box.dataset.shareTitle||"GetEstimateFast",message=title+": "+url;
- const input=document.createElement("input");input.value=url;input.readOnly=true;input.setAttribute("aria-label","Shareable link");box.append(input);
- const copy=document.createElement("button");copy.type="button";copy.className="secondary";copy.textContent="Copy link";copy.onclick=async()=>{try{await navigator.clipboard.writeText(url);copy.textContent="Link copied";}catch{input.select();copy.textContent="Select and copy the link";}};box.append(copy);
- for(const [label,href] of [["WhatsApp","https://wa.me/?text="+encodeURIComponent(message)],["Facebook","https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(url)],["SMS","sms:?body="+encodeURIComponent(message)],["Email","mailto:?subject="+encodeURIComponent(title)+"&body="+encodeURIComponent(message)]]){
-  const a=document.createElement("a");a.textContent=label;a.href=href;a.className="button secondary";if(href.startsWith("https:")){a.target="_blank";a.rel="noopener noreferrer";}box.append(a);
- }
- if(navigator.share){const button=document.createElement("button");button.type="button";button.textContent="Share";button.onclick=async()=>{try{await navigator.share({title,url,text:title});}catch{/* User cancellation leaves the link available. */}};box.append(button);}
+ const url=box.dataset.shareUrl,title=box.dataset.shareTitle||"GetEstimateFast";
+ const button=document.createElement("button");
+ button.type="button";button.className="secondary gef-share-profile-button";button.textContent="Share profile";
+ button.onclick=async()=>{
+  try{
+   if(navigator.share){await navigator.share({title,url,text:title});return;}
+   await navigator.clipboard.writeText(url);
+   const previous=button.textContent;button.textContent="Profile link copied";
+   window.setTimeout(()=>{button.textContent=previous;},1800);
+  }catch(error){
+   if(error?.name==="AbortError")return;
+   try{
+    const input=document.createElement("textarea");input.value=url;input.setAttribute("readonly","");input.style.position="fixed";input.style.opacity="0";document.body.append(input);input.select();document.execCommand("copy");input.remove();button.textContent="Profile link copied";window.setTimeout(()=>{button.textContent="Share profile";},1800);
+   }catch{button.textContent="Copy profile link";button.onclick=()=>window.prompt("Copy this profile link:",url);}
+  }
+ };
+ box.append(button);
 }
 window.GetEstimateFastSharing={render};document.querySelectorAll(".share-tools").forEach(render);
 for(const button of document.querySelectorAll(".report-review"))button.onclick=()=>{
