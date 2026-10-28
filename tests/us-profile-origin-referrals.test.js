@@ -348,7 +348,7 @@ test("public profile response preserves the origin of its native same-origin for
   assert.deepEqual(policies,["same-origin"]);
   assert.match(result.body,/<form\b[^>]*action="\/api\/profile-request"[^>]*method="post"/);
   assert.match(result.headers["content-security-policy"],/(?:^|;\s*)form-action 'self'(?:;|$)/);
-  assert.equal(calls.length,2);
+  assert.equal(calls.length,3);
  });
 });
 test("opaque null Origin is rejected by the intake handler before database access",async()=>{
