@@ -59,7 +59,7 @@ module.exports=async function handler(req,res){
     }else{
       amount=Number(body.amount_cents);
       cents(amount);
-      if(amount<100)return json(res,400,{error:"Minimum wallet top-up is $1.00."});
+      if(amount<2500)return json(res,400,{error:"Minimum custom wallet top-up is $25.00."});
     }
 
     const operation=String(body.operation_key||("topup_"+crypto.randomUUID()));
