@@ -319,7 +319,6 @@ test("SQL preserves buyer capacity and blocks charging the source professional",
 test("public profile response preserves the origin of its native same-origin form POST",async()=>{
  const previewHost="getestimatefast-v2-git-feat-us-admin-o-10fae9-get-estimate-fast.vercel.app";
  await withEnv({
-  VERCEL_GIT_COMMIT_REF:"fix/executive-audit-20261028",
   GETESTIMATEFAST_MARKETPLACE_PREVIEW:"true",
   GETESTIMATEFAST_PUBLIC_ORIGIN:"https://"+previewHost,
   GETESTIMATEFAST_SMS_MODE:"dry_run",
