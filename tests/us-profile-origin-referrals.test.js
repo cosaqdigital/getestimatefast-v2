@@ -18,6 +18,7 @@ const env=()=>({
  GETESTIMATEFAST_SUPABASE_SECRET_KEY:"sb_secret_qa_fake",
  GETESTIMATEFAST_SUPABASE_PUBLISHABLE_KEY:"sb_publishable_qa_fake",
  GETESTIMATEFAST_REVIEW_IDENTITY_SECRET:"US_ORIGIN_TEST_SECRET_DO_NOT_USE_FOR_REAL_ACCOUNTS",
+ GETESTIMATEFAST_PUBLIC_ORIGIN:"https://test.example.invalid",GETESTIMATEFAST_SMS_MODE:"dry_run",GETESTIMATEFAST_STRIPE_TEST_CHECKOUT_APPROVED:"false",
  GETESTIMATEFAST_PROFILE_REQUESTS_MODE:"synthetic"
 });
 const profile={contractor_id:uuid,slug:"sample-contractor",categories:["Painting"],published:true};
@@ -102,7 +103,7 @@ test("public professional HTML provides no public direct phone/email and an expl
  },reviews:[],review_summary:{approved_count:0}}, "https://test.example.invalid","https://storage.example.invalid",
  {token:"synthetic-signed-token",synthetic:true});
  assert(html.includes("Request a Free Estimate"));
- assert(html.includes('href="/assets/profile-request.css"'));
+ assert.match(html,/href="\/assets\/profile-request\.css(?:\?[^"]*)?"/);
  assert(html.includes('action="/api/profile-request"'));
  assert(html.includes('name="contact_consent"'));
  assert(!html.includes("owner@example.invalid")&&!html.includes("+18135550100")&&!html.includes("wa.me"));
