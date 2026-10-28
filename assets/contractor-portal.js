@@ -22,6 +22,13 @@ function renderProjectPhotos(card,item){
  section.append(heading,gallery);card.append(section);
 }
 let opportunityPage=0;
+const OPPORTUNITY_PAGE_SIZE=10;
+function relativePublished(value){
+ const ms=Date.now()-new Date(value).getTime(),hours=Math.max(0,Math.floor(ms/3600000));
+ if(hours<1)return "Just now";
+ if(hours<24)return hours+"h ago";
+ const days=Math.floor(hours/24);return days===1?"1 day ago":days+" days ago";
+}
 async function loadOpportunities(append=false){
  const page=append?opportunityPage+1:0;
  const city=el("opportunityCity").value.trim();
@@ -31,26 +38,33 @@ async function loadOpportunities(append=false){
  for(const [id,key] of [["opportunityCategory","category"],["opportunityZip","zip"],["opportunityRadius","radius"],["opportunityAvailability","availability"]])if(el(id)?.value)params.set(key,el(id).value);
  const d=await api("opportunities?"+params);
  window.dispatchEvent(new CustomEvent("gef-opportunities",{detail:d}));
- if(!append)el("opportunityCards").replaceChildren();
+ const holder=el("opportunityCards");holder.replaceChildren();holder.classList.add("pro-opportunity-list");
+ const meta=document.createElement("div");meta.className="pro-opportunity-list-meta";
+ const startIndex=d.matching_total?d.page*OPPORTUNITY_PAGE_SIZE+1:0;
+ const endIndex=Math.min(d.matching_total,(d.page+1)*OPPORTUNITY_PAGE_SIZE);
+ meta.textContent=d.matching_total?"Showing "+startIndex+"–"+endIndex+" of "+d.matching_total+" opportunities":"No matching opportunities";
+ holder.append(meta);
  for(const item of d.opportunities){
-  const card=document.createElement("div");
-  card.dataset.opportunityId=item.opportunity_id;
-  card.style.cssText="border:1px solid #dce4eb;border-radius:10px;padding:15px;background:#f7fafd";
-  const title=document.createElement("h3");
-  title.textContent=item.service_category+" - "+item.city+", "+item.zip_code;
-  const status=document.createElement("p");
-  status.textContent=item.commercial?.reason==="expired"?"Expired":"Available";
-  status.style.fontWeight="700";
-  const date=document.createElement("small");
-  date.textContent="Published: "+new Intl.DateTimeFormat("en-US",{dateStyle:"medium",timeZone:"America/New_York"}).format(new Date(item.published_at));
+  const card=document.createElement("article");card.className="pro-opportunity-row";card.dataset.opportunityId=item.opportunity_id;
   const photos=Array.isArray(item.photos)?item.photos.filter(photo=>photo&&photo.url):[];
-  const photoCount=document.createElement("p");
-  photoCount.textContent=photos.length?photos.length+(photos.length===1?" project photo available":" project photos available"):"No project photos";
-  const price=document.createElement("p");
-  price.textContent=item.origin_free?"Free contact - from your public profile":item.commercial?.amount_cents!=null?"Contact price: "+new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(item.commercial.amount_cents/100):item.commercial?.reason==="expired"?"Expired opportunity":"Contact price not configured";
-  const view=document.createElement("button");view.type="button";view.className="secondary";view.textContent="View Details";
-  const details=document.createElement("div");details.hidden=true;details.className="pro-opportunity-details";
-  const summary=document.createElement("p");summary.textContent=item.public_summary;
+  const thumb=document.createElement("div");thumb.className="pro-opportunity-thumb";
+  if(photos[0]?.url){const img=document.createElement("img");img.src=photos[0].url;img.alt="Project preview";img.loading="lazy";thumb.append(img);}
+  else thumb.textContent="▧";
+  const main=document.createElement("div");main.className="pro-opportunity-main";
+  const titleLine=document.createElement("div");titleLine.className="pro-opportunity-title-line";
+  const title=document.createElement("h3");title.textContent=item.service_category;titleLine.append(title);
+  if(item.origin_free){const badge=document.createElement("span");badge.className="pro-opportunity-badge direct";badge.textContent="Direct Lead";titleLine.append(badge);}
+  else if(item.commercial?.reason==="expired"){const badge=document.createElement("span");badge.className="pro-opportunity-badge expired";badge.textContent="Expired";titleLine.append(badge);}
+  else{const badge=document.createElement("span");badge.className="pro-opportunity-badge available";badge.textContent="Available";titleLine.append(badge);}
+  const metaRow=document.createElement("div");metaRow.className="pro-opportunity-meta";
+  const location=document.createElement("span");location.textContent="⌖ "+item.city+", FL · "+item.zip_code;
+  const published=document.createElement("span");published.textContent="◷ "+relativePublished(item.published_at);
+  const photoInfo=document.createElement("span");photoInfo.textContent="▧ "+(photos.length?photos.length+(photos.length===1?" photo":" photos"):"No photos");
+  metaRow.append(location,published,photoInfo);main.append(titleLine,metaRow);
+  const view=document.createElement("button");view.type="button";view.className="secondary pro-opportunity-view";view.textContent="View Details →";
+  const details=document.createElement("div");details.hidden=true;details.className="pro-opportunity-details pro-opportunity-expanded";
+  const summary=document.createElement("p");summary.className="pro-opportunity-summary";summary.textContent=item.public_summary;
+  details.append(summary);
   const detailEntries=Object.entries(item.project_details||{}).filter(([,value])=>value!==null&&value!==undefined&&String(value).trim()!=="");
   if(detailEntries.length){
     const project=document.createElement("div");project.className="pro-project-details";
@@ -62,67 +76,60 @@ async function loadOpportunities(append=false){
       const text=document.createElement("p");text.textContent=Array.isArray(value)?value.join(", "):String(value);
       entry.append(label,text);grid.append(entry);
     }
-    project.append(grid);details.append(summary,project);
-  }else details.append(summary);
-  const privacy=document.createElement("p");privacy.textContent="Customer name, phone, email and preferred contact method remain private until the contact is purchased and payment is confirmed.";
+    project.append(grid);details.append(project);
+  }
+  const access=document.createElement("div");access.className="pro-opportunity-access";
+  const accessCopy=document.createElement("div");
+  const accessLabel=document.createElement("span");accessLabel.textContent=item.origin_free?"Direct lead from your public profile":"Contact access";
+  const accessValue=document.createElement("strong");
+  if(item.origin_free)accessValue.textContent="No purchase required";
+  else if(item.commercial?.amount_cents!=null)accessValue.textContent=new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(item.commercial.amount_cents/100);
+  else accessValue.textContent=item.commercial?.reason==="expired"?"Opportunity expired":"Unavailable";
+  accessCopy.append(accessLabel,accessValue);access.append(accessCopy);
+  const privacy=document.createElement("p");privacy.className="pro-opportunity-privacy";privacy.textContent=item.origin_free?"Your customer contact is available in Direct Leads after approval and publication.":"Customer contact details remain private until you choose to unlock this contact.";
   const purchaseActions=document.createElement("div");purchaseActions.className="pro-contact-actions";
   if(item.origin_free){
-    const free=document.createElement("button");free.type="button";free.disabled=true;free.textContent="Your profile lead";purchaseActions.append(free);
+    const free=document.createElement("button");free.type="button";free.disabled=true;free.textContent="Free contact from your profile";purchaseActions.append(free);
   }else if(capabilities.payments_enabled===true&&item.commercial?.amount_cents!=null&&item.commercial?.available!==false){
-    const amountLabel=item.commercial?.amount_cents!=null?new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(item.commercial.amount_cents/100):"";
-    const walletPurchase=document.createElement("button");walletPurchase.type="button";walletPurchase.className="secondary";walletPurchase.textContent="Unlock with Credits"+(amountLabel?" - "+amountLabel:"");
-    const cardPurchase=document.createElement("button");cardPurchase.type="button";cardPurchase.textContent="Pay with Card"+(amountLabel?" - "+amountLabel:"");
-    walletPurchase.addEventListener("click",async()=>{
-      walletPurchase.disabled=true;cardPurchase.disabled=true;
-      try{
-        say("Checking your wallet credits...");
-        const quote=await api("live-checkout","POST",{action:"quote",opportunity_id:item.opportunity_id});
-        const result=await api("wallet-purchase","POST",{quote_id:quote.quote_id,operation_key:"wallet_buy_"+crypto.randomUUID()});
-        if(result.contact_release_enabled){
-          say("Contact unlocked with wallet credits.");
-          await loadOpportunities();
-          window.dispatchEvent(new CustomEvent("gef-wallet-updated"));
-        }else throw Error("Contact could not be unlocked.");
-      }catch(ex){
-        walletPurchase.disabled=false;cardPurchase.disabled=false;say(ex.message);
-      }
-    });
-    cardPurchase.addEventListener("click",async()=>{
-      walletPurchase.disabled=true;cardPurchase.disabled=true;
-      try{
-        say("Preparing secure Stripe checkout...");
-        const quote=await api("live-checkout","POST",{action:"quote",opportunity_id:item.opportunity_id});
-        const checkout=await api("live-checkout","POST",{
-          action:"checkout",
-          opportunity_id:item.opportunity_id,
-          quote_id:quote.quote_id,
-          operation_key:"buy_"+crypto.randomUUID()
-        });
-        sessionStorage.setItem("gef_pending_order_id",checkout.order_id);
-        window.location.assign(checkout.checkout_url);
-      }catch(ex){
-        walletPurchase.disabled=false;cardPurchase.disabled=false;say(ex.message);
-      }
-    });
+    const amountLabel=new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(item.commercial.amount_cents/100);
+    const walletPurchase=document.createElement("button");walletPurchase.type="button";walletPurchase.className="secondary";walletPurchase.textContent="Unlock with Credits — "+amountLabel;
+    const cardPurchase=document.createElement("button");cardPurchase.type="button";cardPurchase.textContent="Pay with Card — "+amountLabel;
+    walletPurchase.addEventListener("click",async()=>{walletPurchase.disabled=true;cardPurchase.disabled=true;try{say("Checking your wallet credits...");const quote=await api("live-checkout","POST",{action:"quote",opportunity_id:item.opportunity_id});const result=await api("wallet-purchase","POST",{quote_id:quote.quote_id,operation_key:"wallet_buy_"+crypto.randomUUID()});if(result.contact_release_enabled){say("Contact unlocked with wallet credits.");await loadOpportunities();window.dispatchEvent(new CustomEvent("gef-wallet-updated"));}else throw Error("Contact could not be unlocked.");}catch(ex){walletPurchase.disabled=false;cardPurchase.disabled=false;say(ex.message);}});
+    cardPurchase.addEventListener("click",async()=>{walletPurchase.disabled=true;cardPurchase.disabled=true;try{say("Preparing secure Stripe checkout...");const quote=await api("live-checkout","POST",{action:"quote",opportunity_id:item.opportunity_id});const checkout=await api("live-checkout","POST",{action:"checkout",opportunity_id:item.opportunity_id,quote_id:quote.quote_id,operation_key:"buy_"+crypto.randomUUID()});sessionStorage.setItem("gef_pending_order_id",checkout.order_id);window.location.assign(checkout.checkout_url);}catch(ex){walletPurchase.disabled=false;cardPurchase.disabled=false;say(ex.message);}});
     purchaseActions.append(walletPurchase,cardPurchase);
   }else{
-    const unavailable=document.createElement("button");unavailable.type="button";unavailable.disabled=true;unavailable.textContent="Contact purchases are not enabled";purchaseActions.append(unavailable);
+    const unavailable=document.createElement("button");unavailable.type="button";unavailable.disabled=true;unavailable.textContent="Contact purchase unavailable";purchaseActions.append(unavailable);
   }
-  renderProjectPhotos(details,item);details.append(privacy,purchaseActions);
-  view.addEventListener("click",()=>{details.hidden=!details.hidden;view.textContent=details.hidden?"View Details":"Hide Details";});
-  card.append(title,status,date,photoCount,price,view,details);
-  el("opportunityCards").appendChild(card);
+  renderProjectPhotos(details,item);details.append(access,privacy,purchaseActions);
+  view.addEventListener("click",()=>{details.hidden=!details.hidden;view.textContent=details.hidden?"View Details →":"Hide Details ↑";});
+  card.append(thumb,main,view,details);holder.append(card);
  }
  opportunityPage=page;
- el("moreOpportunities").hidden=d.opportunities.length<25;
- if(!d.opportunities.length&&!append)el("opportunityCards").textContent=directOpportunity?"This opportunity is unavailable or does not match your professional profile.":"No matching opportunities have been published yet.";
- if(directOpportunity&&!append&&d.opportunities.some(item=>item.opportunity_id===directOpportunity)){
-  const target=el("opportunityCards").querySelector('[data-opportunity-id="'+CSS.escape(directOpportunity)+'"]');
+ const pager=document.createElement("div");pager.className="pro-opportunity-pager";
+ const prev=document.createElement("button");prev.type="button";prev.className="secondary";prev.textContent="← Previous";prev.disabled=page===0;
+ const pageLabel=document.createElement("span");pageLabel.textContent="Page "+(page+1)+" of "+Math.max(1,Math.ceil((d.matching_total||0)/OPPORTUNITY_PAGE_SIZE));
+ const next=document.createElement("button");next.type="button";next.className="secondary";next.textContent="Next →";next.disabled=endIndex>=d.matching_total;
+ prev.addEventListener("click",()=>{opportunityPage=Math.max(0,page-1);loadOpportunitiesPage(opportunityPage);});
+ next.addEventListener("click",()=>{opportunityPage=page+1;loadOpportunitiesPage(opportunityPage);});
+ pager.append(prev,pageLabel,next);holder.append(pager);
+ el("moreOpportunities").hidden=true;
+ if(!d.opportunities.length)holder.append(document.createTextNode(directOpportunity?"This opportunity is unavailable or does not match your professional profile.":"No matching opportunities have been published yet."));
+ if(directOpportunity&&d.opportunities.some(item=>item.opportunity_id===directOpportunity)){
+  const target=holder.querySelector('[data-opportunity-id="'+CSS.escape(directOpportunity)+'"]');
   target?.scrollIntoView({block:"center",behavior:"smooth"});
-  const viewButton=target?.querySelector("button.secondary");
-  if(viewButton&&viewButton.textContent==="View Details")viewButton.click();
+  const viewButton=target?.querySelector(".pro-opportunity-view");
+  if(viewButton&&viewButton.textContent.startsWith("View Details"))viewButton.click();
   say("Opportunity opened from your GetEstimateFast alert.");
  }
+}
+async function loadOpportunitiesPage(page){
+ opportunityPage=page;
+ const city=el("opportunityCity").value.trim();
+ const params=new URLSearchParams({page:String(page),city});
+ for(const [id,key] of [["opportunityCategory","category"],["opportunityZip","zip"],["opportunityRadius","radius"],["opportunityAvailability","availability"]])if(el(id)?.value)params.set(key,el(id).value);
+ const d=await api("opportunities?"+params);
+ window.dispatchEvent(new CustomEvent("gef-opportunities",{detail:d}));
+ return loadOpportunities(false);
 }
 el("loadOpportunities").addEventListener("click",()=>loadOpportunities().catch(e=>say(e.message)));
 el("moreOpportunities").addEventListener("click",()=>loadOpportunities(true).catch(e=>say(e.message)));
