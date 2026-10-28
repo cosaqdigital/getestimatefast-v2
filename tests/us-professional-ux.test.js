@@ -11,7 +11,7 @@ test("Signed-in users never see account creation",()=>{
 });
 test("Guided profile is two steps and preserves public profile privacy",()=>{
  const src=read("assets/contractor-ux.js");
- for(const s of ["Step 1 of 2","Step 2 of 2","Select the services","publicProfileForm","Your phone and email are not shown"])assert(src.includes(s)||s==="Select the services"&&src.includes("Choose the services"));
+ for(const s of ["Step 1 of 2","Step 2 of 2","Select the services","publicProfileForm","Private contacts are not published automatically."])assert(src.includes(s)||s==="Select the services"&&src.includes("Choose the services"));
  assert.match(src,/step2\.disabled=step!==2/);
  assert.match(src,/opt\.selected=input\.checked/);
 });

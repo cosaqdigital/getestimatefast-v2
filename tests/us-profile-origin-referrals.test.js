@@ -18,6 +18,7 @@ const env=()=>({
  GETESTIMATEFAST_SUPABASE_SECRET_KEY:"sb_secret_qa_fake",
  GETESTIMATEFAST_SUPABASE_PUBLISHABLE_KEY:"sb_publishable_qa_fake",
  GETESTIMATEFAST_REVIEW_IDENTITY_SECRET:"US_ORIGIN_TEST_SECRET_DO_NOT_USE_FOR_REAL_ACCOUNTS",
+ GETESTIMATEFAST_PUBLIC_ORIGIN:"https://test.example.invalid",GETESTIMATEFAST_SMS_MODE:"dry_run",GETESTIMATEFAST_STRIPE_TEST_CHECKOUT_APPROVED:"false",
  GETESTIMATEFAST_PROFILE_REQUESTS_MODE:"synthetic"
 });
 const profile={contractor_id:uuid,slug:"sample-contractor",categories:["Painting"],published:true};
@@ -102,7 +103,7 @@ test("public professional HTML provides no public direct phone/email and an expl
  },reviews:[],review_summary:{approved_count:0}}, "https://test.example.invalid","https://storage.example.invalid",
  {token:"synthetic-signed-token",synthetic:true});
  assert(html.includes("Request a Free Estimate"));
- assert(html.includes('href="/assets/profile-request.css"'));
+ assert.match(html,/href="\/assets\/profile-request\.css(?:\?[^"]*)?"/);
  assert(html.includes('action="/api/profile-request"'));
  assert(html.includes('name="contact_consent"'));
  assert(!html.includes("owner@example.invalid")&&!html.includes("+18135550100")&&!html.includes("wa.me"));
@@ -335,6 +336,7 @@ test("public profile response preserves the origin of its native same-origin for
     },reviews:[]});
    }
    if(url.includes("/contractor_public_profiles?"))return j([{contractor_id:uuid}]);
+   if(url.endsWith("/rpc/gef_professional_quality_score"))return j({badges:{},algorithm_version:"ranking-v1"});
    throw Error("Unexpected outbound call");
   });
   const req=nodeReq("/professionals/"+profile.slug,"GET",{}, {host:previewHost});
@@ -346,7 +348,7 @@ test("public profile response preserves the origin of its native same-origin for
   assert.deepEqual(policies,["same-origin"]);
   assert.match(result.body,/<form\b[^>]*action="\/api\/profile-request"[^>]*method="post"/);
   assert.match(result.headers["content-security-policy"],/(?:^|;\s*)form-action 'self'(?:;|$)/);
-  assert.equal(calls.length,2);
+  assert.equal(calls.length,3);
  });
 });
 test("opaque null Origin is rejected by the intake handler before database access",async()=>{
