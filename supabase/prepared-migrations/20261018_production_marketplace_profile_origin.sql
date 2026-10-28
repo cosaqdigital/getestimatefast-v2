@@ -663,6 +663,7 @@ DECLARE
   v_published jsonb;
   v_opportunity uuid;
   v_terms jsonb;
+  v_terms_id uuid;
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM public.admin_users WHERE user_id=p_actor) THEN
     RAISE EXCEPTION 'Administrator not authorized';
@@ -689,29 +690,41 @@ BEGIN
     RAISE EXCEPTION 'Configure an active USD contact-price rule for this service before publishing';
   END IF;
 
-  -- Both operations run in the SAME transaction. If price assignment fails,
-  -- the opportunity and lead publication are rolled back as well.
   v_published:=public.admin_publish_opportunity(p_lead_id,p_public_summary,p_actor);
   v_opportunity:=(v_published->>'opportunity_id')::uuid;
   IF v_opportunity IS NULL THEN RAISE EXCEPTION 'No published opportunity returned'; END IF;
 
-  v_terms:=public.gef_admin_configuration(
-    p_actor,
-    'opportunity_terms',
-    jsonb_build_object(
-      'opportunity_id',v_opportunity,
-      'rule_id',v_rule,
-      'scope_key',null,
-      'urgency_key',null
-    ),
-    'Automatic USD contact pricing for profile-origin opportunity',
-    'profile-terms:'||v_opportunity::text
-  );
-  IF v_terms->>'id' IS NULL THEN RAISE EXCEPTION 'Failed to assign commercial terms'; END IF;
+  -- Production may already assign commercial terms through the publish trigger.
+  -- Reuse that immutable row; only create terms if the trigger did not.
+  SELECT t.id INTO v_terms_id
+  FROM gef_private.opportunity_terms t
+  JOIN public.opportunity_previews o ON o.id=t.opportunity_id
+  WHERE t.opportunity_id=v_opportunity
+    AND t.published_at_snapshot=o.published_at
+  ORDER BY t.id
+  LIMIT 1;
+
+  IF v_terms_id IS NULL THEN
+    v_terms:=public.gef_admin_configuration(
+      p_actor,
+      'opportunity_terms',
+      jsonb_build_object(
+        'opportunity_id',v_opportunity,
+        'rule_id',v_rule,
+        'scope_key',null,
+        'urgency_key',null
+      ),
+      'Automatic USD contact pricing for profile-origin opportunity',
+      'profile-terms:'||v_opportunity::text
+    );
+    v_terms_id:=(v_terms->>'id')::uuid;
+  END IF;
+
+  IF v_terms_id IS NULL THEN RAISE EXCEPTION 'Failed to assign commercial terms'; END IF;
   RETURN v_published || jsonb_build_object(
     'origin_professional_free',true,
     'commercial_terms_assigned',true,
-    'commercial_terms_id',v_terms->>'id'
+    'commercial_terms_id',v_terms_id
   );
 END;
 $function$;
