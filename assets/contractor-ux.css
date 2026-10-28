@@ -399,3 +399,39 @@ body.pro-simple #moreOpportunities{display:none!important}
  body.pro-simple .pro-opportunity-pager{gap:8px}
  body.pro-simple .pro-opportunity-pager button{min-width:0;flex:1}
 }
+
+
+/* Professional portal final account overview + compact filters */
+body.pro-simple .pro-account-overview{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:center;margin:4px 0 14px;padding:18px 20px;border:1px solid #d8e4ee;border-radius:16px;background:linear-gradient(135deg,#ffffff 0%,#f5faff 65%,#eef7ff 100%);box-shadow:0 8px 24px rgba(18,61,96,.06)}
+body.pro-simple .pro-account-copy{min-width:0}
+body.pro-simple .pro-account-copy>strong{display:block;font-size:24px;color:#123554;line-height:1.15;overflow-wrap:anywhere}
+body.pro-simple .pro-account-copy>p{margin:6px 0 9px;color:#60758a;font-size:14px}
+body.pro-simple .pro-account-badge{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;background:#eef3f7;color:#526b80;border:1px solid #d7e2ea;font-size:11px;font-weight:900}
+body.pro-simple .pro-account-badge[data-active="true"]{background:#ebf8eb;color:#19711a;border-color:#c8e8c5}
+body.pro-simple .pro-quick-stats{display:grid;grid-template-columns:repeat(3,minmax(110px,1fr));gap:8px}
+body.pro-simple .pro-quick-stat{display:grid;gap:2px;min-width:110px;padding:11px 14px;border:1px solid #d6e2ec;border-radius:12px;background:#fff;text-decoration:none;color:#123554;text-align:center}
+body.pro-simple .pro-quick-stat:hover{border-color:#9dbbd1;background:#fbfdff}
+body.pro-simple .pro-quick-stat strong{font-size:20px;line-height:1}
+body.pro-simple .pro-quick-stat span{font-size:11px;color:#667d91;font-weight:750}
+body.pro-simple #opportunityPanel>.columns{grid-template-columns:minmax(180px,1.15fr) minmax(140px,.75fr);gap:10px 14px}
+body.pro-simple #opportunityPanel>.columns label{margin-top:4px}
+body.pro-simple #opportunityPanel>.columns input,
+body.pro-simple #opportunityPanel>.columns select{height:44px;padding:8px 11px}
+body.pro-simple #opportunityPanel #loadOpportunities{height:44px;min-width:150px}
+body.pro-simple .pro-opportunity-row{padding-top:12px;padding-bottom:12px}
+body.pro-simple .pro-opportunity-title-line h3{font-size:19px}
+body.pro-simple .pro-opportunity-meta{margin-top:5px}
+body.pro-simple .pro-opportunity-view{font-weight:850}
+@media(max-width:900px){
+ body.pro-simple .pro-account-overview{grid-template-columns:1fr}
+ body.pro-simple .pro-quick-stats{grid-template-columns:repeat(3,minmax(0,1fr))}
+ body.pro-simple .pro-quick-stat{min-width:0}
+}
+@media(max-width:620px){
+ body.pro-simple .pro-quick-stats{grid-template-columns:1fr 1fr 1fr}
+ body.pro-simple .pro-quick-stat{padding:10px 7px}
+ body.pro-simple .pro-quick-stat strong{font-size:17px}
+ body.pro-simple .pro-quick-stat span{font-size:10px}
+ body.pro-simple #opportunityPanel>.columns{grid-template-columns:1fr}
+ body.pro-simple #opportunityPanel #loadOpportunities{width:100%}
+}
