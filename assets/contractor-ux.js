@@ -66,6 +66,7 @@ async function showReferrals(){
  try{
   const result=await window.GetEstimateFastPortal.api("origin-leads");
   referralList.replaceChildren();
+  if($("proQuickDirect"))$("proQuickDirect").textContent=String(result.leads?.length||0);
   if(!result.leads?.length){referralList.append(make("p","No direct leads yet. Share your public profile to invite customers to contact you directly."));return;}
   for(const lead of result.leads){
    const card=make("article",undefined,"pro-referral-card");
@@ -107,7 +108,20 @@ function syncNavigationAvailability(){
   }
  }
 }
-const welcome=make("div",undefined,"pro-welcome");welcome.append(make("strong","My GetEstimateFast"),make("p","Professional account · Get ready for local service opportunities."));
+const welcome=make("section",undefined,"pro-account-overview");
+const welcomeCopy=make("div",undefined,"pro-account-copy");
+const welcomeTitle=make("strong","My GetEstimateFast");welcomeTitle.id="proBusinessWelcome";
+const welcomeMeta=make("p","Professional account · Get ready for local service opportunities.");welcomeMeta.id="proBusinessMeta";
+const accountBadge=make("span","Account Active","pro-account-badge");accountBadge.id="proAccountBadge";
+welcomeCopy.append(welcomeTitle,welcomeMeta,accountBadge);
+const quickStats=make("div",undefined,"pro-quick-stats");
+const quickStat=(label,value,id,href)=>{const a=make("a",undefined,"pro-quick-stat");a.href=href;const strong=make("strong",value);strong.id=id;a.append(strong,make("span",label));return a;};
+quickStats.append(
+ quickStat("Opportunities","0","proQuickOpportunities","#opportunityPanel"),
+ quickStat("Direct Leads","0","proQuickDirect","#myReferralsPanel"),
+ quickStat("Wallet","$0.00","proQuickWallet","#walletPanel")
+);
+welcome.append(welcomeCopy,quickStats);
 workspace.prepend(welcome);
 // Remove legacy shell copy from the signed-in workspace; the redesigned dashboard and My details panel replace it.
 for(const legacy of [...workspace.children].filter(x=>x.matches("h1,p")&&!x.id))legacy.hidden=true;
@@ -240,6 +254,10 @@ window.addEventListener("gef-profile",e=>{
  if(capabilities?.marketplace_enabled===false)referralList.replaceChildren(make("p","Profile requests and customer contacts are not open yet."));
  const p=e.detail?.profile,wasReady=hasProfile===true;
  updateLaunchDashboard(p,e.detail?.public_profile_published===true);
+ const businessName=(p?.business_name||p?.display_name||"").trim();
+ if($("proBusinessWelcome"))$("proBusinessWelcome").textContent=businessName||"My GetEstimateFast";
+ if($("proBusinessMeta"))$("proBusinessMeta").textContent=p?.city&&p?.state_code?(p.city+", "+p.state_code+" · "+(p.service_radius_miles||"—")+"-mile service area"):"Professional account · Get ready for local service opportunities.";
+ if($("proAccountBadge")){$("proAccountBadge").textContent=p?.account_status==="active"?"Account Active":"Account "+(p?.account_status||"Incomplete");$("proAccountBadge").dataset.active=p?.account_status==="active"?"true":"false";}
  hasProfile=Boolean(p?.account_status==="active"&&p.base_zip&&p.contact_phone&&p.service_categories?.length);
  queueMicrotask(drawServices);
  if(hasProfile){
@@ -259,6 +277,11 @@ window.addEventListener("gef-profile",e=>{
  }else go("accountSettingsPanel");
 });
 window.addEventListener("gef-public-profile",e=>{const p=e.detail?.profile;if($("proPublicValue"))$("proPublicValue").textContent=p?.published===true?"Published":"Not published";});
-window.addEventListener("gef-opportunities",e=>{if($("proOpportunityValue"))$("proOpportunityValue").textContent=String(e.detail?.matching_total??0);});
-window.addEventListener("gef-signed-out",()=>{signedIn=false;hasProfile=null;capabilities=null;referralList.replaceChildren();nav.hidden=true;for(const x of Object.values(views))x.hidden=true;selectStep(1);if($("proOpportunityValue"))$("proOpportunityValue").textContent="0";});
+window.addEventListener("gef-opportunities",e=>{const total=String(e.detail?.matching_total??0);if($("proOpportunityValue"))$("proOpportunityValue").textContent=total;if($("proQuickOpportunities"))$("proQuickOpportunities").textContent=total;});
+const walletSource=$("walletBalance");
+if(walletSource){
+ const syncQuickWallet=()=>{if($("proQuickWallet"))$("proQuickWallet").textContent=walletSource.textContent||"$0.00";};
+ new MutationObserver(syncQuickWallet).observe(walletSource,{childList:true,characterData:true,subtree:true});syncQuickWallet();
+}
+window.addEventListener("gef-signed-out",()=>{signedIn=false;hasProfile=null;capabilities=null;referralList.replaceChildren();nav.hidden=true;for(const x of Object.values(views))x.hidden=true;selectStep(1);if($("proOpportunityValue"))$("proOpportunityValue").textContent="0";if($("proQuickOpportunities"))$("proQuickOpportunities").textContent="0";if($("proQuickDirect"))$("proQuickDirect").textContent="0";});
 })();
