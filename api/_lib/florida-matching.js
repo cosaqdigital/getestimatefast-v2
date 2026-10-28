@@ -23,6 +23,9 @@ function coordinates(value, lookup = lookupZip) {
     || latitude < 24 || latitude > 32 || longitude < -89 || longitude > -79) return null;
   return { zip, latitude, longitude };
 }
+function recognizedFloridaZip(value, lookup = lookupZip) {
+  return Boolean(coordinates(value, lookup));
+}
 function haversineMiles(a, b) {
   const deg = Math.PI / 180;
   const dLat = (b.latitude - a.latitude) * deg, dLng = (b.longitude - a.longitude) * deg;
@@ -55,4 +58,4 @@ function calculateMatch(profile, opportunity, lookup = lookupZip) {
 function cityMatches(candidate, requestedCity) {
   return !requestedCity || String(candidate || "").trim().toLowerCase() === String(requestedCity).trim().toLowerCase();
 }
-module.exports = { MAX_RADIUS_MILES, cleanZip, coordinates, haversineMiles, serviceMatches, validProfile, calculateMatch, cityMatches };
+module.exports = { MAX_RADIUS_MILES, cleanZip, coordinates, recognizedFloridaZip, haversineMiles, serviceMatches, validProfile, calculateMatch, cityMatches };

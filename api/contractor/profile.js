@@ -1,6 +1,7 @@
 const {normalizeUsPhone}=require("../_lib/telnyx-us-provider");
 const {marketplaceCommercialEnabled}=require("../_lib/marketplace-access");
 const {livePaymentsApproved}=require("../_lib/stripe-live-policy");
+const {recognizedFloridaZip}=require("../_lib/florida-matching");
 const {json,method,readJson,queryDb,fail,CATEGORIES,userFor}=require("./_shared");
 const EMAIL=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 module.exports=async function handler(req,res){
@@ -23,7 +24,7 @@ module.exports=async function handler(req,res){
   const v=await readJson(req,7000);
   const name=String(v.display_name||"").trim(),phone=String(v.contact_phone||"").trim(),zip=String(v.base_zip||"").trim(),city=String(v.city||"").trim(),state=String(v.state_code||"").trim().toUpperCase(),business=String(v.business_name||"").trim(),bio=String(v.bio||"").trim(),radius=Number(v.service_radius_miles),cats=v.service_categories;
   const smsPhone=normalizeUsPhone(phone);
-  if(name.length<2||name.length>120||business.length>150||phone.length>35||!smsPhone||!/^\d{5}$/.test(zip)||city.length<2||city.length>100||!/^[A-Z]{2}$/.test(state)||!Number.isInteger(radius)||radius<1||radius>100||!Array.isArray(cats)||cats.length<1||cats.length>12||!cats.every(c=>CATEGORIES.includes(c))||new Set(cats).size!==cats.length||bio.length>1000||!EMAIL.test(user.email||"")){
+  if(name.length<2||name.length>120||business.length>150||phone.length>35||!smsPhone||state!=="FL"||!recognizedFloridaZip(zip)||city.length<2||city.length>100||!Number.isInteger(radius)||radius<1||radius>100||!Array.isArray(cats)||cats.length<1||cats.length>12||!cats.every(c=>CATEGORIES.includes(c))||new Set(cats).size!==cats.length||bio.length>1000||!EMAIL.test(user.email||"")){
    return json(res,400,{error:"Please complete all required professional profile fields."});
   }
   // The client cannot control user ID, verification, approval, or historical signup consent.

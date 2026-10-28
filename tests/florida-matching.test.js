@@ -1,7 +1,7 @@
 "use strict";
 const assert = require("node:assert/strict");
 const test = require("node:test");
-const { calculateMatch, coordinates, haversineMiles, cityMatches } = require("../api/_lib/florida-matching");
+const { calculateMatch, coordinates, recognizedFloridaZip, haversineMiles, cityMatches } = require("../api/_lib/florida-matching");
 // Artificial ZIP coordinates only, for deterministic isolated logic tests.
 const zipLookup = zip => ({
   "33569": {state:"FL",latitude:27.85,longitude:-82.3},
@@ -21,6 +21,11 @@ test("Other Services matches any active professional within radius", () => asser
 test("inactive and unverified professionals cannot see opportunities", () => {
   assert.equal(calculateMatch({...p,email_verified_at:null},o,zipLookup).eligible,false);
   assert.equal(calculateMatch({...p,account_status:"suspended"},o,zipLookup).eligible,false);
+});
+test("recognized Florida ZIP validation rejects unknown and out-of-state codes",()=>{
+  assert.equal(recognizedFloridaZip("33569",zipLookup),true);
+  assert.equal(recognizedFloridaZip("99999",zipLookup),false);
+  assert.equal(recognizedFloridaZip("10001",zipLookup),false);
 });
 test("unknown or out-of-state ZIP has no automatic match",()=>{
   assert.equal(calculateMatch(p,{...o,zip_code:"99999"},zipLookup).reason,"unrecognized_zip");

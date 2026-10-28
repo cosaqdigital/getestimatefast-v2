@@ -2,6 +2,7 @@
 const crypto=require("node:crypto");
 const {DEVELOPMENT_REF,protectedPreview}=require("./preview-target");
 const {productionMarketplaceEnabled}=require("./marketplace-access");
+const {recognizedFloridaZip}=require("./florida-matching");
 const UUID=/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
 const SLUG=/^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const MAX_AGE_SECONDS=7*86400;
@@ -59,7 +60,7 @@ function validate(fields,profile,activeMode){
  const phone=fields.phone.replace(/\D/g,"");
  if(!/^(1)?[2-9]\d{9}$/.test(phone))return "Enter a valid US telephone number.";
  if(!/^[A-Za-z][A-Za-z .'-]{1,79}$/.test(fields.city))return "Enter a valid city.";
- if(!/^(32|33|34)\d{3}$/.test(fields.zip))return "Enter a Florida ZIP Code.";
+ if(!recognizedFloridaZip(fields.zip))return "Enter a recognized Florida ZIP Code.";
  if(fields.description.length<20||fields.description.length>2400)return "Describe your project in 20 to 2400 characters.";
  if(!Array.isArray(profile.categories)||!profile.categories.includes(fields.service))return "Select a service offered by this professional.";
  if(activeMode==="synthetic"){
