@@ -49,9 +49,10 @@ module.exports=async function handler(req,res){
     if(item.origin_free)item.commercial=null;
    }
   }
-  const pageItems=filtered.slice(page*25,(page+1)*25);
+  const pageSize=10;
+  const pageItems=filtered.slice(page*pageSize,(page+1)*pageSize);
   await attachProjectPhotos(pageItems);
-  return json(res,200,{opportunities:pageItems,page,matching_total:filtered.length,note:"Approximate straight-line miles between ZIP centroids. Project photos may be shown to signed-in professionals before purchase; customer contact details remain private until authorized release."});
+  return json(res,200,{opportunities:pageItems,page,page_size:pageSize,matching_total:filtered.length,note:"Approximate straight-line miles between ZIP centroids. Project photos may be shown to signed-in professionals before purchase; customer contact details remain private until authorized release."});
  }catch(error){fail(res,error);}
 };
 
