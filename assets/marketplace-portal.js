@@ -268,10 +268,14 @@ async function startTopup(payload){
 function renderTopupPromotions(promotions){
  const holder=el("creditPackages");holder.replaceChildren();
  if(!promotions?.length){holder.append(node("p","No bonus packages are active right now. You can still add a custom amount."));return;}
+ const blackFridayActive=promotions.some(p=>p.campaign==="black_friday");
  for(const p of promotions){
-  const card=node("article",undefined,"pro-credit-package"+(p.campaign==="black_friday"?" pro-credit-package-featured":""));
+  const isBlackFriday=p.campaign==="black_friday";
+  const isMostPopular=!blackFridayActive&&Number(p.amount_cents)===10000;
+  const card=node("article",undefined,"pro-credit-package"+(isBlackFriday?" pro-credit-package-featured":isMostPopular?" pro-credit-package-popular":""));
   const amount=money(p.amount_cents),total=money(p.total_cents),bonus=money(p.bonus_cents);
-  if(p.campaign==="black_friday")card.append(node("span","BLACK FRIDAY — NOVEMBER ONLY","pro-credit-package-badge"));
+  if(isBlackFriday)card.append(node("span","BLACK FRIDAY — NOVEMBER ONLY","pro-credit-package-badge"));
+  else if(isMostPopular)card.append(node("span","MOST POPULAR","pro-credit-package-badge pro-credit-package-badge-popular"));
   card.append(node("strong","Add "+amount+" → Get "+total),node("p","Includes "+bonus+" promotional bonus."));
   const button=node("button","Add "+amount,"secondary");button.type="button";
   button.onclick=async()=>{button.disabled=true;try{await startTopup({promotion_id:p.id});}catch(e){button.disabled=false;portal.say(e.message);}};
