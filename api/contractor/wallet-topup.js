@@ -34,14 +34,8 @@ module.exports=async function handler(req,res){
           credited:intent.status==="confirmed"
         });
       }
-      const rows=await queryDb("marketplace_promotions?enabled=eq.true&select=id,version,amount_cents,bonus_cents,starts_at,ends_at,enabled&order=amount_cents.asc");
-      const active=(rows||[]).filter(activePromotion);
-      const bestByAmount=new Map();
-      for(const p of active){
-        const key=Number(p.amount_cents),current=bestByAmount.get(key);
-        if(!current||Number(p.bonus_cents)>Number(current.bonus_cents))bestByAmount.set(key,p);
-      }
-      const promotions=[...bestByAmount.values()].sort((a,b)=>Number(a.amount_cents)-Number(b.amount_cents)).map(p=>({
+      const rows=await rpc("gef_active_wallet_promotions",{});
+      const promotions=(rows||[]).sort((a,b)=>Number(a.amount_cents)-Number(b.amount_cents)).map(p=>({
         id:p.id,
         version:p.version,
         amount_cents:Number(p.amount_cents),
