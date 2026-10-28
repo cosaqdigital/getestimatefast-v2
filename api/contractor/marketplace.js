@@ -23,6 +23,13 @@ module.exports=async function handler(req,res){
   }
   if(["purchase","topup","refund","adjustment","profile-service-checkout"].includes(action))return blockPayments(res);
   const body=await readJson(req,action==="portfolio-upload"?4200000:18000);
+  if(action==="profile-media"){
+   if(process.env.CONTRACTOR_PROFILE_EDITING_ENABLED!=="true")return json(res,503,{error:"Profile editing is not yet open."});
+   const kind=String(body.kind||"");
+   const imagePath=String(body.image_path||"");
+   const result=await rpc("gef_save_public_profile_media",{p_contractor:user.id,p_kind:kind,p_path:imagePath});
+   return json(res,200,result);
+  }
   if(action==="public-profile"){
    if(process.env.CONTRACTOR_PROFILE_EDITING_ENABLED!=="true")return json(res,503,{error:"Profile editing is not yet open."});
    let profile;try{profile=parsePublicProfile(body);}catch(e){return json(res,400,{error:e.message});}
