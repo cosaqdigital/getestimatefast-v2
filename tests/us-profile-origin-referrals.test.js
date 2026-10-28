@@ -337,6 +337,7 @@ test("public profile response preserves the origin of its native same-origin for
     },reviews:[]});
    }
    if(url.includes("/contractor_public_profiles?"))return j([{contractor_id:uuid}]);
+   if(url.endsWith("/rpc/gef_professional_quality_score"))return j({badges:{},algorithm_version:"ranking-v1"});
    throw Error("Unexpected outbound call");
   });
   const req=nodeReq("/professionals/"+profile.slug,"GET",{}, {host:previewHost});
