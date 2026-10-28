@@ -35,4 +35,6 @@
 .gef-profile-ranking-badge.complete{background:#e6f5ff;color:#0a4f86;border-color:#b9ddf6}
 .gef-profile-ranking-badge.new{background:#eef3f8;color:#405a70;border-color:#d7e1ea}
 
-.gef-profile-hero[style]:after{display:none}
+.gef-profile-has-cover:after{display:none}
+.gef-profile-cover-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.gef-profile-has-cover .gef-profile-hero-overlay{z-index:1;background:linear-gradient(90deg,rgba(3,33,78,.88),rgba(9,71,145,.66))}
