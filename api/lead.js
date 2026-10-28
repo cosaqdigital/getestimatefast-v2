@@ -2,6 +2,7 @@ const crypto = require("node:crypto");
 const LAUNCH_CATALOG = require("../assets/launch-categories");
 const { DEVELOPMENT_REF, protectedPreview } = require("./_lib/preview-target");
 const { MAX_PHOTO_COUNT, parsePhotoPaths } = require("./_lib/lead-photo-storage");
+const { recognizedFloridaZip } = require("./_lib/florida-matching");
 // Reject accidental cross-platform database configuration.
 const PRODUCTION_REF = "wedsjubkttygxtpkopfj";
 const THANK_YOU_URL = "https://www.getestimatefast.com/thank-you.html";
@@ -307,8 +308,8 @@ function validateLead(fields) {
   }
 
   const zip = firstValue(fields["ZIP Code"]);
-  if (!/^\d{5}$/.test(zip)) {
-    return "Please enter a valid 5-digit ZIP Code and try again.";
+  if (!/^\d{5}$/.test(zip) || !recognizedFloridaZip(zip)) {
+    return "Please enter a recognized Florida ZIP Code and try again.";
   }
 
   const email = firstValue(fields["Email Address"]);
