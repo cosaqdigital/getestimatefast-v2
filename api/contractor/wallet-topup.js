@@ -35,16 +35,22 @@ module.exports=async function handler(req,res){
         });
       }
       const rows=await queryDb("marketplace_promotions?enabled=eq.true&select=id,version,amount_cents,bonus_cents,starts_at,ends_at&order=amount_cents.asc");
-      return json(res,200,{
-        payments_enabled:true,
-        promotions:(rows||[]).filter(activePromotion).map(p=>({
-          id:p.id,
-          version:p.version,
-          amount_cents:Number(p.amount_cents),
-          bonus_cents:Number(p.bonus_cents),
-          total_cents:Number(p.amount_cents)+Number(p.bonus_cents)
-        }))
-      });
+      const active=(rows||[]).filter(activePromotion);
+      const bestByAmount=new Map();
+      for(const p of active){
+        const key=Number(p.amount_cents),current=bestByAmount.get(key);
+        if(!current||Number(p.bonus_cents)>Number(current.bonus_cents))bestByAmount.set(key,p);
+      }
+      const promotions=[...bestByAmount.values()].sort((a,b)=>Number(a.amount_cents)-Number(b.amount_cents)).map(p=>({
+        id:p.id,
+        version:p.version,
+        amount_cents:Number(p.amount_cents),
+        bonus_cents:Number(p.bonus_cents),
+        total_cents:Number(p.amount_cents)+Number(p.bonus_cents),
+        campaign:p.version==="black-friday-2026-300-150"?"black_friday":null,
+        ends_at:p.ends_at
+      }));
+      return json(res,200,{payments_enabled:true,promotions});
     }
 
     const body=await readJson(req,8000);
