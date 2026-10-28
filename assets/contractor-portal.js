@@ -29,8 +29,8 @@ function relativePublished(value){
  if(hours<24)return hours+"h ago";
  const days=Math.floor(hours/24);return days===1?"1 day ago":days+" days ago";
 }
-async function loadOpportunities(append=false){
- const page=append?opportunityPage+1:0;
+async function loadOpportunities(append=false,requestedPage=null){
+ const page=Number.isInteger(requestedPage)?requestedPage:(append?opportunityPage+1:0);
  const city=el("opportunityCity").value.trim();
  const params=new URLSearchParams({page:String(page),city});
  const directOpportunity=new URLSearchParams(window.location.search).get("opportunity")||"";
@@ -109,8 +109,8 @@ async function loadOpportunities(append=false){
  const prev=document.createElement("button");prev.type="button";prev.className="secondary";prev.textContent="← Previous";prev.disabled=page===0;
  const pageLabel=document.createElement("span");pageLabel.textContent="Page "+(page+1)+" of "+Math.max(1,Math.ceil((d.matching_total||0)/OPPORTUNITY_PAGE_SIZE));
  const next=document.createElement("button");next.type="button";next.className="secondary";next.textContent="Next →";next.disabled=endIndex>=d.matching_total;
- prev.addEventListener("click",()=>{opportunityPage=Math.max(0,page-1);loadOpportunitiesPage(opportunityPage);});
- next.addEventListener("click",()=>{opportunityPage=page+1;loadOpportunitiesPage(opportunityPage);});
+ prev.addEventListener("click",()=>loadOpportunities(false,Math.max(0,page-1)).catch(e=>say(e.message)));
+ next.addEventListener("click",()=>loadOpportunities(false,page+1).catch(e=>say(e.message)));
  pager.append(prev,pageLabel,next);holder.append(pager);
  el("moreOpportunities").hidden=true;
  if(!d.opportunities.length)holder.append(document.createTextNode(directOpportunity?"This opportunity is unavailable or does not match your professional profile.":"No matching opportunities have been published yet."));
@@ -121,15 +121,6 @@ async function loadOpportunities(append=false){
   if(viewButton&&viewButton.textContent.startsWith("View Details"))viewButton.click();
   say("Opportunity opened from your GetEstimateFast alert.");
  }
-}
-async function loadOpportunitiesPage(page){
- opportunityPage=page;
- const city=el("opportunityCity").value.trim();
- const params=new URLSearchParams({page:String(page),city});
- for(const [id,key] of [["opportunityCategory","category"],["opportunityZip","zip"],["opportunityRadius","radius"],["opportunityAvailability","availability"]])if(el(id)?.value)params.set(key,el(id).value);
- const d=await api("opportunities?"+params);
- window.dispatchEvent(new CustomEvent("gef-opportunities",{detail:d}));
- return loadOpportunities(false);
 }
 el("loadOpportunities").addEventListener("click",()=>loadOpportunities().catch(e=>say(e.message)));
 el("moreOpportunities").addEventListener("click",()=>loadOpportunities(true).catch(e=>say(e.message)));
