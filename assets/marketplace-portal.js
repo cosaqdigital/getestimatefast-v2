@@ -253,10 +253,10 @@ function renderPurchases(purchases,contactRelease){
 function addShares(id,path,title){const holder=el(id);holder.replaceChildren();if(!path)return;const box=node("div",undefined,"share-tools");box.dataset.shareUrl=new URL(path,location.origin).href;box.dataset.shareTitle=title;holder.append(box);window.GetEstimateFastSharing?.render(box);}
 function topupCents(value){
  const text=String(value||"").trim();
- if(!/^\\d{1,6}(\\.\\d{1,2})?$/.test(text))throw Error("Enter a valid USD amount, for example 25.00.");
+ if(!/^\d{1,6}(\.\d{1,2})?$/.test(text))throw Error("Enter a valid USD amount, for example 25.00.");
  const [d,f=""]=text.split(".");
  const cents=Number(d)*100+Number(f.padEnd(2,"0"));
- if(!Number.isSafeInteger(cents)||cents<100)throw Error("Minimum wallet top-up is $1.00.");
+ if(!Number.isSafeInteger(cents)||cents<2500)throw Error("Minimum custom wallet top-up is $25.00.");
  return cents;
 }
 async function startTopup(payload){
