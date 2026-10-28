@@ -205,29 +205,9 @@ function updateLaunchDashboard(p,publicProfilePublished){
  progress.firstChild.style.width=percent+"%";
  for(const row of checklist.querySelectorAll("[data-check]")){const doneNow=complete[row.dataset.check]===true;row.classList.toggle("done",doneNow);row.querySelector(".pro-check-mark").textContent=doneNow?"✓":"○";}
 }
-// Collapse nonessential profile fields without resetting consent or changing publication status.
-const pub=views.publicProfilePanel,pubGrid=publicForm.querySelector(".form-grid");
-if(pubGrid){
- const optional=make("details",undefined,"pro-optional");optional.append(make("summary","Optional profile details (not public contact information)"));
- const extra=make("div",undefined,"form-grid");optional.append(extra);
- for(const n of ["languages","social_links","public_email","public_phone"]){const label=pubGrid.querySelector('[name="'+n+'"]')?.closest("label");if(label)extra.append(label);}
- for(const n of ["publish_email","publish_phone"]){const label=publicForm.querySelector('[name="'+n+'"]')?.closest("label");if(label)extra.append(label);}
- const publish=publicForm.querySelector('input[name="published"]')?.closest("label");
- if(publish){publicForm.insertBefore(optional,publish);publicForm.insertBefore(make("p","Your phone and email are not shown on public profiles during this launch phase. Visitors request estimates through GetEstimateFast.","pro-privacy"),publish);}
-}
-const workTitle=[...publicForm.children].find(x=>x.tagName==="H3"&&x.textContent.trim()==="Work photos");
-const addWork=$("addPortfolio");
-if(workTitle&&addWork){
- const opt=make("details",undefined,"pro-optional");opt.append(make("summary","Optional work photos"));
- let current=workTitle;
- while(current){const following=current.nextElementSibling;opt.append(current);if(current===addWork)break;current=following;}
- publicForm.append(opt);
-}
-const reviewTitle=[...pub.children].find(x=>x.tagName==="H3"&&x.textContent.trim()==="Request a customer review");
-if(reviewTitle){
- const opt=make("details",undefined,"pro-optional");opt.append(make("summary","Optional reviews and assistance"));
- let x=reviewTitle;while(x){const after=x.nextElementSibling;opt.append(x);x=after;}pub.append(opt);
-}
+// Public profile editing is rendered by marketplace-portal.js. Keep this UX layer from
+// re-arranging legacy public contact fields or wrapping the new editor sections.
+const pub=views.publicProfilePanel;
 let signedIn=false,hasProfile=null,current="",capabilities=null;
 function go(id){
  if(!signedIn)return;
