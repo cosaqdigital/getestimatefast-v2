@@ -41,7 +41,7 @@ module.exports=async function handler(req,res){
         amount_cents:Number(p.amount_cents),
         bonus_cents:Number(p.bonus_cents),
         total_cents:Number(p.amount_cents)+Number(p.bonus_cents),
-        campaign:p.version==="black-friday-2026-300-150"?"black_friday":null,
+        campaign:String(p.version||"").startsWith("black-friday-")?"black_friday":null,
         ends_at:p.ends_at
       }));
       return json(res,200,{payments_enabled:true,promotions});
