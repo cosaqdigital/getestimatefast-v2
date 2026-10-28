@@ -106,12 +106,13 @@ async function loadOpportunities(append=false,requestedPage=null){
  }
  opportunityPage=page;
  const pager=document.createElement("div");pager.className="pro-opportunity-pager";
+ const pageCount=Math.max(1,Math.ceil((d.matching_total||0)/OPPORTUNITY_PAGE_SIZE));
  const prev=document.createElement("button");prev.type="button";prev.className="secondary";prev.textContent="← Previous";prev.disabled=page===0;
- const pageLabel=document.createElement("span");pageLabel.textContent="Page "+(page+1)+" of "+Math.max(1,Math.ceil((d.matching_total||0)/OPPORTUNITY_PAGE_SIZE));
+ const pageLabel=document.createElement("span");pageLabel.textContent="Page "+(page+1)+" of "+pageCount;
  const next=document.createElement("button");next.type="button";next.className="secondary";next.textContent="Next →";next.disabled=endIndex>=d.matching_total;
  prev.addEventListener("click",()=>loadOpportunities(false,Math.max(0,page-1)).catch(e=>say(e.message)));
  next.addEventListener("click",()=>loadOpportunities(false,page+1).catch(e=>say(e.message)));
- pager.append(prev,pageLabel,next);holder.append(pager);
+ pager.append(prev,pageLabel,next);if(pageCount>1)holder.append(pager);
  el("moreOpportunities").hidden=true;
  if(!d.opportunities.length)holder.append(document.createTextNode(directOpportunity?"This opportunity is unavailable or does not match your professional profile.":"No matching opportunities have been published yet."));
  if(directOpportunity&&d.opportunities.some(item=>item.opportunity_id===directOpportunity)){
