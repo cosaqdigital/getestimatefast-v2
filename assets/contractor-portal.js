@@ -68,7 +68,7 @@ async function loadOpportunities(append=false){
   const purchaseActions=document.createElement("div");purchaseActions.className="pro-contact-actions";
   if(item.origin_free){
     const free=document.createElement("button");free.type="button";free.disabled=true;free.textContent="Your profile lead";purchaseActions.append(free);
-  }else if(capabilities.payments_enabled===true&&item.commercial?.available===true){
+  }else if(capabilities.payments_enabled===true&&item.commercial?.amount_cents!=null&&item.commercial?.available!==false){
     const amountLabel=item.commercial?.amount_cents!=null?new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(item.commercial.amount_cents/100):"";
     const walletPurchase=document.createElement("button");walletPurchase.type="button";walletPurchase.className="secondary";walletPurchase.textContent="Unlock with Credits"+(amountLabel?" - "+amountLabel:"");
     const cardPurchase=document.createElement("button");cardPurchase.type="button";cardPurchase.textContent="Pay with Card"+(amountLabel?" - "+amountLabel:"");
