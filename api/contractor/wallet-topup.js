@@ -34,7 +34,7 @@ module.exports=async function handler(req,res){
           credited:intent.status==="confirmed"
         });
       }
-      const rows=await queryDb("marketplace_promotions?enabled=eq.true&select=id,version,amount_cents,bonus_cents,starts_at,ends_at&order=amount_cents.asc");
+      const rows=await queryDb("marketplace_promotions?enabled=eq.true&select=id,version,amount_cents,bonus_cents,starts_at,ends_at,enabled&order=amount_cents.asc");
       const active=(rows||[]).filter(activePromotion);
       const bestByAmount=new Map();
       for(const p of active){
