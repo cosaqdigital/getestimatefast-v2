@@ -85,9 +85,9 @@ async function showReferrals(){
 referralReload.addEventListener("click",()=>showReferrals());
 
 // Reuse every existing module, showing one section at a time.
-const views={contractorDashboard:$("contractorDashboard"),opportunityPanel:$("opportunityPanel"),myReferralsPanel:referrals,publicProfilePanel:$("publicProfilePanel"),profilePreviewPanel:$("profilePreviewPanel"),accountSettingsPanel:settings,walletPanel:$("walletPanel"),purchasePanel:$("purchasePanel")};
+const views={contractorDashboard:$("contractorDashboard"),workPostingPanel:$("workPostingPanel"),opportunityPanel:$("opportunityPanel"),myReferralsPanel:referrals,publicProfilePanel:$("publicProfilePanel"),profilePreviewPanel:$("profilePreviewPanel"),accountSettingsPanel:settings,walletPanel:$("walletPanel"),purchasePanel:$("purchasePanel")};
 nav.replaceChildren();
-for(const [id,label] of [["contractorDashboard","Home"],["opportunityPanel","Opportunities"],["myReferralsPanel","Direct Leads"],["publicProfilePanel","Public profile"],["profilePreviewPanel","Profile preview"],["accountSettingsPanel","My details"],["walletPanel","Wallet"],["purchasePanel","Purchase history"]]){
+for(const [id,label] of [["contractorDashboard","Home"],["workPostingPanel","Hire Help"],["opportunityPanel","Opportunities"],["myReferralsPanel","Direct Leads"],["publicProfilePanel","Public profile"],["profilePreviewPanel","Profile preview"],["accountSettingsPanel","My details"],["walletPanel","Wallet"],["purchasePanel","Purchase history"]]){
  const link=make("a",label);link.href="#"+id;link.dataset.screen=id;nav.append(link);
 }
 nav.classList.add("pro-navigation");
@@ -237,6 +237,7 @@ function go(id){
  if(dest==="publicProfilePanel")drawPublic();
  if(dest==="profilePreviewPanel")window.dispatchEvent(new CustomEvent("gef-profile-preview-request"));
  if(dest==="myReferralsPanel")showReferrals();
+ if(dest==="workPostingPanel")window.GetEstimateFastWorkPoster?.load?.().catch?.(e=>window.GetEstimateFastPortal?.say?.(e?.message||"Could not load work posting tools."));
  current=dest;
 }
 document.addEventListener("click",e=>{
