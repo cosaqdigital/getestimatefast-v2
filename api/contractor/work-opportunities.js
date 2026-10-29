@@ -3,6 +3,7 @@ const {json,method,readJson,queryDb,fail,CATEGORIES,userFor}=require("./_shared"
 const {recognizedFloridaZip}=require("../_lib/florida-matching");
 const {parseUsd}=require("../_lib/marketplace-pricing");
 const {processWorkMatchJob}=require("../_lib/work-notification-dispatch");
+const {readiness:workPostCheckoutReadiness}=require("../_lib/work-post-credit-stripe-test");
 
 const TYPES=new Set(["helper","professional"]);
 const PAY_BASIS=new Set(["day","hour","fixed"]);
@@ -89,6 +90,7 @@ module.exports=async function handler(req,res){
      {code:"es",label:"Spanish"}
     ],
     packages:Array.isArray(summary?.packages)?summary.packages:[],
+    payments:{extra_post_test_checkout:workPostCheckoutReadiness().checkout_enabled===true},
     opportunities:own
    });
   }
