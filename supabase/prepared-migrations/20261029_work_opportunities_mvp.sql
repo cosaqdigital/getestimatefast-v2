@@ -1297,4 +1297,356 @@ grant execute on function public.gef_finish_work_match_job(uuid,integer,integer,
 grant execute on function public.gef_claim_work_deliveries(uuid) to service_role;
 grant execute on function public.gef_complete_work_delivery(uuid,text,text,text,text) to service_role;
 
+
+create table gef_private.work_post_credit_orders(
+  id uuid primary key default gen_random_uuid(),
+  contractor_id uuid not null references public.contractor_profiles(user_id) on delete restrict,
+  package_code text not null references gef_private.work_post_credit_packages(package_code) on delete restrict,
+  posts_snapshot integer not null check(posts_snapshot between 1 and 1000),
+  amount_cents bigint not null check(amount_cents between 100 and 1000000),
+  currency text not null default 'USD' check(currency='USD'),
+  mode text not null default 'test' check(mode='test'),
+  status text not null default 'reserved' check(status in ('reserved','paid','failed','expired')),
+  operation_key text not null check(length(operation_key) between 8 and 160),
+  checkout_origin text not null check(length(checkout_origin) between 10 and 300),
+  checkout_expires_at timestamptz not null default (now()+interval '40 minutes'),
+  session_id text unique,
+  payment_id text unique,
+  paid_at timestamptz,
+  created_at timestamptz not null default now(),
+  unique(contractor_id,operation_key)
+);
+
+create index work_post_credit_orders_owner_idx
+on gef_private.work_post_credit_orders(contractor_id,created_at desc);
+
+create index work_post_credit_orders_status_idx
+on gef_private.work_post_credit_orders(status,checkout_expires_at);
+
+create table gef_private.work_post_credit_events(
+  event_id text primary key,
+  order_id uuid not null references gef_private.work_post_credit_orders(id) on delete restrict,
+  session_id text not null,
+  payment_id text,
+  outcome text not null check(outcome in ('paid','failed','expired','pending')),
+  amount_cents bigint not null,
+  currency text not null check(currency='USD'),
+  mode text not null check(mode='test'),
+  created_at timestamptz not null default now()
+);
+
+create index work_post_credit_events_order_idx
+on gef_private.work_post_credit_events(order_id,created_at);
+
+alter table gef_private.work_post_credit_orders enable row level security;
+alter table gef_private.work_post_credit_events enable row level security;
+revoke all on gef_private.work_post_credit_orders from public,anon,authenticated;
+revoke all on gef_private.work_post_credit_events from public,anon,authenticated;
+grant select,insert,update on gef_private.work_post_credit_orders to service_role;
+grant select,insert on gef_private.work_post_credit_events to service_role;
+
+create or replace function public.gef_prepare_work_post_credit_order(
+  p_contractor uuid,
+  p_package text,
+  p_key text,
+  p_origin text
+)
+returns jsonb
+language plpgsql
+security invoker
+set search_path=''
+as $$
+declare
+  v_existing gef_private.work_post_credit_orders%rowtype;
+  v_package gef_private.work_post_credit_packages%rowtype;
+  v_summary jsonb;
+  v_order gef_private.work_post_credit_orders%rowtype;
+begin
+  if p_contractor is null
+     or p_package is null
+     or p_key is null
+     or p_key !~ '^[A-Za-z0-9:_-]{8,160}$'
+     or p_origin is null
+     or length(p_origin) not between 10 and 300 then
+    return jsonb_build_object('ok',false,'code','invalid_request');
+  end if;
+
+  perform pg_advisory_xact_lock(
+    hashtextextended('gef-work-credit-order:'||p_contractor::text||':'||p_key,0)
+  );
+
+  select * into v_existing
+  from gef_private.work_post_credit_orders
+  where contractor_id=p_contractor and operation_key=p_key
+  limit 1;
+
+  if found then
+    if v_existing.package_code<>p_package or v_existing.checkout_origin<>p_origin then
+      return jsonb_build_object('ok',false,'code','operation_key_conflict');
+    end if;
+    return jsonb_build_object(
+      'ok',true,
+      'idempotent',true,
+      'order_id',v_existing.id,
+      'package_code',v_existing.package_code,
+      'posts',v_existing.posts_snapshot,
+      'amount_cents',v_existing.amount_cents,
+      'currency',v_existing.currency,
+      'status',v_existing.status,
+      'session_id',v_existing.session_id,
+      'checkout_expires_at',v_existing.checkout_expires_at
+    );
+  end if;
+
+  v_summary := public.gef_work_post_summary(p_contractor);
+  if coalesce((v_summary->>'eligible')::boolean,false) is not true then
+    return jsonb_build_object(
+      'ok',false,
+      'code',coalesce(v_summary->>'eligibility_code','not_eligible')
+    );
+  end if;
+
+  select * into v_package
+  from gef_private.work_post_credit_packages
+  where package_code=p_package and active=true
+  limit 1;
+
+  if not found then
+    return jsonb_build_object('ok',false,'code','package_unavailable');
+  end if;
+
+  insert into gef_private.work_post_credit_orders(
+    contractor_id,package_code,posts_snapshot,amount_cents,currency,
+    mode,status,operation_key,checkout_origin,checkout_expires_at
+  )
+  values(
+    p_contractor,v_package.package_code,v_package.posts,v_package.amount_cents,
+    v_package.currency,'test','reserved',p_key,p_origin,now()+interval '40 minutes'
+  )
+  returning * into v_order;
+
+  return jsonb_build_object(
+    'ok',true,
+    'idempotent',false,
+    'order_id',v_order.id,
+    'package_code',v_order.package_code,
+    'posts',v_order.posts_snapshot,
+    'amount_cents',v_order.amount_cents,
+    'currency',v_order.currency,
+    'status',v_order.status,
+    'checkout_expires_at',v_order.checkout_expires_at
+  );
+end
+$$;
+
+create or replace function public.gef_work_post_credit_order_read(p_order uuid)
+returns jsonb
+language sql
+security invoker
+set search_path=''
+as $$
+  select jsonb_build_object(
+    'id',o.id,
+    'contractor_id',o.contractor_id,
+    'package_code',o.package_code,
+    'posts',o.posts_snapshot,
+    'amount_cents',o.amount_cents,
+    'currency',o.currency,
+    'mode',o.mode,
+    'status',o.status,
+    'operation_key',o.operation_key,
+    'checkout_origin',o.checkout_origin,
+    'checkout_expires_at',o.checkout_expires_at,
+    'session_id',o.session_id,
+    'payment_id',o.payment_id,
+    'paid_at',o.paid_at,
+    'created_at',o.created_at
+  )
+  from gef_private.work_post_credit_orders o
+  where o.id=p_order
+$$;
+
+create or replace function public.gef_bind_work_post_credit_session(p_order uuid,p_session text)
+returns jsonb
+language plpgsql
+security invoker
+set search_path=''
+as $$
+declare
+  v_order gef_private.work_post_credit_orders%rowtype;
+begin
+  if p_session is null or p_session !~ '^cs_test_[A-Za-z0-9_]+$' then
+    return jsonb_build_object('ok',false,'code','invalid_session');
+  end if;
+
+  select * into v_order
+  from gef_private.work_post_credit_orders
+  where id=p_order
+  for update;
+
+  if not found then
+    return jsonb_build_object('ok',false,'code','not_found');
+  end if;
+
+  if v_order.status<>'reserved' then
+    return jsonb_build_object('ok',false,'code','order_closed');
+  end if;
+
+  if v_order.checkout_expires_at<=now() then
+    update gef_private.work_post_credit_orders
+    set status='expired'
+    where id=p_order and status='reserved';
+    return jsonb_build_object('ok',false,'code','order_expired');
+  end if;
+
+  if v_order.session_id is not null and v_order.session_id<>p_session then
+    return jsonb_build_object('ok',false,'code','session_conflict');
+  end if;
+
+  update gef_private.work_post_credit_orders
+  set session_id=p_session
+  where id=p_order;
+
+  return jsonb_build_object('ok',true,'bound',true);
+end
+$$;
+
+create or replace function public.gef_confirm_work_post_credit_order(
+  p_order uuid,
+  p_event text,
+  p_session text,
+  p_payment text,
+  p_outcome text,
+  p_amount bigint,
+  p_currency text,
+  p_mode text
+)
+returns jsonb
+language plpgsql
+security invoker
+set search_path=''
+as $$
+declare
+  v_order gef_private.work_post_credit_orders%rowtype;
+  v_event gef_private.work_post_credit_events%rowtype;
+  v_next text;
+begin
+  if p_order is null
+     or p_event is null or p_event !~ '^evt_[A-Za-z0-9_]+$'
+     or p_session is null or p_session !~ '^cs_test_[A-Za-z0-9_]+$'
+     or p_outcome is null or p_outcome not in ('paid','failed','expired','pending')
+     or p_currency is distinct from 'USD'
+     or p_mode is distinct from 'test'
+     or (p_outcome='paid' and (p_payment is null or p_payment !~ '^pi_[A-Za-z0-9_]+$')) then
+    return jsonb_build_object('ok',false,'code','invalid_confirmation');
+  end if;
+
+  perform pg_advisory_xact_lock(hashtextextended('gef-work-credit-event:'||p_event,0));
+
+  select * into v_event
+  from gef_private.work_post_credit_events
+  where event_id=p_event
+  limit 1;
+
+  if found then
+    if v_event.order_id<>p_order
+       or v_event.session_id<>p_session
+       or v_event.payment_id is distinct from p_payment
+       or v_event.outcome<>p_outcome
+       or v_event.amount_cents<>p_amount
+       or v_event.currency<>p_currency
+       or v_event.mode<>p_mode then
+      return jsonb_build_object('ok',false,'code','event_conflict');
+    end if;
+
+    select * into v_order
+    from gef_private.work_post_credit_orders
+    where id=p_order;
+
+    return jsonb_build_object(
+      'ok',true,
+      'idempotent',true,
+      'status',v_order.status,
+      'posts',v_order.posts_snapshot
+    );
+  end if;
+
+  select * into v_order
+  from gef_private.work_post_credit_orders
+  where id=p_order
+  for update;
+
+  if not found then
+    return jsonb_build_object('ok',false,'code','not_found');
+  end if;
+
+  if v_order.session_id is distinct from p_session
+     or v_order.amount_cents<>p_amount
+     or v_order.currency<>p_currency
+     or v_order.mode<>p_mode then
+    return jsonb_build_object('ok',false,'code','order_mismatch');
+  end if;
+
+  if v_order.payment_id is not null
+     and p_outcome='paid'
+     and v_order.payment_id is distinct from p_payment then
+    return jsonb_build_object('ok',false,'code','payment_conflict');
+  end if;
+
+  v_next := v_order.status;
+
+  if v_order.status<>'paid' then
+    if p_outcome='paid' then
+      insert into gef_private.work_post_credit_ledger(
+        contractor_id,amount_posts,entry_type,package_code,opportunity_id,operation_key
+      )
+      values(
+        v_order.contractor_id,
+        v_order.posts_snapshot,
+        'purchase',
+        v_order.package_code,
+        null,
+        'stripe-test-work-credit:'||v_order.id::text
+      )
+      on conflict(operation_key) do nothing;
+
+      update gef_private.work_post_credit_orders
+      set status='paid',payment_id=p_payment,paid_at=coalesce(paid_at,now())
+      where id=p_order;
+
+      v_next := 'paid';
+    elsif v_order.status='reserved' and p_outcome in ('failed','expired') then
+      update gef_private.work_post_credit_orders
+      set status=p_outcome
+      where id=p_order;
+      v_next := p_outcome;
+    end if;
+  end if;
+
+  insert into gef_private.work_post_credit_events(
+    event_id,order_id,session_id,payment_id,outcome,amount_cents,currency,mode
+  )
+  values(
+    p_event,p_order,p_session,p_payment,p_outcome,p_amount,p_currency,p_mode
+  );
+
+  return jsonb_build_object(
+    'ok',true,
+    'idempotent',false,
+    'status',v_next,
+    'posts',v_order.posts_snapshot
+  );
+end
+$$;
+
+revoke all on function public.gef_prepare_work_post_credit_order(uuid,text,text,text) from public,anon,authenticated;
+revoke all on function public.gef_work_post_credit_order_read(uuid) from public,anon,authenticated;
+revoke all on function public.gef_bind_work_post_credit_session(uuid,text) from public,anon,authenticated;
+revoke all on function public.gef_confirm_work_post_credit_order(uuid,text,text,text,text,bigint,text,text) from public,anon,authenticated;
+
+grant execute on function public.gef_prepare_work_post_credit_order(uuid,text,text,text) to service_role;
+grant execute on function public.gef_work_post_credit_order_read(uuid) to service_role;
+grant execute on function public.gef_bind_work_post_credit_session(uuid,text) to service_role;
+grant execute on function public.gef_confirm_work_post_credit_order(uuid,text,text,text,text,bigint,text,text) to service_role;
+
 commit;
