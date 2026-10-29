@@ -145,3 +145,19 @@ test("controlled health test tags payload-stage failures safely",async()=>{
   const sent=await sendControlledHealthTest({env,fetchImpl:fakeFetch});
   assert.equal(sent.id,"ok");
 });
+
+test("controlled health test tags invalid HTTP response stage",async()=>{
+  const env={
+    GETESTIMATEFAST_SMS_PROVIDER:"telnyx",
+    GETESTIMATEFAST_SMS_MODE:"controlled_test",
+    GETESTIMATEFAST_TELNYX_API_KEY:"fake",
+    GETESTIMATEFAST_TELNYX_FROM_NUMBER:"+18133039893",
+    GETESTIMATEFAST_TELNYX_10DLC_BRAND_APPROVED:"true",
+    GETESTIMATEFAST_TELNYX_10DLC_CAMPAIGN_APPROVED:"true",
+    GETESTIMATEFAST_TELNYX_TEST_TO:"+18135550134"
+  };
+  await assert.rejects(
+    ()=>sendControlledHealthTest({env,fetchImpl:async()=>undefined}),
+    error=>{assert.equal(error.diagnostic_stage,"response");return true;}
+  );
+});
