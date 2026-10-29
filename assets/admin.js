@@ -32,7 +32,7 @@ async function api(path, method = "GET", body) {
   const data = await response.json();
   if(generation!==sessionGeneration)throw new Error("Session changed. Please sign in again.");
   if (!response.ok) { if ([401,403].includes(response.status) && token) { clearSession(); }
-    throw new Error(data.error || "Request failed"); }
+    const error=new Error(data.error || "Request failed"); error.data=data; throw error; }
   return data;
 }
 function node(tag, className, text) {
