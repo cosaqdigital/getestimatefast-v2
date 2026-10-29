@@ -44,6 +44,7 @@ alter table public.sms_consent_events
     'OPTED_OUT'::text,
     'OPTED_IN'::text,
     'HELP_RECORDED'::text,
+    'HELP_REPLY_ATTEMPT'::text,
     'HELP_REPLY_SENT'::text,
     'HELP_REPLY_FAILED'::text,
     'IGNORED'::text,
