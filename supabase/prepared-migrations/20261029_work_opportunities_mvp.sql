@@ -837,4 +837,426 @@ $$;
 revoke all on function public.gef_select_work_applicant(uuid,uuid) from public,anon,authenticated;
 grant execute on function public.gef_select_work_applicant(uuid,uuid) to service_role;
 
+
+create table gef_private.work_match_jobs(
+  opportunity_id uuid primary key references public.work_opportunities(id) on delete cascade,
+  status text not null default 'pending'
+    check(status in ('pending','processing','processed','failed','cancelled')),
+  attempts integer not null default 0 check(attempts between 0 and 100),
+  matched_count integer not null default 0 check(matched_count >= 0),
+  email_queued_count integer not null default 0 check(email_queued_count >= 0),
+  sms_queued_count integer not null default 0 check(sms_queued_count >= 0),
+  last_error_code text check(last_error_code is null or length(last_error_code) <= 120),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  processed_at timestamptz
+);
+
+create table gef_private.work_notification_outbox(
+  id uuid primary key default gen_random_uuid(),
+  opportunity_id uuid not null references public.work_opportunities(id) on delete cascade,
+  recipient_id uuid not null references auth.users(id) on delete cascade,
+  notification_id uuid references public.work_notifications(id) on delete cascade,
+  channel text not null check(channel in ('email','sms')),
+  status text not null default 'pending'
+    check(status in (
+      'pending','processing','dry_run','sent','blocked_no_consent',
+      'blocked_missing_destination','skipped_not_urgent','cancelled','failed'
+    )),
+  event_key text not null unique check(length(event_key) between 12 and 200),
+  attempts integer not null default 0 check(attempts between 0 and 100),
+  provider text,
+  provider_message_id text,
+  last_error_code text check(last_error_code is null or length(last_error_code) <= 120),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  delivered_at timestamptz
+);
+
+create index work_match_jobs_status_idx on gef_private.work_match_jobs(status,updated_at);
+create index work_notification_outbox_pending_idx on gef_private.work_notification_outbox(status,created_at);
+create index work_notification_outbox_recipient_idx on gef_private.work_notification_outbox(recipient_id,channel,created_at desc);
+create index work_notification_outbox_opportunity_idx on gef_private.work_notification_outbox(opportunity_id,channel,status);
+
+alter table gef_private.work_match_jobs enable row level security;
+alter table gef_private.work_notification_outbox enable row level security;
+revoke all on gef_private.work_match_jobs from public,anon,authenticated;
+revoke all on gef_private.work_notification_outbox from public,anon,authenticated;
+grant select,insert,update on gef_private.work_match_jobs to service_role;
+grant select,insert,update on gef_private.work_notification_outbox to service_role;
+
+create trigger work_match_jobs_touch_updated_at
+before update on gef_private.work_match_jobs
+for each row execute function gef_private.work_touch_updated_at();
+
+create trigger work_notification_outbox_touch_updated_at
+before update on gef_private.work_notification_outbox
+for each row execute function gef_private.work_touch_updated_at();
+
+create or replace function gef_private.enqueue_work_match_job()
+returns trigger
+language plpgsql
+security invoker
+set search_path=''
+as $$
+begin
+  insert into gef_private.work_match_jobs(opportunity_id,status)
+  values(new.id,'pending')
+  on conflict(opportunity_id) do nothing;
+  return new;
+end
+$$;
+
+create or replace function gef_private.cancel_work_delivery_on_close()
+returns trigger
+language plpgsql
+security invoker
+set search_path=''
+as $$
+begin
+  if new.status <> 'open' and old.status is distinct from new.status then
+    update gef_private.work_match_jobs
+    set status='cancelled',processed_at=coalesce(processed_at,now()),last_error_code=null
+    where opportunity_id=new.id and status in ('pending','processing','failed');
+
+    update gef_private.work_notification_outbox
+    set status='cancelled',delivered_at=coalesce(delivered_at,now()),last_error_code=null
+    where opportunity_id=new.id and status in ('pending','processing');
+  end if;
+  return new;
+end
+$$;
+
+create trigger work_opportunities_enqueue_match_job
+after insert on public.work_opportunities
+for each row execute function gef_private.enqueue_work_match_job();
+
+create trigger work_opportunities_cancel_pending_delivery
+after update of status on public.work_opportunities
+for each row execute function gef_private.cancel_work_delivery_on_close();
+
+create or replace function public.gef_claim_work_match_job(p_opportunity uuid)
+returns jsonb
+language plpgsql
+security invoker
+set search_path=''
+as $$
+declare
+  v_job gef_private.work_match_jobs%rowtype;
+  v_op public.work_opportunities%rowtype;
+begin
+  if p_opportunity is null then
+    return jsonb_build_object('claimed',false,'code','invalid_request');
+  end if;
+
+  perform pg_advisory_xact_lock(hashtextextended('gef-work-match:'||p_opportunity::text,0));
+
+  select * into v_op
+  from public.work_opportunities
+  where id=p_opportunity
+  limit 1;
+
+  if not found then
+    return jsonb_build_object('claimed',false,'code','not_found');
+  end if;
+
+  select * into v_job
+  from gef_private.work_match_jobs
+  where opportunity_id=p_opportunity
+  for update;
+
+  if not found then
+    insert into gef_private.work_match_jobs(opportunity_id,status)
+    values(p_opportunity,'pending')
+    returning * into v_job;
+  end if;
+
+  if v_op.status<>'open'
+     or v_op.contacts_used>=v_op.max_contacts
+     or v_op.positions_filled>=v_op.workers_needed then
+    update gef_private.work_match_jobs
+    set status='cancelled',processed_at=coalesce(processed_at,now()),last_error_code=null
+    where opportunity_id=p_opportunity;
+    return jsonb_build_object('claimed',false,'code','opportunity_closed');
+  end if;
+
+  if v_job.status='processed' or v_job.status='cancelled' then
+    return jsonb_build_object('claimed',false,'code',v_job.status);
+  end if;
+
+  if v_job.status='processing' and v_job.updated_at > now()-interval '5 minutes' then
+    return jsonb_build_object('claimed',false,'code','already_processing');
+  end if;
+
+  update gef_private.work_match_jobs
+  set status='processing',attempts=attempts+1,last_error_code=null,processed_at=null
+  where opportunity_id=p_opportunity
+  returning * into v_job;
+
+  return jsonb_build_object(
+    'claimed',true,
+    'attempt',v_job.attempts,
+    'opportunity_id',p_opportunity
+  );
+end
+$$;
+
+create or replace function public.gef_record_work_match(
+  p_opportunity uuid,
+  p_recipient uuid
+)
+returns jsonb
+language plpgsql
+security invoker
+set search_path=''
+as $$
+declare
+  v_op public.work_opportunities%rowtype;
+  v_profile public.work_profiles%rowtype;
+  v_consent public.work_signup_consents%rowtype;
+  v_notification uuid;
+  v_email_status text;
+  v_sms_status text;
+  v_urgent boolean;
+begin
+  if p_opportunity is null or p_recipient is null then
+    return jsonb_build_object('ok',false,'code','invalid_request');
+  end if;
+
+  select * into v_op
+  from public.work_opportunities
+  where id=p_opportunity
+  limit 1;
+
+  if not found
+     or v_op.status<>'open'
+     or v_op.contacts_used>=v_op.max_contacts
+     or v_op.positions_filled>=v_op.workers_needed then
+    return jsonb_build_object('ok',false,'code','opportunity_closed');
+  end if;
+
+  if v_op.posted_by=p_recipient then
+    return jsonb_build_object('ok',false,'code','self_match');
+  end if;
+
+  select * into v_profile
+  from public.work_profiles
+  where user_id=p_recipient
+  limit 1;
+
+  if not found or v_profile.status<>'active' then
+    return jsonb_build_object('ok',false,'code','profile_inactive');
+  end if;
+
+  if not (v_op.service_category = any(v_profile.service_categories))
+     or not (v_op.opportunity_type = any(v_profile.opportunity_types))
+     or not (v_profile.languages && v_op.languages) then
+    return jsonb_build_object('ok',false,'code','profile_mismatch');
+  end if;
+
+  if exists(
+    select 1 from public.work_user_blocks b
+    where (b.blocker_id=p_recipient and b.blocked_id=v_op.posted_by)
+       or (b.blocker_id=v_op.posted_by and b.blocked_id=p_recipient)
+  ) then
+    return jsonb_build_object('ok',false,'code','blocked');
+  end if;
+
+  select * into v_consent
+  from public.work_signup_consents
+  where user_id=p_recipient
+  limit 1;
+
+  insert into public.work_notifications(
+    recipient_id,actor_id,opportunity_id,application_id,notification_type,event_key
+  )
+  values(
+    p_recipient,
+    v_op.posted_by,
+    p_opportunity,
+    null,
+    'work_match',
+    'work-match:'||p_opportunity::text||':'||p_recipient::text
+  )
+  on conflict(event_key) do update
+  set event_key=excluded.event_key
+  returning id into v_notification;
+
+  v_email_status := case
+    when v_profile.email_notifications is not true then 'blocked_no_consent'
+    when v_consent.user_id is null or length(btrim(coalesce(v_consent.contact_email,'')))<5 then 'blocked_missing_destination'
+    else 'pending'
+  end;
+
+  v_urgent := v_op.work_date <= ((now() at time zone 'America/New_York')::date + 1);
+
+  v_sms_status := case
+    when not v_urgent then 'skipped_not_urgent'
+    when v_profile.sms_opt_in is not true or v_profile.sms_opt_in_at is null then 'blocked_no_consent'
+    when v_consent.user_id is null or v_consent.sms_opt_in is not true or v_consent.sms_opt_in_at is null then 'blocked_no_consent'
+    when length(btrim(coalesce(v_consent.sms_phone_e164,'')))<10 then 'blocked_missing_destination'
+    else 'pending'
+  end;
+
+  insert into gef_private.work_notification_outbox(
+    opportunity_id,recipient_id,notification_id,channel,status,event_key
+  )
+  values(
+    p_opportunity,p_recipient,v_notification,'email',v_email_status,
+    'work-email:'||p_opportunity::text||':'||p_recipient::text
+  )
+  on conflict(event_key) do nothing;
+
+  insert into gef_private.work_notification_outbox(
+    opportunity_id,recipient_id,notification_id,channel,status,event_key
+  )
+  values(
+    p_opportunity,p_recipient,v_notification,'sms',v_sms_status,
+    'work-sms:'||p_opportunity::text||':'||p_recipient::text
+  )
+  on conflict(event_key) do nothing;
+
+  return jsonb_build_object(
+    'ok',true,
+    'notification_id',v_notification,
+    'email_queued',v_email_status='pending',
+    'sms_queued',v_sms_status='pending',
+    'email_status',v_email_status,
+    'sms_status',v_sms_status
+  );
+end
+$$;
+
+create or replace function public.gef_finish_work_match_job(
+  p_opportunity uuid,
+  p_matched integer,
+  p_email_queued integer,
+  p_sms_queued integer,
+  p_success boolean,
+  p_error_code text default null
+)
+returns jsonb
+language plpgsql
+security invoker
+set search_path=''
+as $$
+begin
+  if p_opportunity is null then
+    return jsonb_build_object('ok',false);
+  end if;
+
+  update gef_private.work_match_jobs
+  set
+    status=case when p_success then 'processed' else 'failed' end,
+    matched_count=greatest(0,coalesce(p_matched,0)),
+    email_queued_count=greatest(0,coalesce(p_email_queued,0)),
+    sms_queued_count=greatest(0,coalesce(p_sms_queued,0)),
+    last_error_code=case when p_success then null else left(coalesce(p_error_code,'processing_failed'),120) end,
+    processed_at=case when p_success then now() else null end
+  where opportunity_id=p_opportunity
+    and status<>'cancelled';
+
+  return jsonb_build_object('ok',true);
+end
+$$;
+
+create or replace function public.gef_claim_work_deliveries(p_opportunity uuid)
+returns jsonb
+language plpgsql
+security invoker
+set search_path=''
+as $$
+declare
+  v_open boolean;
+  v_rows jsonb;
+begin
+  select (
+    status='open'
+    and contacts_used<max_contacts
+    and positions_filled<workers_needed
+  ) into v_open
+  from public.work_opportunities
+  where id=p_opportunity;
+
+  if coalesce(v_open,false) is not true then
+    update gef_private.work_notification_outbox
+    set status='cancelled',delivered_at=coalesce(delivered_at,now())
+    where opportunity_id=p_opportunity
+      and status in ('pending','processing');
+
+    return '[]'::jsonb;
+  end if;
+
+  with picked as (
+    select id
+    from gef_private.work_notification_outbox
+    where opportunity_id=p_opportunity
+      and (
+        status='pending'
+        or (status='processing' and updated_at <= now()-interval '5 minutes')
+      )
+    order by created_at,id
+    limit 200
+    for update skip locked
+  ),
+  claimed as (
+    update gef_private.work_notification_outbox o
+    set status='processing',attempts=o.attempts+1,last_error_code=null
+    from picked p
+    where o.id=p.id
+    returning o.id,o.opportunity_id,o.recipient_id,o.notification_id,o.channel,o.event_key,o.attempts
+  )
+  select coalesce(jsonb_agg(to_jsonb(claimed)),'[]'::jsonb)
+  into v_rows
+  from claimed;
+
+  return v_rows;
+end
+$$;
+
+create or replace function public.gef_complete_work_delivery(
+  p_delivery uuid,
+  p_status text,
+  p_provider text default null,
+  p_provider_message_id text default null,
+  p_error_code text default null
+)
+returns jsonb
+language plpgsql
+security invoker
+set search_path=''
+as $$
+begin
+  if p_status not in ('dry_run','sent','cancelled','failed') then
+    return jsonb_build_object('ok',false,'code','invalid_status');
+  end if;
+
+  update gef_private.work_notification_outbox
+  set
+    status=p_status,
+    provider=left(nullif(p_provider,''),80),
+    provider_message_id=left(nullif(p_provider_message_id,''),200),
+    last_error_code=left(nullif(p_error_code,''),120),
+    delivered_at=case when p_status in ('dry_run','sent','cancelled') then now() else null end
+  where id=p_delivery
+    and status='processing';
+
+  return jsonb_build_object('ok',found);
+end
+$$;
+
+revoke all on function gef_private.enqueue_work_match_job() from public,anon,authenticated;
+revoke all on function gef_private.cancel_work_delivery_on_close() from public,anon,authenticated;
+revoke all on function public.gef_claim_work_match_job(uuid) from public,anon,authenticated;
+revoke all on function public.gef_record_work_match(uuid,uuid) from public,anon,authenticated;
+revoke all on function public.gef_finish_work_match_job(uuid,integer,integer,integer,boolean,text) from public,anon,authenticated;
+revoke all on function public.gef_claim_work_deliveries(uuid) from public,anon,authenticated;
+revoke all on function public.gef_complete_work_delivery(uuid,text,text,text,text) from public,anon,authenticated;
+
+grant execute on function public.gef_claim_work_match_job(uuid) to service_role;
+grant execute on function public.gef_record_work_match(uuid,uuid) to service_role;
+grant execute on function public.gef_finish_work_match_job(uuid,integer,integer,integer,boolean,text) to service_role;
+grant execute on function public.gef_claim_work_deliveries(uuid) to service_role;
+grant execute on function public.gef_complete_work_delivery(uuid,text,text,text,text) to service_role;
+
 commit;
