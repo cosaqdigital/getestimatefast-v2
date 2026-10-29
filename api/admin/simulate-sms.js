@@ -17,14 +17,14 @@ module.exports=async function handler(req,res){
   if(assignments.length>25)return json(res,503,{error:"Recipient cap exceeded"});
   const text=formatOpportunityNotification(opportunity.city,opportunity.id);
   const ids=assignments.map(x=>x.contractor_user_id);
-  const profiles=ids.length?await queryDb("contractor_profiles?user_id=in.("+ids.map(encodeURIComponent).join(",")+")&select=user_id,account_status,email_verified_at,sms_opt_in,sms_opt_in_at"): [];
+  const profiles=ids.length?await queryDb("contractor_profiles?user_id=in.("+ids.map(encodeURIComponent).join(",")+")&select=user_id,account_status,email_verified_at,sms_opt_in,sms_opt_in_at,sms_opt_out_at"): [];
   const existing=assignments.length?await queryDb("opportunity_sms_simulations?matching_recipient_id=in.("+assignments.map(a=>a.id).join(",")+")&select=matching_recipient_id,status"):[];
   let recorded=0;
   for(const a of assignments){
    if(existing.some(x=>x.matching_recipient_id===a.id))continue;
    const p=profiles.find(p=>p.user_id===a.contractor_user_id);
    const status=!p||p.account_status!=="active"||!p.email_verified_at?"BLOCKED_INACTIVE":
-     p.sms_opt_in===true&&p.sms_opt_in_at?"SIMULATED":"BLOCKED_NO_CONSENT";
+     p.sms_opt_in===true&&p.sms_opt_in_at&&!p.sms_opt_out_at?"SIMULATED":"BLOCKED_NO_CONSENT";
    await queryDb("opportunity_sms_simulations?on_conflict=matching_recipient_id",{
      method:"POST",headers:{Prefer:"resolution=ignore-duplicates,return=minimal"},
      body:JSON.stringify({matching_recipient_id:a.id,status,message_preview:text})
