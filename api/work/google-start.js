@@ -1,0 +1,1 @@
+module.exports=require("../_lib/work-google-auth").handlers().start;\n
