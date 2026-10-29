@@ -1182,7 +1182,7 @@ begin
     update gef_private.work_notification_outbox
     set status='cancelled',delivered_at=coalesce(delivered_at,now())
     where opportunity_id=p_opportunity
-      and status in ('pending','processing');
+      and status in ('pending','processing','failed');
 
     return '[]'::jsonb;
   end if;
@@ -1193,6 +1193,7 @@ begin
     where opportunity_id=p_opportunity
       and (
         status='pending'
+        or (status='failed' and attempts<5 and updated_at <= now()-interval '5 minutes')
         or (status='processing' and updated_at <= now()-interval '5 minutes')
       )
     order by created_at,id
@@ -1213,6 +1214,43 @@ begin
   return v_rows;
 end
 $$;
+
+create or replace function public.gef_list_retryable_work_notification_jobs(p_limit integer default 10)
+returns jsonb
+language sql
+security invoker
+set search_path=''
+as $$
+  with candidates as (
+    select o.id,
+           least(
+             coalesce(j.updated_at,now()),
+             coalesce(min(x.updated_at),now())
+           ) as retry_at
+    from public.work_opportunities o
+    left join gef_private.work_match_jobs j on j.opportunity_id=o.id
+    left join gef_private.work_notification_outbox x on x.opportunity_id=o.id
+    where o.status='open'
+      and o.contacts_used<o.max_contacts
+      and o.positions_filled<o.workers_needed
+      and (
+        j.status='pending'
+        or (j.status='failed' and j.attempts<5 and j.updated_at <= now()-interval '5 minutes')
+        or (j.status='processing' and j.updated_at <= now()-interval '5 minutes')
+        or x.status='pending'
+        or (x.status='failed' and x.attempts<5 and x.updated_at <= now()-interval '5 minutes')
+        or (x.status='processing' and x.updated_at <= now()-interval '5 minutes')
+      )
+    group by o.id,j.updated_at
+    order by retry_at,o.id
+    limit least(greatest(coalesce(p_limit,10),1),25)
+  )
+  select coalesce(jsonb_agg(id order by retry_at,id),'[]'::jsonb)
+  from candidates
+$$;
+
+revoke all on function public.gef_list_retryable_work_notification_jobs(integer) from public,anon,authenticated;
+grant execute on function public.gef_list_retryable_work_notification_jobs(integer) to service_role;
 
 create or replace function public.gef_complete_work_delivery(
   p_delivery uuid,
