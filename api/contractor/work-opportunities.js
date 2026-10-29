@@ -1,7 +1,7 @@
 "use strict";
 const {json,method,readJson,queryDb,fail,CATEGORIES,userFor}=require("./_shared");
 const {recognizedFloridaZip}=require("../_lib/florida-matching");
-const {parseUsd}=require("../_lib/marketplace-pricing");
+const {parseUsd}=require("../_lib/marketplace-pricing");\nconst {processWorkMatchJob}=require("../_lib/work-notification-dispatch");
 
 const TYPES=new Set(["helper","professional"]);
 const PAY_BASIS=new Set(["day","hour","fixed"]);
@@ -107,6 +107,12 @@ module.exports=async function handler(req,res){
    const [status,error]=statusForCode(result?.code);
    return json(res,status,{error,code:result?.code||"invalid_request",summary:result?.summary||null});
   }
-  return json(res,result.idempotent===true?200:201,result);
+  let matching={status:"pending"};
+  try{
+   matching=await processWorkMatchJob(result.opportunity_id);
+  }catch{
+   matching={status:"pending_retry"};
+  }
+  return json(res,result.idempotent===true?200:201,{...result,matching});
  }catch(e){fail(res,e);}
 };
