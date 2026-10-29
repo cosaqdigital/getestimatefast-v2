@@ -1,6 +1,7 @@
 "use strict";
 const review=require("../_lib/review-auth");
-const contractor=require("../_lib/contractor-google-auth");\nconst work=require("../_lib/work-google-auth");
+const contractor=require("../_lib/contractor-google-auth");
+const work=require("../_lib/work-google-auth");
 
 function hasWorkCookie(req){
  const raw=String(req.headers?.cookie||"");
