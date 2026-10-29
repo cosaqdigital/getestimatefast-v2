@@ -33,3 +33,19 @@ alter table public.sms_consent_events
   add column if not exists webhook_version text;
 
 grant update on table public.sms_consent_events to service_role;
+
+
+alter table public.sms_consent_events
+  drop constraint if exists sms_consent_events_action_check;
+
+alter table public.sms_consent_events
+  add constraint sms_consent_events_action_check
+  check (action = any (array[
+    'OPTED_OUT'::text,
+    'OPTED_IN'::text,
+    'HELP_RECORDED'::text,
+    'HELP_REPLY_SENT'::text,
+    'HELP_REPLY_FAILED'::text,
+    'IGNORED'::text,
+    'UNKNOWN_CONTRACTOR'::text
+  ]));
