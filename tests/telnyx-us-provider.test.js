@@ -23,7 +23,7 @@ test("payload matches Telnyx API v2 send shape without sending",()=>{
   assert.equal(p.from,"+18133039893");
   assert.equal(p.to,"+18135550134");
 });
-test("live SMS remains fail-closed unless controlled_test is explicitly enabled",()=>{
+test("controlled and live SMS modes are strictly separated",()=>{
   const base={
     GETESTIMATEFAST_SMS_PROVIDER:"telnyx",
     GETESTIMATEFAST_TELNYX_API_KEY:"fake",
@@ -33,13 +33,19 @@ test("live SMS remains fail-closed unless controlled_test is explicitly enabled"
   };
   const disabled=readiness({...base,GETESTIMATEFAST_SMS_MODE:"enabled"});
   assert.equal(disabled.live_sms_enabled,false);
+  assert.equal(disabled.controlled_test_enabled,false);
   assert.equal(disabled.mode,"disabled");
-  const controlledMissingRecipient=readiness({...base,GETESTIMATEFAST_SMS_MODE:"controlled_test"});
-  assert.equal(controlledMissingRecipient.live_sms_enabled,false);
   const controlled=readiness({...base,GETESTIMATEFAST_SMS_MODE:"controlled_test",GETESTIMATEFAST_TELNYX_TEST_TO:"+18135550134"});
-  assert.equal(controlled.live_sms_enabled,true);
   assert.equal(controlled.controlled_test_enabled,true);
+  assert.equal(controlled.live_sms_enabled,false);
   assert.equal(controlled.mode,"controlled_test");
+  const liveWithoutApproval=readiness({...base,GETESTIMATEFAST_SMS_MODE:"live"});
+  assert.equal(liveWithoutApproval.mode,"live");
+  assert.equal(liveWithoutApproval.live_sms_enabled,false);
+  const live=readiness({...base,GETESTIMATEFAST_SMS_MODE:"live",GETESTIMATEFAST_SMS_LIVE_APPROVED:"true"});
+  assert.equal(live.controlled_test_enabled,false);
+  assert.equal(live.live_sms_enabled,true);
+  assert.equal(live.compliance_reply_enabled,true);
 });
 test("controlled sender only permits the configured test recipient",async()=>{
   const env={
@@ -60,6 +66,24 @@ test("controlled sender only permits the configured test recipient",async()=>{
   await assert.rejects(()=>sendControlledTest({phone:"8135550199",city:"Riverview",opportunityId:id,env,fetchImpl:fakeFetch}),/configured controlled test number/);
 });
 
+
+test("controlled sender never becomes a live sender",async()=>{
+  const env={
+    GETESTIMATEFAST_SMS_PROVIDER:"telnyx",
+    GETESTIMATEFAST_SMS_MODE:"live",
+    GETESTIMATEFAST_SMS_LIVE_APPROVED:"true",
+    GETESTIMATEFAST_TELNYX_API_KEY:"fake",
+    GETESTIMATEFAST_TELNYX_FROM_NUMBER:"+18133039893",
+    GETESTIMATEFAST_TELNYX_10DLC_BRAND_APPROVED:"true",
+    GETESTIMATEFAST_TELNYX_10DLC_CAMPAIGN_APPROVED:"true"
+  };
+  let calls=0;
+  await assert.rejects(
+    ()=>sendControlledTest({phone:"8135550134",city:"Riverview",opportunityId:id,env,fetchImpl:async()=>{calls++;}}),
+    /Controlled Telnyx SMS test is not enabled/
+  );
+  assert.equal(calls,0);
+});
 
 test("controlled health test uses only configured recipient and fixed opt-out text",async()=>{
   const env={
@@ -219,6 +243,24 @@ test("controlled HELP reply is fixed and restricted to configured test recipient
   assert.match(body.text,/STOP/);
   assert(body.text.length<=160);
   await assert.rejects(()=>sendControlledHelpReply({phone:"+17274124478",env,fetchImpl:fakeFetch}),/configured controlled test number/);
+});
+
+test("HELP reply remains available in explicitly approved live mode",async()=>{
+  const env={
+    GETESTIMATEFAST_SMS_PROVIDER:"telnyx",
+    GETESTIMATEFAST_SMS_MODE:"live",
+    GETESTIMATEFAST_SMS_LIVE_APPROVED:"true",
+    GETESTIMATEFAST_TELNYX_API_KEY:"fake",
+    GETESTIMATEFAST_TELNYX_FROM_NUMBER:"+18133039893",
+    GETESTIMATEFAST_TELNYX_10DLC_BRAND_APPROVED:"true",
+    GETESTIMATEFAST_TELNYX_10DLC_CAMPAIGN_APPROVED:"true"
+  };
+  let body=null;
+  const fakeFetch=async(_url,opts)=>{body=JSON.parse(opts.body);return {ok:true,status:200,json:async()=>({data:{id:"msg_live_help"}})};};
+  const sent=await sendControlledHelpReply({phone:"+18135550134",env,fetchImpl:fakeFetch});
+  assert.equal(sent.id,"msg_live_help");
+  assert.equal(body.to,"+18135550134");
+  assert.match(body.text,/STOP/);
 });
 
 test("controlled HELP reply exposes safe HTTP diagnostics",async()=>{
