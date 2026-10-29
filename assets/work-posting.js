@@ -92,6 +92,23 @@ function applicantCard(item){
  const phone=document.createElement("a");phone.href="tel:"+String(p.contact_phone).replace(/[^0-9+]/g,"");phone.textContent=p.contact_phone;
  const status=document.createElement("span");status.textContent="Application: "+String(item.status||"interested").replaceAll("_"," ");
  contact.append(phone,status);
+ if(item.status==="interested"){
+  const select=document.createElement("button");select.type="button";select.textContent="Select Worker";
+  select.addEventListener("click",async()=>{
+   if(!window.confirm("Select "+p.display_name+" for this opportunity?"))return;
+   select.disabled=true;select.textContent="Selecting...";
+   try{
+    const result=await portal().api("work-selection","POST",{application_id:item.id});
+    portal().say(result.filled?"Worker selected. All positions are now filled and the opportunity is closed.":"Worker selected. The opportunity still has an open position.");
+    await load(true);
+   }catch(e){select.disabled=false;select.textContent="Select Worker";portal().say(e.message||"Could not select this worker.");}
+  });
+  contact.append(select);
+ }else if(item.status==="selected"){
+  const badge=document.createElement("strong");badge.textContent="✓ Selected";badge.className="work-selected-badge";contact.append(badge);
+ }else if(item.status==="declined"){
+  const closed=document.createElement("strong");closed.textContent="Opportunity filled";closed.className="work-closed-badge";contact.append(closed);
+ }
  card.append(main,contact);return card;
 }
 async function loadApplicants(opportunityId,holder,button){
