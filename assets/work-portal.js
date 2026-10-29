@@ -154,6 +154,37 @@ async function refreshProfile(){
  }
  return data;
 }
+async function enterGoogleSession(){
+ say("Completing Google sign-in...");
+ const session=await api("google-session");
+ if(!session?.access_token)throw Error("Google sign-in could not be completed.");
+ token=session.access_token;
+ showSignedIn(true);
+ const profileState=await refreshProfile();
+ const active=profileState?.profile?.status==="active";
+ document.querySelector('[data-panel="'+(active?"findPanel":"profilePanel")+'"]').click();
+ if(active)await Promise.all([loadWorkFeed(),loadApplications()]);
+ say(active?"Signed in with Google. Matching opportunities are ready.":"Signed in with Google. Complete your Find Work profile to continue.");
+}
+async function startGoogle(){
+ say("Opening Google sign-in...");
+ try{
+  const result=await api("google-start","POST",{});
+  if(!result?.redirect)throw Error("Google sign-in could not be started.");
+  location.assign(result.redirect);
+ }catch(e){say(e.message||"Google sign-in could not be started.");}
+}
+async function resumeGoogle(){
+ const state=new URLSearchParams(location.search).get("google");
+ if(!state)return;
+ try{history.replaceState(null,"",location.pathname+location.hash);}catch{}
+ if(state!=="success"){
+  say("Google sign-in was canceled or could not be completed.");
+  return;
+ }
+ try{await enterGoogleSession();}catch(e){say(e.message||"Google sign-in could not be completed.");}
+}
+
 el("login").addEventListener("submit",async event=>{
  event.preventDefault();say("Signing in...");
  try{
@@ -167,6 +198,9 @@ el("login").addEventListener("submit",async event=>{
   say(active?"Signed in. Matching opportunities are ready.":"Signed in. Complete your Find Work profile to continue.");
  }catch(e){say(e.message);}
 });
+el("googleLogin")?.addEventListener("click",startGoogle);
+el("googleSignup")?.addEventListener("click",startGoogle);
+
 el("signup").addEventListener("submit",async event=>{
  event.preventDefault();say("Creating account...");
  try{
@@ -234,7 +268,9 @@ for(const button of document.querySelectorAll(".nav button[data-panel]")){
 }
 el("refreshWorkFeed").addEventListener("click",()=>loadWorkFeed().catch(e=>say(e.message)));
 el("logout").addEventListener("click",()=>{
+ fetch("/api/work/google-logout",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:"{}"}).catch(()=>{});
  sessionGeneration++;token="";profileImagePath="";el("profile").reset();imagePreview("");showSignedIn(false);say("Signed out.");
 });
 showSignedIn(false);
+resumeGoogle();
 })();
