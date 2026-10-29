@@ -21,6 +21,10 @@ module.exports=async function handler(req,res){
    console.error("GetEstimateFast Telnyx transport failed.",{type:e.telnyx_transport.type,code:e.telnyx_transport.code});
    return json(res,502,{error:"Telnyx request failed before an HTTP response",transport:e.telnyx_transport});
   }
+  if(e?.diagnostic_stage){
+   console.error("GetEstimateFast controlled SMS diagnostic failed.",{stage:e.diagnostic_stage,type:e?.name||"Error"});
+   return json(res,502,{error:"Controlled SMS diagnostic failed",diagnostic:{stage:e.diagnostic_stage,type:e?.name||"Error"}});
+  }
   fail(res,e);
  }
 };
