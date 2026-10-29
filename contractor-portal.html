@@ -56,7 +56,7 @@ button{border:0;border-radius:8px;padding:11px 15px;background:var(--gef-blue);c
 .columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}.flag{padding:10px 14px;background:#eef8ff;border-radius:8px;margin-bottom:18px;color:#234f72}.check{font-weight:400;display:flex;align-items:baseline;gap:9px}#message{min-height:30px;font-weight:600;margin:14px 2px}
 @media(max-width:1080px){#auth{grid-template-columns:1fr}.pro-login-promo{min-height:auto}.trade-strip{grid-template-columns:repeat(4,1fr)}.trade-strip span:first-child{grid-column:1/-1;justify-content:center;border-bottom:1px solid #e5ebf2}.login-card{padding:34px}.portal-name-divider,.portal-name-sub{display:none}}
 @media(max-width:650px){.portal-header{padding:18px 18px 14px}.portal-wordmark{font-size:22px}.portal-mark{width:36px;transform:scale(.84);transform-origin:left center}.portal-home{font-size:13px}main{padding:0 14px 24px}.pro-login-promo{padding:28px 22px;border-radius:17px}.pro-login-promo h1{font-size:42px;letter-spacing:-1.6px}.pro-promo-lead{font-size:16px}.pro-cta{min-width:0;width:100%}.login-card{padding:28px 20px;border-radius:17px}.login-card h1{font-size:34px}.trade-strip{grid-template-columns:repeat(2,1fr)}.trade-strip span{min-height:58px}.columns{grid-template-columns:1fr}}
-</style><link rel="stylesheet" href="/assets/marketplace.css?v=20261028-005"><link rel="stylesheet" href="/assets/contractor-ux.css?v=20261028-010"><link rel="stylesheet" href="/assets/work-posting.css?v=20261029-003"><style id="professional-login-final">
+</style><link rel="stylesheet" href="/assets/marketplace.css?v=20261028-005"><link rel="stylesheet" href="/assets/contractor-ux.css?v=20261028-010"><link rel="stylesheet" href="/assets/work-posting.css?v=20261029-004"><style id="professional-login-final">
 body.pro-simple{background:#f5f8fc;color:#10284d}
 body.pro-simple main{max-width:1536px;padding:0 32px 26px}
 body.pro-simple .portal-header{max-width:1536px;padding:20px 40px 18px}
@@ -184,7 +184,7 @@ body.pro-simple #auth + #register[hidden] + #workspace[hidden] + #message:empty{
   <div class="work-post-quota">
     <article><span>Free posts available this month</span><strong id="workFreePosts">—</strong></article>
     <article><span>Free posts already used</span><strong id="workFreeUsed">—</strong></article>
-    <article><span>Extra post credits</span><strong id="workExtraPosts">—</strong></article>
+    <article><span>Launch access</span><strong>Free during launch</strong></article>
   </div>
   <form id="workPostForm" class="work-post-form">
     <h3>Opportunity details</h3>
@@ -256,11 +256,6 @@ body.pro-simple #auth + #register[hidden] + #workspace[hidden] + #message:empty{
     </div>
   </form>
   <section>
-    <h3>Extra post packages</h3>
-    <p class="muted">Purchased post credits do not expire. Your 4 monthly free posts are always used first.</p>
-    <div id="workPostPackages" class="work-post-packages"></div>
-  </section>
-  <section>
     <h3>Candidate Notifications</h3>
     <p class="muted">When someone applies, you can open their work profile and contact them directly.</p>
     <div id="workNotifications" class="work-notifications"></div>
@@ -269,4 +264,4 @@ body.pro-simple #auth + #register[hidden] + #workspace[hidden] + #message:empty{
     <h3>My Work Opportunities</h3>
     <div id="workMyPosts" class="work-post-list"></div>
   </section>
-</section><section id="opportunityPanel" style="margin-top:18px"><h2>Available Opportunities</h2><p id="opportunityIntro">Browse published service requests. Customer phone, email and personal details remain private until you securely unlock a contact.</p><div class="columns"><label>Filter by city (optional)<input id="opportunityCity" placeholder="e.g. Riverview" maxlength="80"></label><div style="align-self:end"><button id="loadOpportunities" class="secondary" type="button">Find opportunities</button></div></div><div id="opportunityCards" style="display:grid;gap:12px;margin-top:14px"></div><button id="moreOpportunities" class="secondary" type="button" hidden>More opportunities</button></section></section><p id="message" role="status" aria-live="polite"></p></main><script src="/assets/contractor-portal.js?v=20261028-010" defer></script><script src="/assets/profile-sharing.js?v=20261028-005" defer></script><script src="/assets/marketplace-portal.js?v=20261028-007" defer></script><script src="/assets/contractor-ux.js?v=20261028-010" defer></script><script src="/assets/work-posting.js?v=20261029-003" defer></script><script src="/assets/contractor-google.js?v=20261028-005" defer></script><script>document.addEventListener("DOMContentLoaded",()=>{const b=document.getElementById("passwordToggle"),p=document.getElementById("contractorPassword"),auth=document.getElementById("auth"),register=document.getElementById("register");if(b&&p)b.addEventListener("click",()=>{const show=p.type==="password";p.type=show?"text":"password";b.setAttribute("aria-label",show?"Hide password":"Show password");b.textContent=show?"◎":"◉";});if(new URLSearchParams(location.search).get("signup")==="1"){if(auth)auth.hidden=true;if(register)register.hidden=false;}else if(register){register.hidden=true;}});</script></body></html>
+</section><section id="opportunityPanel" style="margin-top:18px"><h2>Available Opportunities</h2><p id="opportunityIntro">Browse published service requests. Customer phone, email and personal details remain private until you securely unlock a contact.</p><div class="columns"><label>Filter by city (optional)<input id="opportunityCity" placeholder="e.g. Riverview" maxlength="80"></label><div style="align-self:end"><button id="loadOpportunities" class="secondary" type="button">Find opportunities</button></div></div><div id="opportunityCards" style="display:grid;gap:12px;margin-top:14px"></div><button id="moreOpportunities" class="secondary" type="button" hidden>More opportunities</button></section></section><p id="message" role="status" aria-live="polite"></p></main><script src="/assets/contractor-portal.js?v=20261028-010" defer></script><script src="/assets/profile-sharing.js?v=20261028-005" defer></script><script src="/assets/marketplace-portal.js?v=20261028-007" defer></script><script src="/assets/contractor-ux.js?v=20261028-010" defer></script><script src="/assets/work-posting.js?v=20261029-004" defer></script><script src="/assets/contractor-google.js?v=20261028-005" defer></script><script>document.addEventListener("DOMContentLoaded",()=>{const b=document.getElementById("passwordToggle"),p=document.getElementById("contractorPassword"),auth=document.getElementById("auth"),register=document.getElementById("register");if(b&&p)b.addEventListener("click",()=>{const show=p.type==="password";p.type=show?"text":"password";b.setAttribute("aria-label",show?"Hide password":"Show password");b.textContent=show?"◎":"◉";});if(new URLSearchParams(location.search).get("signup")==="1"){if(auth)auth.hidden=true;if(register)register.hidden=false;}else if(register){register.hidden=true;}});</script></body></html>
