@@ -86,11 +86,22 @@ async function sendControlledHealthTest({env=process.env,fetchImpl=global.fetch}
     from:env.GETESTIMATEFAST_TELNYX_FROM_NUMBER,
     phone:env.GETESTIMATEFAST_TELNYX_TEST_TO
   });
-  const response=await fetchImpl(TELNYX_SMS_ENDPOINT,{
-    method:"POST",
-    headers:{Authorization:"Bearer "+env.GETESTIMATEFAST_TELNYX_API_KEY,"Content-Type":"application/json"},
-    body:JSON.stringify(payload)
-  });
+  let response;
+  try{
+    response=await fetchImpl(TELNYX_SMS_ENDPOINT,{
+      method:"POST",
+      headers:{Authorization:"Bearer "+env.GETESTIMATEFAST_TELNYX_API_KEY,"Content-Type":"application/json"},
+      body:JSON.stringify(payload)
+    });
+  }catch(cause){
+    const error=Error("Telnyx transport request failed");
+    error.telnyx_transport={
+      type:typeof cause?.name==="string"?cause.name.slice(0,80):"Error",
+      code:typeof cause?.cause?.code==="string"?cause.cause.code.slice(0,80):null,
+      message:typeof cause?.message==="string"?cause.message.slice(0,200):"Request failed before HTTP response"
+    };
+    throw error;
+  }
   let data={};try{data=await response.json();}catch{}
   if(!response.ok){
     const first=Array.isArray(data?.errors)?data.errors[0]:null;
