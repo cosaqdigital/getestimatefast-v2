@@ -46,3 +46,6 @@
 .work-applicant-contact a{font-weight:850;text-decoration:none}.work-applicant-contact span{font-size:12px;color:#61728a}
 .work-candidate-button{margin-top:10px}
 @media(max-width:760px){.work-notification,.work-applicant-card{display:block}.work-notification button,.work-applicant-contact{margin-top:10px}.work-applicant-photo{margin-bottom:8px}}
+
+.work-selected-badge{color:#23750b;background:#edf9e8;border:1px solid #cfe9c5;border-radius:999px;padding:7px 10px;text-align:center}
+.work-closed-badge{color:#7a5310;background:#fff7e8;border:1px solid #f0ddb0;border-radius:999px;padding:7px 10px;text-align:center}
