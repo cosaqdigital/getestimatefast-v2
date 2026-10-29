@@ -44,6 +44,23 @@ create table public.work_profiles(
   check (not sms_opt_in or sms_opt_in_at is not null)
 );
 
+create table public.work_signup_consents(
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  contact_email text not null,
+  contact_phone text not null,
+  sms_phone_e164 text not null,
+  sms_opt_in boolean not null default false,
+  sms_opt_in_at timestamptz,
+  privacy_accepted_at timestamptz not null,
+  privacy_version text not null,
+  terms_accepted_at timestamptz not null,
+  terms_version text not null,
+  created_at timestamptz not null default now()
+);
+
+create index work_signup_consents_phone_idx
+on public.work_signup_consents(sms_phone_e164);
+
 create table public.work_opportunities(
   id uuid primary key default gen_random_uuid(),
   posted_by uuid not null references public.contractor_profiles(user_id) on delete restrict,
@@ -214,7 +231,7 @@ create index work_assignments_opportunity_idx on public.work_assignments(opportu
 create index work_reports_status_idx on gef_private.work_reports(status,created_at);
 create index work_post_credit_ledger_contractor_idx on gef_private.work_post_credit_ledger(contractor_id,created_at desc);
 
-alter table public.work_profiles enable row level security;
+alter table public.work_profiles enable row level security;\nalter table public.work_signup_consents enable row level security;
 alter table public.work_opportunities enable row level security;
 alter table public.work_applications enable row level security;
 alter table public.work_assignments enable row level security;
@@ -224,12 +241,12 @@ alter table gef_private.work_post_credit_packages enable row level security;
 alter table gef_private.work_post_credit_balances enable row level security;
 alter table gef_private.work_post_credit_ledger enable row level security;
 
-revoke all on public.work_profiles from public,anon,authenticated;
+revoke all on public.work_profiles from public,anon,authenticated;\nrevoke all on public.work_signup_consents from public,anon,authenticated;
 revoke all on public.work_opportunities from public,anon,authenticated;
 revoke all on public.work_applications from public,anon,authenticated;
 revoke all on public.work_assignments from public,anon,authenticated;
 revoke all on public.work_user_blocks from public,anon,authenticated;
-grant select,insert,update on public.work_profiles to service_role;
+grant select,insert,update on public.work_profiles to service_role;\ngrant select,insert,update on public.work_signup_consents to service_role;
 grant select,insert,update on public.work_opportunities to service_role;
 grant select,insert,update on public.work_applications to service_role;
 grant select,insert,update on public.work_assignments to service_role;
