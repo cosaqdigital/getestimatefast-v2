@@ -80,12 +80,13 @@ function readiness(env=process.env){
 
 async function sendControlledHealthTest({env=process.env,fetchImpl=global.fetch}){
   const state=readiness(env);
-  if(!state.controlled_test_enabled)throw Error("Controlled Telnyx SMS test is not enabled");
-  if(typeof fetchImpl!=="function")throw Error("Fetch unavailable");
-  const payload=prepareTelnyxControlledTestPayload({
+  if(!state.controlled_test_enabled){const error=Error("Controlled Telnyx SMS test is not enabled");error.diagnostic_stage="readiness";throw error;}
+  if(typeof fetchImpl!=="function"){const error=Error("Fetch unavailable");error.diagnostic_stage="fetch_available";throw error;}
+  let payload;
+  try{payload=prepareTelnyxControlledTestPayload({
     from:env.GETESTIMATEFAST_TELNYX_FROM_NUMBER,
     phone:env.GETESTIMATEFAST_TELNYX_TEST_TO
-  });
+  });}catch(cause){const error=Error("Controlled test payload preparation failed");error.diagnostic_stage="payload";throw error;}
   let response;
   try{
     response=await fetchImpl(TELNYX_SMS_ENDPOINT,{
@@ -95,6 +96,7 @@ async function sendControlledHealthTest({env=process.env,fetchImpl=global.fetch}
     });
   }catch(cause){
     const error=Error("Telnyx transport request failed");
+    error.diagnostic_stage="fetch";
     error.telnyx_transport={
       type:typeof cause?.name==="string"?cause.name.slice(0,80):"Error",
       code:typeof cause?.cause?.code==="string"?cause.cause.code.slice(0,80):null,
@@ -103,9 +105,11 @@ async function sendControlledHealthTest({env=process.env,fetchImpl=global.fetch}
     throw error;
   }
   let data={};try{data=await response.json();}catch{}
+  if(!response||typeof response.ok!=="boolean"){const error=Error("Invalid Telnyx HTTP response");error.diagnostic_stage="response";throw error;}
   if(!response.ok){
     const first=Array.isArray(data?.errors)?data.errors[0]:null;
     const error=Error("Telnyx send failed with HTTP "+response.status);
+    error.diagnostic_stage="http";
     error.telnyx={
       http_status:response.status,
       code:first?.code==null?null:String(first.code).slice(0,80),
