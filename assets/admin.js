@@ -8,7 +8,7 @@ function clearSession() {
   sessionGeneration++; contractorLoad++; token=""; loggedIn(false);
   for(const id of ["rows","contractorRows"])$(id).replaceChildren();
   for(const id of ["overviewAllLeads","overviewNewLeads","overviewOpportunities","overviewContractors","overviewActive","overviewPublic"])$(id).textContent="—";
-  $("overviewStatus").textContent="";$("smsProviderStatus").textContent="";
+  $("overviewStatus").textContent="";$("smsProviderStatus").textContent="";$("smsTestStatus").textContent="";$("sendTestSms").disabled=true;
   $("contractorView").setAttribute("aria-busy","false");
   contractorPage=0;contractorHasMore=false;page=0;leadCount=0;
 }
@@ -32,7 +32,7 @@ async function api(path, method = "GET", body) {
   const data = await response.json();
   if(generation!==sessionGeneration)throw new Error("Session changed. Please sign in again.");
   if (!response.ok) { if ([401,403].includes(response.status) && token) { clearSession(); }
-    throw new Error(data.error || "Request failed"); }
+    const error=new Error(data.error || "Request failed"); error.data=data; throw error; }
   return data;
 }
 function node(tag, className, text) {
@@ -286,7 +286,8 @@ $("loginForm").addEventListener("submit",async event=>{
   }catch(e){status(e.message);}
 });
 $("logout").addEventListener("click",()=>{clearSession();status("Signed out. Existing tokens expire automatically.");});
-$("checkSmsProvider").addEventListener("click",async()=>{const out=$("smsProviderStatus");out.textContent="Checking...";try{const d=await api("sms-provider-status");out.textContent="Provider: "+d.provider+" | Mode: "+d.mode+" | US route: "+(d.us_route_approved?"confirmed":"unconfirmed")+" | STOP handling: "+(d.reply_stop_verified?"verified":"unverified")+" | Credentials: "+(d.token_configured&&d.sender_configured?"configured":"incomplete")+" | Live SMS: DISABLED. Next: "+d.next_steps.join("; ");}catch(e){out.textContent=e.message;}});
+$("checkSmsProvider").addEventListener("click",async()=>{const out=$("smsProviderStatus"),send=$("sendTestSms");out.textContent="Checking...";send.disabled=true;try{const d=await api("sms-provider-status");out.textContent="Provider: "+d.provider+" | Mode: "+d.mode+" | API key: "+(d.api_key_configured?"configured":"missing")+" | Sender: "+(d.sender_configured?"configured":"missing")+" | 10DLC Brand: "+(d.brand_approved?"approved":"not approved")+" | 10DLC Campaign: "+(d.campaign_approved?"approved":"not approved")+" | Test recipient: "+(d.test_recipient_configured?"configured":"missing")+" | Controlled test: "+(d.controlled_test_enabled?"ENABLED":"DISABLED");send.disabled=!d.controlled_test_enabled;}catch(e){out.textContent=e.message;}});
+$("sendTestSms").addEventListener("click",async()=>{const button=$("sendTestSms"),out=$("smsTestStatus");if(!window.confirm("Send one controlled Telnyx SMS to the configured test number?"))return;button.disabled=true;out.textContent="Sending controlled test...";try{const d=await api("send-test-sms","POST");out.textContent="Accepted by Telnyx · Message ID: "+(d.message_id||"not returned")+" · From: "+d.from+" · To: "+d.to;}catch(e){out.textContent=e.message+(e.data?.telnyx?" | HTTP: "+e.data.telnyx.http_status+" | Code: "+(e.data.telnyx.code||"n/a")+" | "+(e.data.telnyx.title||"")+(e.data.telnyx.detail?" | "+e.data.telnyx.detail:""):e.data?.transport?" | Stage: fetch | Type: "+(e.data.transport.type||"Error")+" | Code: "+(e.data.transport.code||"n/a")+" | "+(e.data.transport.message||""):e.data?.diagnostic?" | Stage: "+e.data.diagnostic.stage+" | Type: "+e.data.diagnostic.type:"");}finally{button.disabled=false;}});
 $("refresh").addEventListener("click",()=>load().catch(e=>status(e.message)));
 $("filter").addEventListener("change",()=>{page=0;load().catch(e=>status(e.message));});
 $("previous").addEventListener("click",()=>{if(page){page--;load().catch(e=>status(e.message));}});

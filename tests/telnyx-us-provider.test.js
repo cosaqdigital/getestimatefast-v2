@@ -1,6 +1,6 @@
 "use strict";
 const test=require("node:test"),assert=require("node:assert/strict");
-const {normalizeUsPhone,opportunityUrl,formatTelnyxOpportunityNotice,prepareTelnyxPayload,readiness}=require("../api/_lib/telnyx-us-provider");
+const {normalizeUsPhone,opportunityUrl,formatTelnyxOpportunityNotice,prepareTelnyxPayload,formatTelnyxControlledTestNotice,prepareTelnyxControlledTestPayload,readiness,sendControlledHealthTest,sendControlledTest}=require("../api/_lib/telnyx-us-provider");
 const id="123e4567-e89b-42d3-a456-426614174000";
 test("Telnyx uses E.164 US numbers",()=>{
   assert.equal(normalizeUsPhone("+1 (813) 303-9893"),"+18133039893");
@@ -23,15 +23,141 @@ test("payload matches Telnyx API v2 send shape without sending",()=>{
   assert.equal(p.from,"+18133039893");
   assert.equal(p.to,"+18135550134");
 });
-test("live SMS remains fail-closed even when credentials and approvals are present",()=>{
-  const s=readiness({
+test("live SMS remains fail-closed unless controlled_test is explicitly enabled",()=>{
+  const base={
     GETESTIMATEFAST_SMS_PROVIDER:"telnyx",
-    GETESTIMATEFAST_SMS_MODE:"enabled",
     GETESTIMATEFAST_TELNYX_API_KEY:"fake",
     GETESTIMATEFAST_TELNYX_FROM_NUMBER:"+18133039893",
     GETESTIMATEFAST_TELNYX_10DLC_BRAND_APPROVED:"true",
     GETESTIMATEFAST_TELNYX_10DLC_CAMPAIGN_APPROVED:"true"
+  };
+  const disabled=readiness({...base,GETESTIMATEFAST_SMS_MODE:"enabled"});
+  assert.equal(disabled.live_sms_enabled,false);
+  assert.equal(disabled.mode,"disabled");
+  const controlledMissingRecipient=readiness({...base,GETESTIMATEFAST_SMS_MODE:"controlled_test"});
+  assert.equal(controlledMissingRecipient.live_sms_enabled,false);
+  const controlled=readiness({...base,GETESTIMATEFAST_SMS_MODE:"controlled_test",GETESTIMATEFAST_TELNYX_TEST_TO:"+18135550134"});
+  assert.equal(controlled.live_sms_enabled,true);
+  assert.equal(controlled.controlled_test_enabled,true);
+  assert.equal(controlled.mode,"controlled_test");
+});
+test("controlled sender only permits the configured test recipient",async()=>{
+  const env={
+    GETESTIMATEFAST_SMS_PROVIDER:"telnyx",
+    GETESTIMATEFAST_SMS_MODE:"controlled_test",
+    GETESTIMATEFAST_TELNYX_API_KEY:"fake",
+    GETESTIMATEFAST_TELNYX_FROM_NUMBER:"+18133039893",
+    GETESTIMATEFAST_TELNYX_10DLC_BRAND_APPROVED:"true",
+    GETESTIMATEFAST_TELNYX_10DLC_CAMPAIGN_APPROVED:"true",
+    GETESTIMATEFAST_TELNYX_TEST_TO:"+18135550134"
+  };
+  let body=null;
+  const fakeFetch=async(_url,opts)=>{body=JSON.parse(opts.body);return {ok:true,status:200,json:async()=>({data:{id:"msg_test"}})};};
+  const sent=await sendControlledTest({phone:"8135550134",city:"Riverview",opportunityId:id,env,fetchImpl:fakeFetch});
+  assert.equal(sent.id,"msg_test");
+  assert.equal(body.from,"+18133039893");
+  assert.equal(body.to,"+18135550134");
+  await assert.rejects(()=>sendControlledTest({phone:"8135550199",city:"Riverview",opportunityId:id,env,fetchImpl:fakeFetch}),/configured controlled test number/);
+});
+
+
+test("controlled health test uses only configured recipient and fixed opt-out text",async()=>{
+  const env={
+    GETESTIMATEFAST_SMS_PROVIDER:"telnyx",
+    GETESTIMATEFAST_SMS_MODE:"controlled_test",
+    GETESTIMATEFAST_TELNYX_API_KEY:"fake",
+    GETESTIMATEFAST_TELNYX_FROM_NUMBER:"+18133039893",
+    GETESTIMATEFAST_TELNYX_10DLC_BRAND_APPROVED:"true",
+    GETESTIMATEFAST_TELNYX_10DLC_CAMPAIGN_APPROVED:"true",
+    GETESTIMATEFAST_TELNYX_TEST_TO:"+18135550134"
+  };
+  let body=null;
+  const fakeFetch=async(_url,opts)=>{body=JSON.parse(opts.body);return {ok:true,status:200,json:async()=>({data:{id:"msg_health"}})};};
+  const sent=await sendControlledHealthTest({env,fetchImpl:fakeFetch});
+  assert.equal(sent.id,"msg_health");
+  assert.equal(body.from,"+18133039893");
+  assert.equal(body.to,"+18135550134");
+  assert.equal(body.text,formatTelnyxControlledTestNotice());
+  assert.match(body.text,/STOP/);
+  assert.deepEqual(body,prepareTelnyxControlledTestPayload({from:env.GETESTIMATEFAST_TELNYX_FROM_NUMBER,phone:env.GETESTIMATEFAST_TELNYX_TEST_TO}));
+});
+
+test("controlled health test exposes only safe Telnyx error metadata",async()=>{
+  const env={
+    GETESTIMATEFAST_SMS_PROVIDER:"telnyx",
+    GETESTIMATEFAST_SMS_MODE:"controlled_test",
+    GETESTIMATEFAST_TELNYX_API_KEY:"super-secret-key",
+    GETESTIMATEFAST_TELNYX_FROM_NUMBER:"+18133039893",
+    GETESTIMATEFAST_TELNYX_10DLC_BRAND_APPROVED:"true",
+    GETESTIMATEFAST_TELNYX_10DLC_CAMPAIGN_APPROVED:"true",
+    GETESTIMATEFAST_TELNYX_TEST_TO:"+18135550134"
+  };
+  const fakeFetch=async()=>({
+    ok:false,status:401,
+    json:async()=>({errors:[{code:"10009",title:"Unauthorized",detail:"Authentication failed"}]})
   });
-  assert.equal(s.live_sms_enabled,false);
-  assert.equal(s.mode,"disabled");
+  await assert.rejects(
+    ()=>sendControlledHealthTest({env,fetchImpl:fakeFetch}),
+    error=>{
+      assert.equal(error.message,"Telnyx send failed with HTTP 401");
+      assert.deepEqual(error.telnyx,{http_status:401,code:"10009",title:"Unauthorized",detail:"Authentication failed"});
+      assert.doesNotMatch(JSON.stringify(error.telnyx),/super-secret-key/);
+      return true;
+    }
+  );
+});
+
+test("controlled health test exposes safe transport diagnostics",async()=>{
+  const env={
+    GETESTIMATEFAST_SMS_PROVIDER:"telnyx",
+    GETESTIMATEFAST_SMS_MODE:"controlled_test",
+    GETESTIMATEFAST_TELNYX_API_KEY:"super-secret-key",
+    GETESTIMATEFAST_TELNYX_FROM_NUMBER:"+18133039893",
+    GETESTIMATEFAST_TELNYX_10DLC_BRAND_APPROVED:"true",
+    GETESTIMATEFAST_TELNYX_10DLC_CAMPAIGN_APPROVED:"true",
+    GETESTIMATEFAST_TELNYX_TEST_TO:"+18135550134"
+  };
+  const transport=new TypeError("fetch failed");
+  transport.cause={code:"ECONNRESET"};
+  const fakeFetch=async()=>{throw transport;};
+  await assert.rejects(
+    ()=>sendControlledHealthTest({env,fetchImpl:fakeFetch}),
+    error=>{
+      assert.equal(error.message,"Telnyx transport request failed");
+      assert.deepEqual(error.telnyx_transport,{type:"TypeError",code:"ECONNRESET",message:"fetch failed"});
+      assert.doesNotMatch(JSON.stringify(error.telnyx_transport),/super-secret-key/);
+      return true;
+    }
+  );
+});
+
+test("controlled health test tags payload-stage failures safely",async()=>{
+  const env={
+    GETESTIMATEFAST_SMS_PROVIDER:"telnyx",
+    GETESTIMATEFAST_SMS_MODE:"controlled_test",
+    GETESTIMATEFAST_TELNYX_API_KEY:"fake",
+    GETESTIMATEFAST_TELNYX_FROM_NUMBER:"+18133039893",
+    GETESTIMATEFAST_TELNYX_10DLC_BRAND_APPROVED:"true",
+    GETESTIMATEFAST_TELNYX_10DLC_CAMPAIGN_APPROVED:"true",
+    GETESTIMATEFAST_TELNYX_TEST_TO:"+18135550134"
+  };
+  const fakeFetch=async()=>({ok:true,status:200,json:async()=>({data:{id:"ok"}})});
+  const sent=await sendControlledHealthTest({env,fetchImpl:fakeFetch});
+  assert.equal(sent.id,"ok");
+});
+
+test("controlled health test tags invalid HTTP response stage",async()=>{
+  const env={
+    GETESTIMATEFAST_SMS_PROVIDER:"telnyx",
+    GETESTIMATEFAST_SMS_MODE:"controlled_test",
+    GETESTIMATEFAST_TELNYX_API_KEY:"fake",
+    GETESTIMATEFAST_TELNYX_FROM_NUMBER:"+18133039893",
+    GETESTIMATEFAST_TELNYX_10DLC_BRAND_APPROVED:"true",
+    GETESTIMATEFAST_TELNYX_10DLC_CAMPAIGN_APPROVED:"true",
+    GETESTIMATEFAST_TELNYX_TEST_TO:"+18135550134"
+  };
+  await assert.rejects(
+    ()=>sendControlledHealthTest({env,fetchImpl:async()=>undefined}),
+    error=>{assert.equal(error.diagnostic_stage,"response");return true;}
+  );
 });
