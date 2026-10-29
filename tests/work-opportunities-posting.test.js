@@ -44,7 +44,7 @@ test("database makes publication quota atomic and idempotent",()=>{
  assert.match(sql,/v_free_used < 4/);
  assert.match(sql,/posting_source='monthly_free'/);
  assert.match(sql,/v_source:='purchased_credit'/);
- assert.match(sql,/amount_posts,-?1/);
+ assert.match(sql,/p_contractor,-1,'consume'/);
  assert.match(sql,/entry_type,opportunity_id,operation_key/);
  assert.match(sql,/work_post_credit_balances/);
  assert.match(sql,/\('extra_4',4,700\)/);
