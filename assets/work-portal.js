@@ -61,7 +61,7 @@ function renderWorkFeed(data){
  holder.replaceChildren();
  if(!items.length){empty(holder,"No matching work right now","When a local professional posts something that matches your profile, it will appear here.");return;}
  for(const item of items){
-  const card=document.createElement("article");card.className="work-card";
+  const card=document.createElement("article");card.className="work-card";card.dataset.workOpportunityId=item.id;
   const head=document.createElement("div");head.className="work-card-head";
   const title=document.createElement("h3");title.textContent=(item.opportunity_type==="helper"?"Helper":"Professional")+" · "+item.service_category;
   const badge=document.createElement("span");badge.className="work-badge";badge.textContent=item.task_label||"Work opportunity";
@@ -90,6 +90,15 @@ function renderWorkFeed(data){
    actions.append(apply);
   }
   card.append(head,meta,description,languages,poster,actions);holder.append(card);
+ }
+ const requested=new URLSearchParams(location.search).get("opportunity");
+ if(requested){
+  const target=holder.querySelector('[data-work-opportunity-id="'+CSS.escape(requested)+'"]');
+  if(target){
+   target.style.outline="3px solid #7bd321";
+   target.style.outlineOffset="3px";
+   target.scrollIntoView({behavior:"smooth",block:"center"});
+  }
  }
 }
 async function loadWorkFeed(){
