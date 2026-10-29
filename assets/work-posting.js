@@ -15,38 +15,9 @@ function eligibilityMessage(summary){
  if(code==="account_inactive")return "An active professional account is required before you can post work opportunities.";
  return "Complete your professional profile before posting.";
 }
-function renderPackages(packages,checkoutEnabled){
- const holder=$("workPostPackages");if(!holder)return;
- holder.replaceChildren();
- for(const pkg of packages||[]){
-  const card=document.createElement("article");card.className="work-post-package";
-  const title=document.createElement("strong");title.textContent="+"+pkg.posts+" extra posts";
-  const price=document.createElement("span");price.textContent=money(pkg.amount_cents)+" · credits do not expire";
-  const button=document.createElement("button");button.type="button";button.className="secondary";
-  button.disabled=checkoutEnabled!==true;
-  button.textContent=checkoutEnabled===true?"Buy +"+pkg.posts+" · "+money(pkg.amount_cents):"Stripe test checkout not enabled";
-  if(checkoutEnabled===true)button.addEventListener("click",async()=>{
-   button.disabled=true;button.textContent="Opening secure checkout...";
-   portal().say("Preparing Stripe test checkout...");
-   try{
-    const result=await portal().api("work-post-credit-checkout","POST",{
-     package_code:pkg.package_code,
-     operation_key:"work-credit-"+crypto.randomUUID()
-    });
-    if(!result.checkout_url)throw Error("Checkout link was not created.");
-    location.assign(result.checkout_url);
-   }catch(e){
-    button.disabled=false;button.textContent="Buy +"+pkg.posts+" · "+money(pkg.amount_cents);
-    portal().say(e.message||"Could not open checkout.");
-   }
-  });
-  card.append(title,price,button);holder.append(card);
- }
-}
-function renderQuota(summary,payments){
+function renderQuota(summary){
  $("workFreePosts").textContent=(summary?.free_remaining??0)+" of "+(summary?.free_limit??4);
  $("workFreeUsed").textContent=String(summary?.free_used??0);
- $("workExtraPosts").textContent=String(summary?.purchased_remaining??0);
  const box=$("workPostEligibility");box.dataset.ok=summary?.eligible===true?"true":"false";box.textContent=eligibilityMessage(summary);
  const form=$("workPostForm");
  for(const control of form.elements)control.disabled=summary?.eligible!==true;
@@ -58,7 +29,6 @@ function renderQuota(summary,payments){
  }else if(summary?.eligibility_code==="professional_profile_incomplete"){
   const a=document.createElement("a");a.href="#accountSettingsPanel";a.className="button secondary";a.textContent="Complete professional profile";action.append(a);
  }
- renderPackages(summary?.packages||[],payments?.extra_post_test_checkout===true);
 }
 function renderCategories(categories){
  const select=$("workServiceCategory"),current=select.value;
@@ -175,7 +145,7 @@ async function load(force=false){
  loading=(async()=>{
   const data=await portal().api("work-opportunities");
   lastData=data;
-  renderQuota(data.summary||{},data.payments||{});
+  renderQuota(data.summary||{});
   renderCategories(data.categories||[]);
   renderPosts(data.opportunities||[]);
   try{renderNotifications(await portal().api("work-notifications"));}catch{renderNotifications({notifications:[]});}
@@ -261,9 +231,7 @@ $("workPostForm")?.addEventListener("submit",async event=>{
   try{await load(true);}catch{}
  }finally{$("workPostSubmit").disabled=lastData?.summary?.eligible!==true;}
 });
-window.addEventListener("gef-profile",async()=>{
- try{await load(true);await resumeWorkCreditPayment();}catch{}
-});
+window.addEventListener("gef-profile",()=>{load(true).catch(()=>{});});
 window.addEventListener("gef-signed-out",()=>{lastData=null;$("workMyPosts")?.replaceChildren();$("workNotifications")?.replaceChildren();});
 window.GetEstimateFastWorkPoster={load};
 })();
