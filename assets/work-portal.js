@@ -106,11 +106,28 @@ function renderApplications(data){
   const op=item.opportunity;
   const card=document.createElement("article");card.className="application-card";
   const title=document.createElement("h3");title.textContent=op?(op.service_category+" · "+(op.city||op.zip_code)):"Opportunity";
-  const state=document.createElement("div");state.className="application-status";state.textContent=String(item.status||"interested").replaceAll("_"," ");
+  const state=document.createElement("div");state.className="application-status";
+  if(item.status==="selected"){
+   state.textContent="✓ Selected";
+   state.style.color="#287408";
+  }else if(item.status==="declined"){
+   state.textContent="Opportunity filled";
+   state.style.color="#8a5b0d";
+  }else{
+   state.textContent=String(item.status||"interested").replaceAll("_"," ");
+  }
   card.append(title,state);
   if(op){
    const p=document.createElement("p");p.textContent=(op.work_date||"")+" · "+money(op.pay_cents)+payLabel(op.pay_basis);card.append(p);
-   if(op.poster){const who=document.createElement("p");who.className="muted";who.textContent="Posted by "+op.poster.display_name;card.append(who);}
+   if(op.poster){
+    const who=document.createElement("p");who.className="muted";who.textContent="Posted by "+op.poster.display_name;card.append(who);
+    const profile=document.createElement("a");profile.href=op.poster.profile_path;profile.target="_blank";profile.rel="noopener";profile.textContent="View company profile";card.append(profile);
+   }
+   if(item.status==="selected"){
+    const selected=document.createElement("p");selected.className="work-applied";selected.textContent="The professional selected you for this opportunity and can contact you using your work profile phone.";card.append(selected);
+   }else if(item.status==="declined"){
+    const closed=document.createElement("p");closed.className="muted";closed.textContent="This opportunity has been filled and is no longer accepting candidates.";card.append(closed);
+   }
   }
   holder.append(card);
  }
