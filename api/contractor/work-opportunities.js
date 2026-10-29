@@ -78,9 +78,6 @@ module.exports=async function handler(req,res){
     "&select=id,opportunity_type,service_category,task_label,zip_code,description,pay_cents,pay_basis,work_date,start_time,workers_needed,max_contacts,contacts_used,positions_filled,languages,posting_source,status,created_at,closed_at"+
     "&order=created_at.desc&limit=20"
    );
-   const packages=await queryDb(
-    "work_post_credit_packages?active=eq.true&select=package_code,posts,amount_cents,currency&order=posts.asc"
-   );
    return json(res,200,{
     summary,
     defaults:{zip_code:profileRows[0]?.base_zip||""},
@@ -90,7 +87,7 @@ module.exports=async function handler(req,res){
      {code:"pt",label:"Portuguese"},
      {code:"es",label:"Spanish"}
     ],
-    packages,
+    packages:Array.isArray(summary?.packages)?summary.packages:[],
     opportunities:own
    });
   }
