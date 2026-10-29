@@ -50,22 +50,32 @@ const CONTROLLED_HELP_REPLY="GetEstimateFast: For help visit getestimatefast.com
 
 async function sendControlledHelpReply({phone,env=process.env,fetchImpl=global.fetch}){
   const state=readiness(env);
-  if(!state.controlled_test_enabled)throw Error("Controlled Telnyx SMS test is not enabled");
+  if(!state.controlled_test_enabled){const error=Error("Controlled Telnyx SMS test is not enabled");error.diagnostic_stage="readiness";throw error;}
   const allowed=normalizeUsPhone(env.GETESTIMATEFAST_TELNYX_TEST_TO||"");
   const to=normalizeUsPhone(phone);
-  if(!allowed||!to||to!==allowed)throw Error("Recipient is not the configured controlled test number");
-  if(typeof fetchImpl!=="function")throw Error("Fetch unavailable");
+  if(!allowed||!to||to!==allowed){const error=Error("Recipient is not the configured controlled test number");error.diagnostic_stage="recipient";throw error;}
+  if(typeof fetchImpl!=="function"){const error=Error("Fetch unavailable");error.diagnostic_stage="fetch_available";throw error;}
   const from=normalizeUsPhone(env.GETESTIMATEFAST_TELNYX_FROM_NUMBER||"");
-  if(!from)throw Error("Invalid Telnyx sender number");
-  const response=await fetchImpl(TELNYX_SMS_ENDPOINT,{
-    method:"POST",
-    headers:{Authorization:"Bearer "+env.GETESTIMATEFAST_TELNYX_API_KEY,"Content-Type":"application/json"},
-    body:JSON.stringify({from,to,text:CONTROLLED_HELP_REPLY})
-  });
+  if(!from){const error=Error("Invalid Telnyx sender number");error.diagnostic_stage="sender";throw error;}
+  let response;
+  try{
+    response=await fetchImpl(TELNYX_SMS_ENDPOINT,{
+      method:"POST",
+      headers:{Authorization:"Bearer "+env.GETESTIMATEFAST_TELNYX_API_KEY,"Content-Type":"application/json"},
+      body:JSON.stringify({from,to,text:CONTROLLED_HELP_REPLY})
+    });
+  }catch(cause){
+    const error=Error("Telnyx HELP reply transport failed");
+    error.diagnostic_stage="fetch";
+    error.telnyx_transport={code:typeof cause?.cause?.code==="string"?cause.cause.code.slice(0,80):null};
+    throw error;
+  }
+  if(!response||typeof response.ok!=="boolean"){const error=Error("Invalid Telnyx HELP reply response");error.diagnostic_stage="response";throw error;}
   let data={};try{data=await response.json();}catch{}
   if(!response.ok){
     const first=Array.isArray(data?.errors)?data.errors[0]:null;
     const error=Error("Telnyx HELP reply failed with HTTP "+response.status);
+    error.diagnostic_stage="http";
     error.telnyx={http_status:response.status,code:first?.code==null?null:String(first.code).slice(0,80)};
     throw error;
   }
