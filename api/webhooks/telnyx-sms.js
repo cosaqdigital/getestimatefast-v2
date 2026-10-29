@@ -1,7 +1,7 @@
 "use strict";
 const {json,method,queryDb,fail}=require("../admin/_auth");
 const {normalizeUsPhone,sendControlledHelpReply}=require("../_lib/telnyx-us-provider");
-const WEBHOOK_VERSION="telnyx-help-v3";
+const WEBHOOK_VERSION="telnyx-help-v4";
 const {
   verifyTelnyxSignature,parseEnvelope,parseInbound,parseDelivery,
   helpResponsePreview,startResponsePreview,stopResponsePreview
