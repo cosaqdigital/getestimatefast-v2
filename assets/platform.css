@@ -483,3 +483,31 @@ textarea { min-height: 150px; resize: vertical; }
  .services-v2-final .hero-actions{width:100%;display:grid}.services-v2-final .btn{width:100%}
  .services-v2 .nav .nav-link,.services-v2 .nav .btn-secondary{display:none}
 }
+
+
+/* Mobile marketplace entry points: keep both customer and professional journeys visible. */
+.mobile-cta-label{display:none}
+.home-v2-pro-quick{display:none}
+.home-v2-pro-quick-card{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:18px 20px;border:1px solid #d5e3ee;border-radius:20px;background:linear-gradient(135deg,#f4f9fd 0%,#eef8f3 100%);box-shadow:var(--shadow-sm)}
+.home-v2-pro-quick-card .eyebrow{margin-bottom:7px}
+.home-v2-pro-quick-card h2{margin:0 0 6px;font-size:22px}
+.home-v2-pro-quick-card p:not(.eyebrow){margin:0;color:var(--text-soft);font-size:14px;line-height:1.55}
+.home-v2-pro-quick-card .btn{flex:0 0 auto;white-space:nowrap}
+
+@media(max-width:700px){
+  .home-v2 .home-header .header-inner{gap:8px}
+  .home-v2 .home-header .nav{gap:6px}
+  .home-v2 .home-header .nav .mobile-pro-link{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:8px 10px;border:1px solid var(--line);border-radius:11px;background:#fff;color:var(--navy);font-size:12px;font-weight:900;white-space:nowrap}
+  .home-v2 .home-header .btn-header{min-height:38px;padding:8px 10px;font-size:12px;white-space:nowrap}
+  .home-v2 .home-header .desktop-cta-label{display:none}
+  .home-v2 .home-header .mobile-cta-label{display:inline}
+  .home-v2-pro-quick{display:block;padding:0 0 10px}
+  .home-v2-pro-quick-card{display:grid;gap:14px;padding:18px}
+  .home-v2-pro-quick-card h2{font-size:21px}
+  .home-v2-pro-quick-card .btn{width:100%}
+}
+@media(max-width:430px){
+  .home-v2 .home-header .brand{font-size:18px}
+  .home-v2 .home-header .nav{gap:4px}
+  .home-v2 .home-header .nav .mobile-pro-link,.home-v2 .home-header .btn-header{padding:7px 8px;font-size:11px}
+}
