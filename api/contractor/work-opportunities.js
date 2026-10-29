@@ -3,7 +3,6 @@ const {json,method,readJson,queryDb,fail,CATEGORIES,userFor}=require("./_shared"
 const {recognizedFloridaZip}=require("../_lib/florida-matching");
 const {parseUsd}=require("../_lib/marketplace-pricing");
 const {processWorkMatchJob}=require("../_lib/work-notification-dispatch");
-const {readiness:workPostCheckoutReadiness}=require("../_lib/work-post-credit-stripe-test");
 
 const TYPES=new Set(["helper","professional"]);
 const PAY_BASIS=new Set(["day","hour","fixed"]);
@@ -58,7 +57,7 @@ function cleanPayload(body){
  };
 }
 function statusForCode(code){
- if(code==="quota_exceeded")return [409,"You have used your 4 free work posts this month and have no extra post credits available."];
+ if(code==="quota_exceeded")return [409,"You have reached the current launch limit of 10 free work posts this month."];
  if(code==="public_profile_required")return [403,"Publish your professional public profile before posting work opportunities."];
  if(code==="professional_profile_incomplete")return [403,"Complete your professional profile before posting work opportunities."];
  if(code==="account_inactive")return [403,"An active professional account is required to post work opportunities."];
@@ -81,7 +80,7 @@ module.exports=async function handler(req,res){
     "&order=created_at.desc&limit=20"
    );
    return json(res,200,{
-    summary,
+    summary:{...summary,packages:[],purchased_remaining:0,launch_free:true},
     defaults:{zip_code:profileRows[0]?.base_zip||""},
     categories:CATEGORIES,
     languages:[
@@ -89,8 +88,8 @@ module.exports=async function handler(req,res){
      {code:"pt",label:"Portuguese"},
      {code:"es",label:"Spanish"}
     ],
-    packages:Array.isArray(summary?.packages)?summary.packages:[],
-    payments:{extra_post_test_checkout:workPostCheckoutReadiness().checkout_enabled===true},
+    packages:[],
+    payments:{extra_post_test_checkout:false},
     opportunities:own
    });
   }
