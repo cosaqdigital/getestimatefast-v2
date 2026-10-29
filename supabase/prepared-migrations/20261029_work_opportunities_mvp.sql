@@ -99,6 +99,7 @@ create table public.work_applications(
   id uuid primary key default gen_random_uuid(),
   opportunity_id uuid not null references public.work_opportunities(id) on delete cascade,
   applicant_id uuid not null references public.work_profiles(user_id) on delete restrict,
+  operation_key text not null unique check (length(operation_key) between 12 and 160),
   status text not null default 'interested'
     check (status in ('interested','selected','declined','withdrawn','cancelled')),
   contact_released_at timestamptz,
