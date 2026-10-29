@@ -34,6 +34,89 @@ function imagePreview(url){
  if(!url){const span=document.createElement("span");span.textContent="Add profile photo";holder.append(span);return;}
  const img=document.createElement("img");img.src=url;img.alt="Profile photo";holder.append(img);
 }
+const languageNames={en:"English",pt:"Portuguese",es:"Spanish"};
+const money=cents=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(Number(cents||0)/100);
+const payLabel=basis=>basis==="hour"?"/hour":basis==="fixed"?" fixed":"/day";
+function empty(holder,title,text){
+ holder.replaceChildren();
+ const box=document.createElement("div");box.className="placeholder";
+ const strong=document.createElement("strong");strong.textContent=title;
+ const p=document.createElement("p");p.textContent=text;
+ box.append(strong,p);holder.append(box);
+}
+function workMeta(item){
+ const values=[
+  "⌖ "+item.city+", FL "+item.zip_code,
+  item.distance_miles+" mi away",
+  item.work_date+(item.start_time?" · "+String(item.start_time).slice(0,5):""),
+  money(item.pay_cents)+payLabel(item.pay_basis),
+  item.workers_needed+" "+(item.workers_needed===1?"person":"people")+" needed",
+  item.contacts_remaining+" candidate "+(item.contacts_remaining===1?"spot":"spots")+" left"
+ ];
+ return values;
+}
+function renderWorkFeed(data){
+ const holder=el("workFeed"),items=data.opportunities||[];
+ el("feedSummary").textContent=items.length?items.length+" matching "+(items.length===1?"opportunity":"opportunities")+" near your work area":"No matching opportunities right now.";
+ holder.replaceChildren();
+ if(!items.length){empty(holder,"No matching work right now","When a local professional posts something that matches your profile, it will appear here.");return;}
+ for(const item of items){
+  const card=document.createElement("article");card.className="work-card";
+  const head=document.createElement("div");head.className="work-card-head";
+  const title=document.createElement("h3");title.textContent=(item.opportunity_type==="helper"?"Helper":"Professional")+" · "+item.service_category;
+  const badge=document.createElement("span");badge.className="work-badge";badge.textContent=item.task_label||"Work opportunity";
+  head.append(title,badge);
+  const meta=document.createElement("div");meta.className="work-meta";
+  for(const value of workMeta(item)){const span=document.createElement("span");span.textContent=value;meta.append(span);}
+  const description=document.createElement("p");description.className="work-description";description.textContent=item.description;
+  const languages=document.createElement("p");languages.className="muted";languages.textContent="Languages: "+(item.languages||[]).map(v=>languageNames[v]||v).join(", ");
+  const poster=document.createElement("div");poster.className="work-poster";
+  const who=document.createElement("div");const strong=document.createElement("strong");strong.textContent=item.poster.display_name;const small=document.createElement("div");small.className="muted";small.textContent=item.poster.headline||"GetEstimateFast professional";who.append(strong,small);
+  const profile=document.createElement("a");profile.href=item.poster.profile_path;profile.target="_blank";profile.rel="noopener";profile.textContent="View company profile";
+  poster.append(who,profile);
+  const actions=document.createElement("div");actions.className="work-actions";
+  if(item.application){
+   const applied=document.createElement("span");applied.className="work-applied";applied.textContent="✓ Applied · "+String(item.application.status||"interested").replaceAll("_"," ");actions.append(applied);
+  }else{
+   const apply=document.createElement("button");apply.type="button";apply.textContent="I'm Interested";
+   apply.addEventListener("click",async()=>{
+    apply.disabled=true;say("Submitting your interest...");
+    try{
+     const result=await api("applications","POST",{opportunity_id:item.id,operation_key:"work-apply-"+crypto.randomUUID()});
+     say(result.already_applied?"You already applied to this opportunity.":"Your interest was sent. The professional can now review your work profile.");
+     await Promise.all([loadWorkFeed(),loadApplications()]);
+    }catch(e){apply.disabled=false;say(e.message);}
+   });
+   actions.append(apply);
+  }
+  card.append(head,meta,description,languages,poster,actions);holder.append(card);
+ }
+}
+async function loadWorkFeed(){
+ try{const data=await api("opportunities");renderWorkFeed(data);return data;}
+ catch(e){
+  if(e.message.includes("Complete your Find Work profile"))empty(el("workFeed"),"Complete your profile first","Add your photo, services, ZIP, work radius and languages before viewing matching work.");
+  el("feedSummary").textContent="Work feed unavailable.";throw e;
+ }
+}
+function renderApplications(data){
+ const holder=el("applicationList"),items=data.applications||[];holder.replaceChildren();
+ if(!items.length){empty(holder,"No applications yet","When you click “I'm Interested,” your applications will appear here.");return;}
+ for(const item of items){
+  const op=item.opportunity;
+  const card=document.createElement("article");card.className="application-card";
+  const title=document.createElement("h3");title.textContent=op?(op.service_category+" · "+(op.city||op.zip_code)):"Opportunity";
+  const state=document.createElement("div");state.className="application-status";state.textContent=String(item.status||"interested").replaceAll("_"," ");
+  card.append(title,state);
+  if(op){
+   const p=document.createElement("p");p.textContent=(op.work_date||"")+" · "+money(op.pay_cents)+payLabel(op.pay_basis);card.append(p);
+   if(op.poster){const who=document.createElement("p");who.className="muted";who.textContent="Posted by "+op.poster.display_name;card.append(who);}
+  }
+  holder.append(card);
+ }
+}
+async function loadApplications(){const data=await api("applications");renderApplications(data);return data;}
+
 function fillChoices(data){
  const p=data.profile||{};
  const services=el("serviceCategories");services.replaceChildren();
@@ -77,9 +160,11 @@ el("login").addEventListener("submit",async event=>{
   const f=new FormData(event.currentTarget);
   const data=await api("login","POST",{email:f.get("email"),password:f.get("password")});
   token=data.access_token;event.currentTarget.elements.password.value="";
-  showSignedIn(true);await refreshProfile();
-  document.querySelector('[data-panel="profilePanel"]').click();
-  say("Signed in.");
+  showSignedIn(true);const profileState=await refreshProfile();
+  const active=profileState?.profile?.status==="active";
+  document.querySelector('[data-panel="'+(active?"findPanel":"profilePanel")+'"]').click();
+  if(active)await Promise.all([loadWorkFeed(),loadApplications()]);
+  say(active?"Signed in. Matching opportunities are ready.":"Signed in. Complete your Find Work profile to continue.");
  }catch(e){say(e.message);}
 });
 el("signup").addEventListener("submit",async event=>{
@@ -133,14 +218,21 @@ el("profile").addEventListener("submit",async event=>{
   const result=await api("profile","POST",payload);
   say(result.status==="active"?"Work profile saved and active.":"Work profile saved.");
   await refreshProfile();
+  if(result.status==="active"){
+   document.querySelector('[data-panel="findPanel"]').click();
+   await Promise.all([loadWorkFeed(),loadApplications()]);
+  }
  }catch(e){say(e.message);}
 });
 for(const button of document.querySelectorAll(".nav button[data-panel]")){
  button.addEventListener("click",()=>{
   for(const other of document.querySelectorAll(".nav button[data-panel]"))other.classList.toggle("active",other===button);
   for(const panel of document.querySelectorAll(".panel"))panel.hidden=panel.id!==button.dataset.panel;
+  if(button.dataset.panel==="findPanel")loadWorkFeed().catch(e=>say(e.message));
+  if(button.dataset.panel==="applicationsPanel")loadApplications().catch(e=>say(e.message));
  });
 }
+el("refreshWorkFeed").addEventListener("click",()=>loadWorkFeed().catch(e=>say(e.message)));
 el("logout").addEventListener("click",()=>{
  sessionGeneration++;token="";profileImagePath="";el("profile").reset();imagePreview("");showSignedIn(false);say("Signed out.");
 });
