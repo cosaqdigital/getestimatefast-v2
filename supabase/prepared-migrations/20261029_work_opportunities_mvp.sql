@@ -265,4 +265,230 @@ revoke all on function gef_private.work_touch_updated_at() from public,anon,auth
 revoke all on function gef_private.work_credit_ledger_apply() from public,anon,authenticated;
 revoke all on function gef_private.prevent_work_credit_ledger_mutation() from public,anon,authenticated;
 
+
+create or replace function public.gef_work_post_summary(p_contractor uuid)
+returns jsonb
+language plpgsql
+security invoker
+set search_path=''
+as $$
+declare
+  v_profile public.contractor_profiles%rowtype;
+  v_public public.contractor_public_profiles%rowtype;
+  v_free_used integer := 0;
+  v_purchased integer := 0;
+  v_month_start timestamptz;
+  v_profile_complete boolean := false;
+  v_public_ready boolean := false;
+  v_code text := 'account_inactive';
+  v_packages jsonb := '[]'::jsonb;
+begin
+  v_month_start := (date_trunc('month', now() at time zone 'America/New_York') at time zone 'America/New_York');
+
+  select * into v_profile
+  from public.contractor_profiles
+  where user_id=p_contractor;
+
+  if found then
+    v_profile_complete :=
+      v_profile.account_status='active'
+      and length(btrim(coalesce(v_profile.display_name,'')))>=2
+      and length(btrim(coalesce(v_profile.contact_phone,'')))>=7
+      and coalesce(v_profile.base_zip,'') ~ '^[0-9]{5}$'
+      and length(btrim(coalesce(v_profile.city,'')))>=2
+      and v_profile.state_code='FL'
+      and cardinality(v_profile.service_categories)>=1;
+
+    if v_profile.account_status<>'active' then
+      v_code:='account_inactive';
+    elsif not v_profile_complete then
+      v_code:='professional_profile_incomplete';
+    else
+      v_code:='public_profile_required';
+    end if;
+  end if;
+
+  select * into v_public
+  from public.contractor_public_profiles
+  where contractor_id=p_contractor
+  limit 1;
+
+  v_public_ready := found and v_public.published=true;
+
+  if v_profile_complete and v_public_ready then
+    v_code:='eligible';
+  end if;
+
+  select count(*)::integer into v_free_used
+  from public.work_opportunities
+  where posted_by=p_contractor
+    and posting_source='monthly_free'
+    and created_at>=v_month_start;
+
+  select coalesce(purchased_posts,0) into v_purchased
+  from gef_private.work_post_credit_balances
+  where contractor_id=p_contractor;
+  v_purchased := coalesce(v_purchased,0);
+
+  select coalesce(
+    jsonb_agg(
+      jsonb_build_object(
+        'package_code',package_code,
+        'posts',posts,
+        'amount_cents',amount_cents,
+        'currency',currency
+      )
+      order by posts
+    ),
+    '[]'::jsonb
+  ) into v_packages
+  from gef_private.work_post_credit_packages
+  where active=true;
+
+  return jsonb_build_object(
+    'eligible',v_code='eligible',
+    'eligibility_code',v_code,
+    'public_profile_slug',case when v_public_ready then v_public.slug else null end,
+    'free_limit',4,
+    'free_used',v_free_used,
+    'free_remaining',greatest(0,4-v_free_used),
+    'purchased_remaining',v_purchased,
+    'packages',v_packages
+  );
+end
+$$;
+
+create or replace function public.gef_create_work_opportunity(
+  p_contractor uuid,
+  p_operation_key text,
+  p_payload jsonb
+)
+returns jsonb
+language plpgsql
+security invoker
+set search_path=''
+as $$
+declare
+  v_existing public.work_opportunities%rowtype;
+  v_summary jsonb;
+  v_free_used integer;
+  v_purchased integer;
+  v_source text;
+  v_id uuid;
+  v_languages text[];
+  v_today date;
+begin
+  if p_contractor is null
+     or p_operation_key is null
+     or length(p_operation_key) not between 12 and 160
+     or p_payload is null then
+    return jsonb_build_object('ok',false,'code','invalid_request');
+  end if;
+
+  perform pg_advisory_xact_lock(hashtextextended('gef-work-post:'||p_contractor::text,0));
+
+  select * into v_existing
+  from public.work_opportunities
+  where operation_key=p_operation_key
+  limit 1;
+
+  if found then
+    return jsonb_build_object(
+      'ok',true,
+      'idempotent',true,
+      'opportunity_id',v_existing.id,
+      'posting_source',v_existing.posting_source,
+      'status',v_existing.status
+    );
+  end if;
+
+  v_summary := public.gef_work_post_summary(p_contractor);
+  if coalesce((v_summary->>'eligible')::boolean,false) is not true then
+    return jsonb_build_object(
+      'ok',false,
+      'code',v_summary->>'eligibility_code',
+      'summary',v_summary
+    );
+  end if;
+
+  v_today := (now() at time zone 'America/New_York')::date;
+  if nullif(p_payload->>'work_date','')::date < v_today then
+    return jsonb_build_object('ok',false,'code','work_date_in_past');
+  end if;
+
+  select coalesce(array_agg(value),array[]::text[]) into v_languages
+  from jsonb_array_elements_text(coalesce(p_payload->'languages','[]'::jsonb)) t(value);
+
+  v_free_used := coalesce((v_summary->>'free_used')::integer,0);
+  v_purchased := coalesce((v_summary->>'purchased_remaining')::integer,0);
+
+  if v_free_used < 4 then
+    v_source:='monthly_free';
+  elsif v_purchased > 0 then
+    v_source:='purchased_credit';
+  else
+    return jsonb_build_object(
+      'ok',false,
+      'code','quota_exceeded',
+      'summary',v_summary
+    );
+  end if;
+
+  insert into public.work_opportunities(
+    posted_by,operation_key,opportunity_type,service_category,task_label,
+    zip_code,description,pay_cents,pay_basis,work_date,start_time,
+    workers_needed,max_contacts,languages,posting_source,status
+  )
+  values(
+    p_contractor,
+    p_operation_key,
+    p_payload->>'opportunity_type',
+    p_payload->>'service_category',
+    nullif(btrim(p_payload->>'task_label'),''),
+    p_payload->>'zip_code',
+    p_payload->>'description',
+    (p_payload->>'pay_cents')::bigint,
+    coalesce(nullif(p_payload->>'pay_basis',''),'day'),
+    (p_payload->>'work_date')::date,
+    nullif(p_payload->>'start_time','')::time,
+    (p_payload->>'workers_needed')::smallint,
+    (p_payload->>'max_contacts')::smallint,
+    v_languages,
+    v_source,
+    'open'
+  )
+  returning id into v_id;
+
+  if v_source='purchased_credit' then
+    insert into gef_private.work_post_credit_ledger(
+      contractor_id,amount_posts,entry_type,opportunity_id,operation_key
+    )
+    values(
+      p_contractor,-1,'consume',v_id,'consume:'||p_operation_key
+    );
+    v_purchased := v_purchased-1;
+  end if;
+
+  return jsonb_build_object(
+    'ok',true,
+    'idempotent',false,
+    'opportunity_id',v_id,
+    'posting_source',v_source,
+    'status','open',
+    'free_limit',4,
+    'free_used',v_free_used + case when v_source='monthly_free' then 1 else 0 end,
+    'free_remaining',greatest(0,4-(v_free_used + case when v_source='monthly_free' then 1 else 0 end)),
+    'purchased_remaining',v_purchased
+  );
+exception
+  when invalid_text_representation or numeric_value_out_of_range or check_violation then
+    return jsonb_build_object('ok',false,'code','invalid_request');
+end
+$$;
+
+revoke all on function public.gef_work_post_summary(uuid) from public,anon,authenticated;
+revoke all on function public.gef_create_work_opportunity(uuid,text,jsonb) from public,anon,authenticated;
+grant execute on function public.gef_work_post_summary(uuid) to service_role;
+grant execute on function public.gef_create_work_opportunity(uuid,text,jsonb) to service_role;
+
 commit;
