@@ -305,6 +305,7 @@ declare
   v_public_ready boolean := false;
   v_code text := 'account_inactive';
   v_packages jsonb := '[]'::jsonb;
+  v_free_limit integer := 10;
 begin
   v_month_start := (date_trunc('month', now() at time zone 'America/New_York') at time zone 'America/New_York');
 
@@ -372,9 +373,10 @@ begin
     'eligible',v_code='eligible',
     'eligibility_code',v_code,
     'public_profile_slug',case when v_public_ready then v_public.slug else null end,
-    'free_limit',4,
+    'launch_free',true,
+    'free_limit',v_free_limit,
     'free_used',v_free_used,
-    'free_remaining',greatest(0,4-v_free_used),
+    'free_remaining',greatest(0,v_free_limit-v_free_used),
     'purchased_remaining',v_purchased,
     'packages',v_packages
   );
@@ -400,6 +402,7 @@ declare
   v_id uuid;
   v_languages text[];
   v_today date;
+  v_free_limit integer := 10;
 begin
   if p_contractor is null
      or p_operation_key is null
@@ -445,7 +448,7 @@ begin
   v_free_used := coalesce((v_summary->>'free_used')::integer,0);
   v_purchased := coalesce((v_summary->>'purchased_remaining')::integer,0);
 
-  if v_free_used < 4 then
+  if v_free_used < v_free_limit then
     v_source:='monthly_free';
   elsif v_purchased > 0 then
     v_source:='purchased_credit';
@@ -498,9 +501,10 @@ begin
     'opportunity_id',v_id,
     'posting_source',v_source,
     'status','open',
-    'free_limit',4,
+    'launch_free',true,
+    'free_limit',v_free_limit,
     'free_used',v_free_used + case when v_source='monthly_free' then 1 else 0 end,
-    'free_remaining',greatest(0,4-(v_free_used + case when v_source='monthly_free' then 1 else 0 end)),
+    'free_remaining',greatest(0,v_free_limit-(v_free_used + case when v_source='monthly_free' then 1 else 0 end)),
     'purchased_remaining',v_purchased
   );
 exception
