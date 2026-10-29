@@ -1,1 +1,1 @@
-module.exports=require("../_lib/work-google-auth").handlers().start;\n
+module.exports=require("../_lib/work-google-auth").handlers().start;
