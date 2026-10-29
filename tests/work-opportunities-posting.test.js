@@ -41,7 +41,7 @@ test("database makes publication quota atomic and idempotent",()=>{
  const sql=read("supabase/prepared-migrations/20261029_work_opportunities_mvp.sql");
  assert.match(sql,/operation_key text not null unique/);
  assert.match(sql,/pg_advisory_xact_lock/);
- assert.match(sql,/v_free_used < 4/);
+ assert.match(sql,/v_free_used < v_free_limit/);
  assert.match(sql,/posting_source='monthly_free'/);
  assert.match(sql,/v_source:='purchased_credit'/);
  assert.match(sql,/p_contractor,-1,'consume'/);
@@ -60,11 +60,26 @@ test("only complete active professionals with a published public profile can pos
  assert.match(sql,/professional_profile_incomplete/);
 });
 
-test("extra post packages stay private behind a service-role-only summary function",()=>{
+test("launch keeps monetization private and invisible while backend package infrastructure remains available",()=>{
  const sql=read("supabase/prepared-migrations/20261029_work_opportunities_mvp.sql");
  const api=read("api/contractor/work-opportunities.js");
  assert.match(sql,/from gef_private\.work_post_credit_packages/);
  assert.match(sql,/revoke all on function public\.gef_work_post_summary\(uuid\) from public,anon,authenticated/);
  assert.match(sql,/grant execute on function public\.gef_work_post_summary\(uuid\) to service_role/);
  assert.doesNotMatch(api,/queryDb\(\s*"work_post_credit_packages/);
+ assert.match(api,/packages:\[\]/);
+ assert.match(api,/extra_post_test_checkout:false/);
+ const html=read("contractor-portal.html");
+ assert.doesNotMatch(html,/Extra post packages|US\$7|US\$15|Buy \+4|Buy \+15/);
+ assert.match(html,/Free during launch/);
+});
+
+
+test("Hire Help launch allowance is 10 free posts per month",()=>{
+ const sql=read("supabase/prepared-migrations/20261029_work_opportunities_mvp.sql");
+ const api=read("api/contractor/work-opportunities.js");
+ assert.match(sql,/v_free_limit integer := 10/);
+ assert.match(sql,/v_free_used < v_free_limit/);
+ assert.match(sql,/'launch_free',true/);
+ assert.match(api,/current launch limit of 10 free work posts/);
 });
