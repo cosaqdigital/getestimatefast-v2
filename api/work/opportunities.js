@@ -79,7 +79,7 @@ module.exports=async function handler(req,res){
       city:poster.city,
       state_code:poster.state_code,
       profile_path:"/professionals/"+poster.slug,
-      logo_url:Array.isArray(poster.portfolio)&&poster.portfolio[0]?.path?url+"/storage/v1/object/public/gef-portfolio/"+poster.portfolio[0].path:null
+      logo_url:Array.isArray(poster.portfolio)&&poster.portfolio[0]?.image_path?url+"/storage/v1/object/public/gef-portfolio/"+poster.portfolio[0].image_path:null
      }
     };
    })
