@@ -60,8 +60,8 @@ function configuration(operation="checkout",env=process.env){
 function clientFor(key){
  return new Stripe(key,{apiVersion:"2026-09-30.endive",maxNetworkRetries:2,timeout:15000});
 }
-function assertOrder(order){
- if(!order||order.mode!=="test"||order.currency!=="USD"||order.status!=="reserved")
+function assertOrder(order,allowedStatuses=["reserved"]){
+ if(!order||order.mode!=="test"||order.currency!=="USD"||!allowedStatuses.includes(order.status))
   throw Error("Invalid work post credit order");
  if(!["extra_4","extra_15"].includes(order.package_code))throw Error("Invalid work post credit package");
  const expected=order.package_code==="extra_4"?{posts:4,amount:700}:{posts:15,amount:1500};
@@ -99,8 +99,8 @@ function checkoutParameters(order,origin){
   cancel_url:origin+"/contractor-portal.html?work_credits=canceled"
  };
 }
-function assertSession(order,session,requireBound=true){
- assertOrder(order);
+function assertSession(order,session,requireBound=true,allowClosed=false){
+ assertOrder(order,allowClosed?["reserved","paid","failed","expired"]:["reserved"]);
  if(session.livemode!==false
    || !/^cs_test_[A-Za-z0-9_]+$/.test(session.id||"")
    || (requireBound&&session.id!==order.session_id)
@@ -149,7 +149,7 @@ async function processWebhook(raw,signature,settings,{readOrder,bind,confirm},cl
  if(!/^[0-9a-f-]{36}$/i.test(orderId||""))throw Error("Order metadata missing");
  const order=await readOrder(orderId);
  if(!order)throw Error("Order unavailable");
- assertSession(order,session,false);
+ assertSession(order,session,false,true);
  if(!order.session_id){
   if(typeof bind!=="function")throw Error("Unbound session requires recovery");
   const bound=await bind(order.id,session.id);
