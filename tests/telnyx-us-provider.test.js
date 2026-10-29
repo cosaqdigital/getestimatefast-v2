@@ -161,3 +161,41 @@ test("controlled health test tags invalid HTTP response stage",async()=>{
     error=>{assert.equal(error.diagnostic_stage,"response");return true;}
   );
 });
+
+test("controlled health test accepts the production no-argument call shape",async()=>{
+  const original={
+    provider:process.env.GETESTIMATEFAST_SMS_PROVIDER,
+    mode:process.env.GETESTIMATEFAST_SMS_MODE,
+    api:process.env.GETESTIMATEFAST_TELNYX_API_KEY,
+    from:process.env.GETESTIMATEFAST_TELNYX_FROM_NUMBER,
+    brand:process.env.GETESTIMATEFAST_TELNYX_10DLC_BRAND_APPROVED,
+    campaign:process.env.GETESTIMATEFAST_TELNYX_10DLC_CAMPAIGN_APPROVED,
+    to:process.env.GETESTIMATEFAST_TELNYX_TEST_TO
+  };
+  process.env.GETESTIMATEFAST_SMS_PROVIDER="telnyx";
+  process.env.GETESTIMATEFAST_SMS_MODE="controlled_test";
+  process.env.GETESTIMATEFAST_TELNYX_API_KEY="fake";
+  process.env.GETESTIMATEFAST_TELNYX_FROM_NUMBER="+18133039893";
+  process.env.GETESTIMATEFAST_TELNYX_10DLC_BRAND_APPROVED="true";
+  process.env.GETESTIMATEFAST_TELNYX_10DLC_CAMPAIGN_APPROVED="true";
+  process.env.GETESTIMATEFAST_TELNYX_TEST_TO="+18135550134";
+  const previousFetch=global.fetch;
+  let body=null;
+  global.fetch=async(_url,opts)=>{body=JSON.parse(opts.body);return {ok:true,status:200,json:async()=>({data:{id:"msg_no_args"}})};};
+  try{
+    const sent=await sendControlledHealthTest();
+    assert.equal(sent.id,"msg_no_args");
+    assert.equal(body.from,"+18133039893");
+    assert.equal(body.to,"+18135550134");
+  } finally {
+    global.fetch=previousFetch;
+    const restore=(key,value)=>value===undefined?delete process.env[key]:process.env[key]=value;
+    restore("GETESTIMATEFAST_SMS_PROVIDER",original.provider);
+    restore("GETESTIMATEFAST_SMS_MODE",original.mode);
+    restore("GETESTIMATEFAST_TELNYX_API_KEY",original.api);
+    restore("GETESTIMATEFAST_TELNYX_FROM_NUMBER",original.from);
+    restore("GETESTIMATEFAST_TELNYX_10DLC_BRAND_APPROVED",original.brand);
+    restore("GETESTIMATEFAST_TELNYX_10DLC_CAMPAIGN_APPROVED",original.campaign);
+    restore("GETESTIMATEFAST_TELNYX_TEST_TO",original.to);
+  }
+});
