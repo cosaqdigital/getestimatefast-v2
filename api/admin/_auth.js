@@ -83,7 +83,10 @@ async function queryDb(path, options = {}) {
     throw error;
   }
   if (response.status === 204) return null;
-  return response.json();
+  const body = await response.text();
+  if (!body.trim()) return null;
+  try { return JSON.parse(body); }
+  catch { throw new Error("Database returned invalid JSON"); }
 }
 async function requireAdmin(req, res) {
   const match = /^Bearer ([A-Za-z0-9._~-]+)$/.exec(String(req.headers.authorization || ""));
