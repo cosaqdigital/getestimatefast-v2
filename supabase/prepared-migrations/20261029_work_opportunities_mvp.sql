@@ -129,6 +129,20 @@ create table public.work_user_blocks(
   check (blocker_id <> blocked_id)
 );
 
+create table public.work_notifications(
+  id uuid primary key default gen_random_uuid(),
+  recipient_id uuid not null references auth.users(id) on delete cascade,
+  actor_id uuid references auth.users(id) on delete set null,
+  opportunity_id uuid references public.work_opportunities(id) on delete cascade,
+  application_id uuid references public.work_applications(id) on delete cascade,
+  notification_type text not null
+    check (notification_type in ('application_received','work_match','application_selected','application_closed')),
+  event_key text not null unique
+    check (length(event_key) between 12 and 180),
+  read_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
 create table gef_private.work_reports(
   id uuid primary key default gen_random_uuid(),
   reporter_id uuid not null references auth.users(id) on delete restrict,
@@ -228,6 +242,8 @@ create index work_opportunities_poster_idx on public.work_opportunities(posted_b
 create index work_applications_opportunity_idx on public.work_applications(opportunity_id,status,created_at);
 create index work_applications_applicant_idx on public.work_applications(applicant_id,created_at desc);
 create index work_assignments_opportunity_idx on public.work_assignments(opportunity_id,status);
+create index work_notifications_recipient_idx on public.work_notifications(recipient_id,read_at,created_at desc);
+create index work_notifications_opportunity_idx on public.work_notifications(opportunity_id,created_at desc);
 create index work_reports_status_idx on gef_private.work_reports(status,created_at);
 create index work_post_credit_ledger_contractor_idx on gef_private.work_post_credit_ledger(contractor_id,created_at desc);
 
@@ -236,6 +252,7 @@ alter table public.work_opportunities enable row level security;
 alter table public.work_applications enable row level security;
 alter table public.work_assignments enable row level security;
 alter table public.work_user_blocks enable row level security;
+alter table public.work_notifications enable row level security;
 alter table gef_private.work_reports enable row level security;
 alter table gef_private.work_post_credit_packages enable row level security;
 alter table gef_private.work_post_credit_balances enable row level security;
@@ -246,11 +263,13 @@ revoke all on public.work_opportunities from public,anon,authenticated;
 revoke all on public.work_applications from public,anon,authenticated;
 revoke all on public.work_assignments from public,anon,authenticated;
 revoke all on public.work_user_blocks from public,anon,authenticated;
+revoke all on public.work_notifications from public,anon,authenticated;
 grant select,insert,update on public.work_profiles to service_role;\ngrant select,insert,update on public.work_signup_consents to service_role;
 grant select,insert,update on public.work_opportunities to service_role;
 grant select,insert,update on public.work_applications to service_role;
 grant select,insert,update on public.work_assignments to service_role;
 grant select,insert,delete on public.work_user_blocks to service_role;
+grant select,insert,update on public.work_notifications to service_role;
 
 revoke all on gef_private.work_reports from public,anon,authenticated;
 revoke all on gef_private.work_post_credit_packages from public,anon,authenticated;
@@ -490,5 +509,154 @@ revoke all on function public.gef_work_post_summary(uuid) from public,anon,authe
 revoke all on function public.gef_create_work_opportunity(uuid,text,jsonb) from public,anon,authenticated;
 grant execute on function public.gef_work_post_summary(uuid) to service_role;
 grant execute on function public.gef_create_work_opportunity(uuid,text,jsonb) to service_role;
+
+
+create or replace function public.gef_apply_work_opportunity(
+  p_applicant uuid,
+  p_opportunity uuid,
+  p_operation_key text
+)
+returns jsonb
+language plpgsql
+security invoker
+set search_path=''
+as $$
+declare
+  v_profile public.work_profiles%rowtype;
+  v_op public.work_opportunities%rowtype;
+  v_existing public.work_applications%rowtype;
+  v_application uuid;
+  v_contacts smallint;
+  v_status text;
+begin
+  if p_applicant is null
+     or p_opportunity is null
+     or p_operation_key is null
+     or length(p_operation_key) not between 12 and 160 then
+    return jsonb_build_object('ok',false,'code','invalid_request');
+  end if;
+
+  perform pg_advisory_xact_lock(hashtextextended('gef-work-apply:'||p_opportunity::text,0));
+
+  select * into v_existing
+  from public.work_applications
+  where operation_key=p_operation_key
+  limit 1;
+
+  if found then
+    if v_existing.applicant_id<>p_applicant or v_existing.opportunity_id<>p_opportunity then
+      return jsonb_build_object('ok',false,'code','operation_key_conflict');
+    end if;
+    return jsonb_build_object(
+      'ok',true,
+      'idempotent',true,
+      'already_applied',true,
+      'application_id',v_existing.id,
+      'status',v_existing.status
+    );
+  end if;
+
+  select * into v_existing
+  from public.work_applications
+  where applicant_id=p_applicant and opportunity_id=p_opportunity
+  limit 1;
+
+  if found then
+    return jsonb_build_object(
+      'ok',true,
+      'idempotent',true,
+      'already_applied',true,
+      'application_id',v_existing.id,
+      'status',v_existing.status
+    );
+  end if;
+
+  select * into v_profile
+  from public.work_profiles
+  where user_id=p_applicant
+  limit 1;
+
+  if not found or v_profile.status<>'active' then
+    return jsonb_build_object('ok',false,'code','work_profile_required');
+  end if;
+
+  select * into v_op
+  from public.work_opportunities
+  where id=p_opportunity
+  for update;
+
+  if not found then
+    return jsonb_build_object('ok',false,'code','not_found');
+  end if;
+
+  if v_op.posted_by=p_applicant then
+    return jsonb_build_object('ok',false,'code','self_application');
+  end if;
+
+  if v_op.status<>'open' then
+    return jsonb_build_object('ok',false,'code','applications_closed');
+  end if;
+
+  if v_op.work_date < (now() at time zone 'America/New_York')::date then
+    return jsonb_build_object('ok',false,'code','expired');
+  end if;
+
+  if v_op.contacts_used>=v_op.max_contacts or v_op.positions_filled>=v_op.workers_needed then
+    return jsonb_build_object('ok',false,'code','applications_closed');
+  end if;
+
+  if not (v_op.service_category = any(v_profile.service_categories))
+     or not (v_op.opportunity_type = any(v_profile.opportunity_types))
+     or not (v_profile.languages && v_op.languages) then
+    return jsonb_build_object('ok',false,'code','not_eligible');
+  end if;
+
+  if exists(
+    select 1 from public.work_user_blocks b
+    where (b.blocker_id=p_applicant and b.blocked_id=v_op.posted_by)
+       or (b.blocker_id=v_op.posted_by and b.blocked_id=p_applicant)
+  ) then
+    return jsonb_build_object('ok',false,'code','blocked');
+  end if;
+
+  insert into public.work_applications(
+    opportunity_id,applicant_id,operation_key,status,contact_released_at
+  )
+  values(
+    p_opportunity,p_applicant,p_operation_key,'interested',now()
+  )
+  returning id into v_application;
+
+  v_contacts := v_op.contacts_used + 1;
+  v_status := case when v_contacts>=v_op.max_contacts then 'applications_closed' else 'open' end;
+
+  update public.work_opportunities
+  set contacts_used=v_contacts,status=v_status
+  where id=p_opportunity;
+
+  insert into public.work_notifications(
+    recipient_id,actor_id,opportunity_id,application_id,notification_type,event_key
+  )
+  values(
+    v_op.posted_by,p_applicant,p_opportunity,v_application,
+    'application_received','work-application:'||v_application::text
+  )
+  on conflict(event_key) do nothing;
+
+  return jsonb_build_object(
+    'ok',true,
+    'idempotent',false,
+    'already_applied',false,
+    'application_id',v_application,
+    'status','interested',
+    'contacts_used',v_contacts,
+    'max_contacts',v_op.max_contacts,
+    'applications_closed',v_status='applications_closed'
+  );
+end
+$$;
+
+revoke all on function public.gef_apply_work_opportunity(uuid,uuid,text) from public,anon,authenticated;
+grant execute on function public.gef_apply_work_opportunity(uuid,uuid,text) to service_role;
 
 commit;
