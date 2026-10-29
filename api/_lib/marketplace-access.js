@@ -2,9 +2,17 @@
 const {config,json}=require("../admin/_auth");
 const {protectedPreview}=require("./preview-target");
 const {inspect}=require("../../scripts/preview-readiness");
+const {readiness:smsReadiness}=require("./telnyx-us-provider");
 
 function previewMarketplaceEnabled(env=process.env){
  return env.GETESTIMATEFAST_MARKETPLACE_PREVIEW==="true"&&env.GETESTIMATEFAST_ISOLATED_BACKEND==="true"&&env.VERCEL_ENV!=="production";
+}
+function productionSmsConfigurationSafe(env=process.env){
+ const requested=String(env.GETESTIMATEFAST_SMS_MODE||"");
+ if(requested==="disabled")return true;
+ if(requested!=="live")return false;
+ const sms=smsReadiness(env);
+ return sms.mode==="live"&&sms.live_sms_enabled===true;
 }
 function productionMarketplaceEnabled(env=process.env){
  const url=String(env.GETESTIMATEFAST_SUPABASE_URL||"").replace(/\/$/,"");
@@ -13,7 +21,7 @@ function productionMarketplaceEnabled(env=process.env){
   env.GETESTIMATEFAST_MARKETPLACE_SCHEMA_APPROVED==="true"&&
   env.GETESTIMATEFAST_ISOLATED_BACKEND!=="true"&&
   url==="https://wedsjubkttygxtpkopfj.supabase.co"&&
-  env.GETESTIMATEFAST_SMS_MODE==="disabled"&&
+  productionSmsConfigurationSafe(env)&&
   env.GETESTIMATEFAST_STRIPE_TEST_CHECKOUT_APPROVED!=="true"&&
   env.GETESTIMATEFAST_STRIPE_TEST_WEBHOOK_ENABLED!=="true"&&
   (env.GETESTIMATEFAST_REVIEW_GOOGLE_ENABLED!=="true"||env.GETESTIMATEFAST_REVIEW_SCHEMA_APPROVED==="true")&&
@@ -35,4 +43,4 @@ function blockPayments(res){return json(res,503,{error:"Payments and financial m
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function uuid(value){if(typeof value!=="string"||!UUID.test(value))throw Error("Invalid identifier");return value;}
 function operationKey(value){if(typeof value!=="string"||!/^[A-Za-z0-9:_-]{8,120}$/.test(value))throw Error("Invalid operation key");return value;}
-module.exports={marketplaceReady,marketplaceCommercialEnabled,previewMarketplaceEnabled,productionMarketplaceEnabled,blockPayments,uuid,operationKey};
+module.exports={marketplaceReady,marketplaceCommercialEnabled,previewMarketplaceEnabled,productionSmsConfigurationSafe,productionMarketplaceEnabled,blockPayments,uuid,operationKey};

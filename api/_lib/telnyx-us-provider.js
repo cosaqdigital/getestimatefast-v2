@@ -50,10 +50,14 @@ const CONTROLLED_HELP_REPLY="GetEstimateFast: For help visit getestimatefast.com
 
 async function sendControlledHelpReply({phone,env=process.env,fetchImpl=global.fetch}){
   const state=readiness(env);
-  if(!state.controlled_test_enabled){const error=Error("Controlled Telnyx SMS test is not enabled");error.diagnostic_stage="readiness";throw error;}
-  const allowed=normalizeUsPhone(env.GETESTIMATEFAST_TELNYX_TEST_TO||"");
   const to=normalizeUsPhone(phone);
-  if(!allowed||!to||to!==allowed){const error=Error("Recipient is not the configured controlled test number");error.diagnostic_stage="recipient";throw error;}
+  if(!to){const error=Error("Invalid US recipient number");error.diagnostic_stage="recipient";throw error;}
+  if(state.controlled_test_enabled){
+    const allowed=normalizeUsPhone(env.GETESTIMATEFAST_TELNYX_TEST_TO||"");
+    if(!allowed||to!==allowed){const error=Error("Recipient is not the configured controlled test number");error.diagnostic_stage="recipient";throw error;}
+  }else if(!state.live_sms_enabled){
+    const error=Error("Telnyx SMS reply is not enabled");error.diagnostic_stage="readiness";throw error;
+  }
   if(typeof fetchImpl!=="function"){const error=Error("Fetch unavailable");error.diagnostic_stage="fetch_available";throw error;}
   const from=normalizeUsPhone(env.GETESTIMATEFAST_TELNYX_FROM_NUMBER||"");
   if(!from){const error=Error("Invalid Telnyx sender number");error.diagnostic_stage="sender";throw error;}
@@ -86,13 +90,16 @@ async function sendControlledHelpReply({phone,env=process.env,fetchImpl=global.f
 function readiness(env=process.env){
   const configured=env.GETESTIMATEFAST_SMS_PROVIDER==="telnyx";
   const requestedMode=env.GETESTIMATEFAST_SMS_MODE;
-  const mode=requestedMode==="controlled_test"?"controlled_test":requestedMode==="dry_run"?"dry_run":"disabled";
+  const mode=requestedMode==="controlled_test"?"controlled_test":requestedMode==="dry_run"?"dry_run":requestedMode==="live"?"live":"disabled";
   const api_key_configured=Boolean(env.GETESTIMATEFAST_TELNYX_API_KEY);
   const from=normalizeUsPhone(env.GETESTIMATEFAST_TELNYX_FROM_NUMBER||"");
   const brand_approved=env.GETESTIMATEFAST_TELNYX_10DLC_BRAND_APPROVED==="true";
   const campaign_approved=env.GETESTIMATEFAST_TELNYX_10DLC_CAMPAIGN_APPROVED==="true";
   const test_recipient_configured=Boolean(normalizeUsPhone(env.GETESTIMATEFAST_TELNYX_TEST_TO||""));
-  const controlled_test_enabled=configured&&mode==="controlled_test"&&api_key_configured&&Boolean(from)&&brand_approved&&campaign_approved&&test_recipient_configured;
+  const live_approval_configured=env.GETESTIMATEFAST_SMS_LIVE_APPROVED==="true";
+  const provider_ready=configured&&api_key_configured&&Boolean(from)&&brand_approved&&campaign_approved;
+  const controlled_test_enabled=provider_ready&&mode==="controlled_test"&&test_recipient_configured;
+  const live_sms_enabled=provider_ready&&mode==="live"&&live_approval_configured;
   return {
     provider:configured?"telnyx":"unconfigured",
     mode,
@@ -102,15 +109,18 @@ function readiness(env=process.env){
     brand_approved,
     campaign_approved,
     test_recipient_configured,
+    live_approval_configured,
     controlled_test_enabled,
-    live_sms_enabled:controlled_test_enabled,
+    live_sms_enabled,
+    compliance_reply_enabled:controlled_test_enabled||live_sms_enabled,
     sms_sent:0,
     next_steps:[
       "Approve the Telnyx 10DLC Brand",
       "Create and approve the Telnyx 10DLC Campaign",
       "Create a server-only Telnyx API v2 key",
       "Configure signed Telnyx inbound/status webhooks",
-      "Run a controlled Preview test before any Production send"
+      "Run a controlled Preview test before any Production send",
+      "Set GETESTIMATEFAST_SMS_LIVE_APPROVED=true only after the production queue and consent gates are verified"
     ]
   };
 }
@@ -160,7 +170,7 @@ async function sendControlledHealthTest({env=process.env,fetchImpl=global.fetch}
 
 async function sendControlledTest({phone,city,opportunityId,origin=DEFAULT_ORIGIN,env=process.env,fetchImpl=global.fetch}){
   const state=readiness(env);
-  if(!state.live_sms_enabled)throw Error("Controlled Telnyx SMS test is not enabled");
+  if(!state.controlled_test_enabled)throw Error("Controlled Telnyx SMS test is not enabled");
   const allowed=normalizeUsPhone(env.GETESTIMATEFAST_TELNYX_TEST_TO||"");
   const to=normalizeUsPhone(phone);
   if(!allowed||!to||to!==allowed)throw Error("Recipient is not the configured controlled test number");
