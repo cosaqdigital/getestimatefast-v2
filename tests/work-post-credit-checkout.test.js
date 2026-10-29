@@ -164,3 +164,23 @@ test("database credits only through confirmed immutable purchase ledger entries"
  assert.match(sql,/unique\(contractor_id,operation_key\)/);
  assert.match(sql,/revoke all on gef_private\.work_post_credit_orders from public,anon,authenticated/);
 });
+
+
+test("paid work-credit orders remain valid for duplicate Stripe webhook verification",()=>{
+ const o={...order("extra_4"),status:"paid",session_id:"cs_test_synthetic"};
+ const params=checkoutParameters({...o,status:"reserved",session_id:null},o.checkout_origin);
+ const session={
+  id:"cs_test_synthetic",
+  livemode:false,
+  client_reference_id:o.id,
+  metadata:params.metadata,
+  mode:"payment",
+  currency:"usd",
+  amount_total:700,
+  status:"complete",
+  payment_status:"paid",
+  payment_intent:"pi_synthetic",
+  expires_at:params.expires_at
+ };
+ assert.doesNotThrow(()=>assertSession(o,session,true,true));
+});
