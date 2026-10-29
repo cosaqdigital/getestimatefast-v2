@@ -130,7 +130,7 @@ async function createCheckout(order,settings,client=clientFor(settings.key)){
  if(link.origin!=="https://checkout.stripe.com")throw Error("Unexpected Checkout destination");
  return {id:session.id,url:session.url};
 }
-async function processWebhook(raw,signature,settings,{readOrder,confirm},client=clientFor(settings.key)){
+async function processWebhook(raw,signature,settings,{readOrder,bind,confirm},client=clientFor(settings.key)){
  const event=client.webhooks.constructEvent(raw,signature,settings.secret,300);
  if(event.livemode!==false||!/^evt_[A-Za-z0-9_]+$/.test(event.id||""))throw Error("Test event required");
  const handled=new Set([
@@ -150,6 +150,12 @@ async function processWebhook(raw,signature,settings,{readOrder,confirm},client=
  const order=await readOrder(orderId);
  if(!order)throw Error("Order unavailable");
  assertSession(order,session,false);
+ if(!order.session_id){
+  if(typeof bind!=="function")throw Error("Unbound session requires recovery");
+  const bound=await bind(order.id,session.id);
+  if(bound?.ok!==true)throw Error("Session recovery failed");
+  order.session_id=session.id;
+ }
  let outcome="pending";
  if(session.payment_status==="paid"&&session.status==="complete")outcome="paid";
  else if(session.status==="expired")outcome="expired";
