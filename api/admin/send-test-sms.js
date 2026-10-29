@@ -12,5 +12,11 @@ module.exports=async function handler(req,res){
   if(!state.controlled_test_enabled)return json(res,503,{error:"Controlled SMS test is not enabled",readiness:state});
   const sent=await sendControlledHealthTest();
   return json(res,200,{mode:"CONTROLLED_TEST",message_id:sent.id,to:sent.to,from:sent.from,text:sent.text});
- }catch(e){fail(res,e);}
+ }catch(e){
+  if(e?.telnyx){
+   console.error("GetEstimateFast Telnyx controlled test failed.",{http_status:e.telnyx.http_status,code:e.telnyx.code});
+   return json(res,502,{error:"Telnyx rejected the controlled SMS test",telnyx:e.telnyx});
+  }
+  fail(res,e);
+ }
 };

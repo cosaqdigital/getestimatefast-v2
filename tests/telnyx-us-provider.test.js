@@ -81,3 +81,28 @@ test("controlled health test uses only configured recipient and fixed opt-out te
   assert.match(body.text,/STOP/);
   assert.deepEqual(body,prepareTelnyxControlledTestPayload({from:env.GETESTIMATEFAST_TELNYX_FROM_NUMBER,phone:env.GETESTIMATEFAST_TELNYX_TEST_TO}));
 });
+
+test("controlled health test exposes only safe Telnyx error metadata",async()=>{
+  const env={
+    GETESTIMATEFAST_SMS_PROVIDER:"telnyx",
+    GETESTIMATEFAST_SMS_MODE:"controlled_test",
+    GETESTIMATEFAST_TELNYX_API_KEY:"super-secret-key",
+    GETESTIMATEFAST_TELNYX_FROM_NUMBER:"+18133039893",
+    GETESTIMATEFAST_TELNYX_10DLC_BRAND_APPROVED:"true",
+    GETESTIMATEFAST_TELNYX_10DLC_CAMPAIGN_APPROVED:"true",
+    GETESTIMATEFAST_TELNYX_TEST_TO:"+18135550134"
+  };
+  const fakeFetch=async()=>({
+    ok:false,status:401,
+    json:async()=>({errors:[{code:"10009",title:"Unauthorized",detail:"Authentication failed"}]})
+  });
+  await assert.rejects(
+    ()=>sendControlledHealthTest({env,fetchImpl:fakeFetch}),
+    error=>{
+      assert.equal(error.message,"Telnyx send failed with HTTP 401");
+      assert.deepEqual(error.telnyx,{http_status:401,code:"10009",title:"Unauthorized",detail:"Authentication failed"});
+      assert.doesNotMatch(JSON.stringify(error.telnyx),/super-secret-key/);
+      return true;
+    }
+  );
+});

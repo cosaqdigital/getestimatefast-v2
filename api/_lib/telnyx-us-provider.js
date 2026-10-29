@@ -92,7 +92,17 @@ async function sendControlledHealthTest({env=process.env,fetchImpl=global.fetch}
     body:JSON.stringify(payload)
   });
   let data={};try{data=await response.json();}catch{}
-  if(!response.ok)throw Error("Telnyx send failed with HTTP "+response.status);
+  if(!response.ok){
+    const first=Array.isArray(data?.errors)?data.errors[0]:null;
+    const error=Error("Telnyx send failed with HTTP "+response.status);
+    error.telnyx={
+      http_status:response.status,
+      code:first?.code==null?null:String(first.code).slice(0,80),
+      title:first?.title==null?null:String(first.title).slice(0,160),
+      detail:first?.detail==null?null:String(first.detail).slice(0,300)
+    };
+    throw error;
+  }
   return {id:data?.data?.id||null,to:payload.to,from:payload.from,text:payload.text};
 }
 
@@ -116,7 +126,17 @@ async function sendControlledTest({phone,city,opportunityId,origin=DEFAULT_ORIGI
     body:JSON.stringify(payload)
   });
   let data={};try{data=await response.json();}catch{}
-  if(!response.ok)throw Error("Telnyx send failed with HTTP "+response.status);
+  if(!response.ok){
+    const first=Array.isArray(data?.errors)?data.errors[0]:null;
+    const error=Error("Telnyx send failed with HTTP "+response.status);
+    error.telnyx={
+      http_status:response.status,
+      code:first?.code==null?null:String(first.code).slice(0,80),
+      title:first?.title==null?null:String(first.title).slice(0,160),
+      detail:first?.detail==null?null:String(first.detail).slice(0,300)
+    };
+    throw error;
+  }
   return {id:data?.data?.id||null,to:payload.to,from:payload.from,text:payload.text};
 }
 
