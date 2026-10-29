@@ -1,6 +1,6 @@
 "use strict";
 const test=require("node:test"),assert=require("node:assert/strict");
-const {normalizeUsPhone,opportunityUrl,formatTelnyxOpportunityNotice,prepareTelnyxPayload,formatTelnyxControlledTestNotice,prepareTelnyxControlledTestPayload,readiness,sendControlledHealthTest,sendControlledTest}=require("../api/_lib/telnyx-us-provider");
+const {normalizeUsPhone,opportunityUrl,formatTelnyxOpportunityNotice,prepareTelnyxPayload,formatTelnyxControlledTestNotice,prepareTelnyxControlledTestPayload,CONTROLLED_HELP_REPLY,readiness,sendControlledHealthTest,sendControlledTest,sendControlledHelpReply}=require("../api/_lib/telnyx-us-provider");
 const id="123e4567-e89b-42d3-a456-426614174000";
 test("Telnyx uses E.164 US numbers",()=>{
   assert.equal(normalizeUsPhone("+1 (813) 303-9893"),"+18133039893");
@@ -198,4 +198,25 @@ test("controlled health test accepts the production no-argument call shape",asyn
     restore("GETESTIMATEFAST_TELNYX_10DLC_CAMPAIGN_APPROVED",original.campaign);
     restore("GETESTIMATEFAST_TELNYX_TEST_TO",original.to);
   }
+});
+
+test("controlled HELP reply is fixed and restricted to configured test recipient",async()=>{
+  const env={
+    GETESTIMATEFAST_SMS_PROVIDER:"telnyx",
+    GETESTIMATEFAST_SMS_MODE:"controlled_test",
+    GETESTIMATEFAST_TELNYX_API_KEY:"fake",
+    GETESTIMATEFAST_TELNYX_FROM_NUMBER:"+18133039893",
+    GETESTIMATEFAST_TELNYX_10DLC_BRAND_APPROVED:"true",
+    GETESTIMATEFAST_TELNYX_10DLC_CAMPAIGN_APPROVED:"true",
+    GETESTIMATEFAST_TELNYX_TEST_TO:"+18135917560"
+  };
+  let body=null;
+  const fakeFetch=async(_url,opts)=>{body=JSON.parse(opts.body);return {ok:true,status:200,json:async()=>({data:{id:"msg_help"}})};};
+  const sent=await sendControlledHelpReply({phone:"+18135917560",env,fetchImpl:fakeFetch});
+  assert.equal(sent.id,"msg_help");
+  assert.deepEqual(body,{from:"+18133039893",to:"+18135917560",text:CONTROLLED_HELP_REPLY});
+  assert.match(body.text,/HELP|help/);
+  assert.match(body.text,/STOP/);
+  assert(body.text.length<=160);
+  await assert.rejects(()=>sendControlledHelpReply({phone:"+17274124478",env,fetchImpl:fakeFetch}),/configured controlled test number/);
 });

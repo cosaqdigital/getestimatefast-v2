@@ -46,6 +46,32 @@ function prepareTelnyxControlledTestPayload({from,phone}){
   return {from:sender,to,text:formatTelnyxControlledTestNotice()};
 }
 
+const CONTROLLED_HELP_REPLY="GetEstimateFast: For help visit getestimatefast.com or email admin@getestimatefast.com. Reply STOP to opt out.";
+
+async function sendControlledHelpReply({phone,env=process.env,fetchImpl=global.fetch}){
+  const state=readiness(env);
+  if(!state.controlled_test_enabled)throw Error("Controlled Telnyx SMS test is not enabled");
+  const allowed=normalizeUsPhone(env.GETESTIMATEFAST_TELNYX_TEST_TO||"");
+  const to=normalizeUsPhone(phone);
+  if(!allowed||!to||to!==allowed)throw Error("Recipient is not the configured controlled test number");
+  if(typeof fetchImpl!=="function")throw Error("Fetch unavailable");
+  const from=normalizeUsPhone(env.GETESTIMATEFAST_TELNYX_FROM_NUMBER||"");
+  if(!from)throw Error("Invalid Telnyx sender number");
+  const response=await fetchImpl(TELNYX_SMS_ENDPOINT,{
+    method:"POST",
+    headers:{Authorization:"Bearer "+env.GETESTIMATEFAST_TELNYX_API_KEY,"Content-Type":"application/json"},
+    body:JSON.stringify({from,to,text:CONTROLLED_HELP_REPLY})
+  });
+  let data={};try{data=await response.json();}catch{}
+  if(!response.ok){
+    const first=Array.isArray(data?.errors)?data.errors[0]:null;
+    const error=Error("Telnyx HELP reply failed with HTTP "+response.status);
+    error.telnyx={http_status:response.status,code:first?.code==null?null:String(first.code).slice(0,80)};
+    throw error;
+  }
+  return {id:data?.data?.id||null,to,from,text:CONTROLLED_HELP_REPLY};
+}
+
 function readiness(env=process.env){
   const configured=env.GETESTIMATEFAST_SMS_PROVIDER==="telnyx";
   const requestedMode=env.GETESTIMATEFAST_SMS_MODE;
@@ -155,4 +181,4 @@ async function sendControlledTest({phone,city,opportunityId,origin=DEFAULT_ORIGI
   return {id:data?.data?.id||null,to:payload.to,from:payload.from,text:payload.text};
 }
 
-module.exports={TELNYX_SMS_ENDPOINT,normalizeUsPhone,validUuid,opportunityUrl,formatTelnyxOpportunityNotice,prepareTelnyxPayload,formatTelnyxControlledTestNotice,prepareTelnyxControlledTestPayload,readiness,sendControlledHealthTest,sendControlledTest};
+module.exports={TELNYX_SMS_ENDPOINT,normalizeUsPhone,validUuid,opportunityUrl,formatTelnyxOpportunityNotice,prepareTelnyxPayload,formatTelnyxControlledTestNotice,prepareTelnyxControlledTestPayload,CONTROLLED_HELP_REPLY,readiness,sendControlledHealthTest,sendControlledTest,sendControlledHelpReply};
