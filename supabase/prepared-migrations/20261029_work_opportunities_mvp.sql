@@ -248,7 +248,8 @@ create index work_notifications_opportunity_idx on public.work_notifications(opp
 create index work_reports_status_idx on gef_private.work_reports(status,created_at);
 create index work_post_credit_ledger_contractor_idx on gef_private.work_post_credit_ledger(contractor_id,created_at desc);
 
-alter table public.work_profiles enable row level security;\nalter table public.work_signup_consents enable row level security;
+alter table public.work_profiles enable row level security;
+alter table public.work_signup_consents enable row level security;
 alter table public.work_opportunities enable row level security;
 alter table public.work_applications enable row level security;
 alter table public.work_assignments enable row level security;
@@ -259,13 +260,15 @@ alter table gef_private.work_post_credit_packages enable row level security;
 alter table gef_private.work_post_credit_balances enable row level security;
 alter table gef_private.work_post_credit_ledger enable row level security;
 
-revoke all on public.work_profiles from public,anon,authenticated;\nrevoke all on public.work_signup_consents from public,anon,authenticated;
+revoke all on public.work_profiles from public,anon,authenticated;
+revoke all on public.work_signup_consents from public,anon,authenticated;
 revoke all on public.work_opportunities from public,anon,authenticated;
 revoke all on public.work_applications from public,anon,authenticated;
 revoke all on public.work_assignments from public,anon,authenticated;
 revoke all on public.work_user_blocks from public,anon,authenticated;
 revoke all on public.work_notifications from public,anon,authenticated;
-grant select,insert,update on public.work_profiles to service_role;\ngrant select,insert,update on public.work_signup_consents to service_role;
+grant select,insert,update on public.work_profiles to service_role;
+grant select,insert,update on public.work_signup_consents to service_role;
 grant select,insert,update on public.work_opportunities to service_role;
 grant select,insert,update on public.work_applications to service_role;
 grant select,insert,update on public.work_assignments to service_role;
@@ -659,5 +662,179 @@ $$;
 
 revoke all on function public.gef_apply_work_opportunity(uuid,uuid,text) from public,anon,authenticated;
 grant execute on function public.gef_apply_work_opportunity(uuid,uuid,text) to service_role;
+
+
+create or replace function public.gef_select_work_applicant(
+  p_contractor uuid,
+  p_application uuid
+)
+returns jsonb
+language plpgsql
+security invoker
+set search_path=''
+as $$
+declare
+  v_app public.work_applications%rowtype;
+  v_op public.work_opportunities%rowtype;
+  v_worker public.work_profiles%rowtype;
+  v_assignment public.work_assignments%rowtype;
+  v_filled integer;
+  v_new_status text;
+  v_now timestamptz := now();
+begin
+  if p_contractor is null or p_application is null then
+    return jsonb_build_object('ok',false,'code','invalid_request');
+  end if;
+
+  select * into v_app
+  from public.work_applications
+  where id=p_application
+  limit 1;
+
+  if not found then
+    return jsonb_build_object('ok',false,'code','application_not_found');
+  end if;
+
+  perform pg_advisory_xact_lock(hashtextextended('gef-work-select:'||v_app.opportunity_id::text,0));
+
+  select * into v_op
+  from public.work_opportunities
+  where id=v_app.opportunity_id
+  for update;
+
+  if not found or v_op.posted_by<>p_contractor then
+    return jsonb_build_object('ok',false,'code','not_owner');
+  end if;
+
+  select * into v_assignment
+  from public.work_assignments
+  where application_id=p_application
+  limit 1;
+
+  if found then
+    return jsonb_build_object(
+      'ok',true,
+      'idempotent',true,
+      'assignment_id',v_assignment.id,
+      'opportunity_id',v_op.id,
+      'application_id',v_app.id,
+      'worker_id',v_app.applicant_id,
+      'positions_filled',v_op.positions_filled,
+      'workers_needed',v_op.workers_needed,
+      'opportunity_status',v_op.status
+    );
+  end if;
+
+  if v_op.status in ('filled','cancelled','expired') then
+    return jsonb_build_object('ok',false,'code','opportunity_closed');
+  end if;
+
+  if v_app.status<>'interested' then
+    return jsonb_build_object('ok',false,'code','application_not_selectable');
+  end if;
+
+  select * into v_worker
+  from public.work_profiles
+  where user_id=v_app.applicant_id
+  limit 1;
+
+  if not found or v_worker.status<>'active' then
+    return jsonb_build_object('ok',false,'code','worker_unavailable');
+  end if;
+
+  select count(*)::integer into v_filled
+  from public.work_assignments
+  where opportunity_id=v_op.id
+    and status in ('selected','completed');
+
+  if v_filled>=v_op.workers_needed then
+    update public.work_opportunities
+    set positions_filled=v_filled,status='filled',closed_at=coalesce(closed_at,v_now)
+    where id=v_op.id;
+    return jsonb_build_object('ok',false,'code','positions_already_filled');
+  end if;
+
+  insert into public.work_assignments(
+    opportunity_id,application_id,worker_id,status,selected_at
+  )
+  values(
+    v_op.id,v_app.id,v_app.applicant_id,'selected',v_now
+  )
+  returning * into v_assignment;
+
+  update public.work_applications
+  set status='selected',selected_at=v_now
+  where id=v_app.id;
+
+  v_filled := v_filled + 1;
+
+  if v_filled>=v_op.workers_needed then
+    v_new_status := 'filled';
+
+    update public.work_opportunities
+    set positions_filled=v_filled,status='filled',closed_at=v_now
+    where id=v_op.id;
+
+    update public.work_applications
+    set status='declined'
+    where opportunity_id=v_op.id
+      and status='interested'
+      and id<>v_app.id;
+
+    insert into public.work_notifications(
+      recipient_id,actor_id,opportunity_id,application_id,notification_type,event_key
+    )
+    select
+      a.applicant_id,
+      p_contractor,
+      v_op.id,
+      a.id,
+      'application_closed',
+      'work-closed:'||v_op.id::text||':'||a.id::text
+    from public.work_applications a
+    where a.opportunity_id=v_op.id
+      and a.status='declined'
+    on conflict(event_key) do nothing;
+  else
+    v_new_status := case
+      when v_op.contacts_used>=v_op.max_contacts then 'applications_closed'
+      else 'open'
+    end;
+
+    update public.work_opportunities
+    set positions_filled=v_filled,status=v_new_status,closed_at=null
+    where id=v_op.id;
+  end if;
+
+  insert into public.work_notifications(
+    recipient_id,actor_id,opportunity_id,application_id,notification_type,event_key
+  )
+  values(
+    v_app.applicant_id,
+    p_contractor,
+    v_op.id,
+    v_app.id,
+    'application_selected',
+    'work-selected:'||v_app.id::text
+  )
+  on conflict(event_key) do nothing;
+
+  return jsonb_build_object(
+    'ok',true,
+    'idempotent',false,
+    'assignment_id',v_assignment.id,
+    'opportunity_id',v_op.id,
+    'application_id',v_app.id,
+    'worker_id',v_app.applicant_id,
+    'positions_filled',v_filled,
+    'workers_needed',v_op.workers_needed,
+    'opportunity_status',v_new_status,
+    'filled',v_new_status='filled'
+  );
+end
+$$;
+
+revoke all on function public.gef_select_work_applicant(uuid,uuid) from public,anon,authenticated;
+grant execute on function public.gef_select_work_applicant(uuid,uuid) to service_role;
 
 commit;
