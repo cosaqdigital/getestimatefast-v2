@@ -155,40 +155,6 @@ async function load(force=false){
  })();
  try{return await loading;}finally{loading=null;}
 }
-async function resumeWorkCreditPayment(){
- const params=new URLSearchParams(location.search);
- const state=params.get("work_credits");
- if(!state)return;
- if(state==="canceled"){
-  portal().say("Extra post purchase was canceled. No credits were added.");
-  try{history.replaceState(null,"",location.pathname+location.hash);}catch{}
-  return;
- }
- const order=params.get("order");
- if(state!=="pending"||!/^[0-9a-f-]{36}$/i.test(order||""))return;
- portal().say("Confirming your extra post purchase...");
- for(let attempt=0;attempt<5;attempt++){
-  try{
-   const result=await portal().api("work-post-credit-checkout?order_id="+encodeURIComponent(order));
-   if(result.status==="paid"){
-    portal().say("Payment confirmed. "+result.posts+" extra post credits were added to your account.");
-    try{history.replaceState(null,"",location.pathname+location.hash);}catch{}
-    await load(true);
-    return;
-   }
-   if(["failed","expired"].includes(result.status)){
-    portal().say("This checkout was not completed. No extra post credits were added.");
-    try{history.replaceState(null,"",location.pathname+location.hash);}catch{}
-    return;
-   }
-  }catch(e){
-   if(attempt===4){portal().say(e.message||"Payment confirmation is temporarily unavailable.");return;}
-  }
-  if(attempt<4)await new Promise(resolve=>setTimeout(resolve,1500));
- }
- portal().say("Stripe is still confirming the payment. Refresh this panel shortly; credits are added only after confirmation.");
-}
-
 function selectedLanguages(){
  return [...document.querySelectorAll('input[name="work_languages"]:checked')].map(x=>x.value);
 }
