@@ -87,6 +87,14 @@ module.exports=async function handler(req,res){
 
     if(inbound.keyword==="HELP"){
       await consentEvent({...base,action:"HELP_RECORDED"});
+      await consentEvent({...base,
+        provider_event_id:inbound.provider_event_id+":attempt",
+        action:"HELP_REPLY_ATTEMPT",
+        response_sent:false,
+        response_error_stage:null,
+        response_error_http_status:null,
+        response_error_code:null
+      });
       try{
         const sent=await sendControlledHelpReply({phone:inbound.from});
         await consentEvent({...base,
