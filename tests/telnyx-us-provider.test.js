@@ -220,3 +220,47 @@ test("controlled HELP reply is fixed and restricted to configured test recipient
   assert(body.text.length<=160);
   await assert.rejects(()=>sendControlledHelpReply({phone:"+17274124478",env,fetchImpl:fakeFetch}),/configured controlled test number/);
 });
+
+test("controlled HELP reply exposes safe HTTP diagnostics",async()=>{
+  const env={
+    GETESTIMATEFAST_SMS_PROVIDER:"telnyx",
+    GETESTIMATEFAST_SMS_MODE:"controlled_test",
+    GETESTIMATEFAST_TELNYX_API_KEY:"super-secret-key",
+    GETESTIMATEFAST_TELNYX_FROM_NUMBER:"+18133039893",
+    GETESTIMATEFAST_TELNYX_10DLC_BRAND_APPROVED:"true",
+    GETESTIMATEFAST_TELNYX_10DLC_CAMPAIGN_APPROVED:"true",
+    GETESTIMATEFAST_TELNYX_TEST_TO:"+18135917560"
+  };
+  const fakeFetch=async()=>({ok:false,status:422,json:async()=>({errors:[{code:"40000"}]})});
+  await assert.rejects(
+    ()=>sendControlledHelpReply({phone:"+18135917560",env,fetchImpl:fakeFetch}),
+    error=>{
+      assert.equal(error.diagnostic_stage,"http");
+      assert.deepEqual(error.telnyx,{http_status:422,code:"40000"});
+      assert.doesNotMatch(JSON.stringify(error),/super-secret-key/);
+      return true;
+    }
+  );
+});
+
+test("controlled HELP reply exposes safe transport stage",async()=>{
+  const env={
+    GETESTIMATEFAST_SMS_PROVIDER:"telnyx",
+    GETESTIMATEFAST_SMS_MODE:"controlled_test",
+    GETESTIMATEFAST_TELNYX_API_KEY:"super-secret-key",
+    GETESTIMATEFAST_TELNYX_FROM_NUMBER:"+18133039893",
+    GETESTIMATEFAST_TELNYX_10DLC_BRAND_APPROVED:"true",
+    GETESTIMATEFAST_TELNYX_10DLC_CAMPAIGN_APPROVED:"true",
+    GETESTIMATEFAST_TELNYX_TEST_TO:"+18135917560"
+  };
+  const transport=new TypeError("fetch failed"); transport.cause={code:"ECONNRESET"};
+  await assert.rejects(
+    ()=>sendControlledHelpReply({phone:"+18135917560",env,fetchImpl:async()=>{throw transport;}}),
+    error=>{
+      assert.equal(error.diagnostic_stage,"fetch");
+      assert.deepEqual(error.telnyx_transport,{code:"ECONNRESET"});
+      assert.doesNotMatch(JSON.stringify(error),/super-secret-key/);
+      return true;
+    }
+  );
+});

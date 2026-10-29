@@ -86,11 +86,28 @@ module.exports=async function handler(req,res){
 
     if(inbound.keyword==="HELP"){
       await consentEvent({...base,action:"HELP_RECORDED"});
-      const sent=await sendControlledHelpReply({phone:inbound.from});
-      await queryDb("sms_consent_events?provider_event_id=eq."+encodeURIComponent(inbound.provider_event_id),{
-        method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({response_sent:true})
-      });
-      return json(res,200,{accepted:true,matched:true,help_recorded:true,response_sent:true,message_id:sent.id,messages_sent:1});
+      try{
+        const sent=await sendControlledHelpReply({phone:inbound.from});
+        await queryDb("sms_consent_events?provider_event_id=eq."+encodeURIComponent(inbound.provider_event_id),{
+          method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({
+            response_sent:true,response_error_stage:null,response_error_http_status:null,response_error_code:null
+          })
+        });
+        return json(res,200,{accepted:true,matched:true,help_recorded:true,response_sent:true,message_id:sent.id,messages_sent:1});
+      }catch(error){
+        const stage=typeof error?.diagnostic_stage==="string"?error.diagnostic_stage.slice(0,80):"unknown";
+        const httpStatus=Number.isInteger(error?.telnyx?.http_status)?error.telnyx.http_status:null;
+        const code=error?.telnyx?.code==null
+          ?(error?.telnyx_transport?.code==null?null:String(error.telnyx_transport.code).slice(0,80))
+          :String(error.telnyx.code).slice(0,80);
+        await queryDb("sms_consent_events?provider_event_id=eq."+encodeURIComponent(inbound.provider_event_id),{
+          method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({
+            response_sent:false,response_error_stage:stage,response_error_http_status:httpStatus,response_error_code:code
+          })
+        });
+        console.error("Telnyx HELP reply failed",{stage,http_status:httpStatus,code});
+        return json(res,200,{accepted:true,matched:true,help_recorded:true,response_sent:false,reply_failed:true,stage,http_status:httpStatus,code,messages_sent:0});
+      }
     }
 
     await consentEvent({...base,action:"IGNORED"});

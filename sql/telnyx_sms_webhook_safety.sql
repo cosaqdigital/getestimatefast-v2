@@ -21,3 +21,9 @@ create index if not exists sms_delivery_events_message_id_idx on public.sms_deli
 alter table public.sms_delivery_events enable row level security;
 revoke all on public.sms_delivery_events from public, anon, authenticated, service_role;
 grant select, insert on public.sms_delivery_events to service_role;
+
+
+alter table public.sms_consent_events
+  add column if not exists response_error_stage text,
+  add column if not exists response_error_http_status integer,
+  add column if not exists response_error_code text;
