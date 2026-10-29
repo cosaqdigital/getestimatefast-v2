@@ -24,19 +24,20 @@ module.exports=async function handler(req,res){
    opportunity:own[0],
    applicants:apps.map(app=>{
     const p=profileMap.get(app.applicant_id)||null;
-    return {...app,profile:p?{
-     slug:p.slug,
-     display_name:p.display_name,
-     contact_phone:p.contact_phone,
-     base_zip:p.base_zip,
-     state_code:p.state_code,
-     service_radius_miles:p.service_radius_miles,
-     service_categories:p.service_categories,
-     languages:p.languages,
-     opportunity_types:p.opportunity_types,
-     bio:p.bio,
-     status:p.status,
-     profile_image_url:p.profile_image_path?url+"/storage/v1/object/public/gef-portfolio/"+p.profile_image_path:null
+    const visible=p?.status==="active"?p:null;
+    return {...app,profile:visible?{
+     slug:visible.slug,
+     display_name:visible.display_name,
+     contact_phone:visible.contact_phone,
+     base_zip:visible.base_zip,
+     state_code:visible.state_code,
+     service_radius_miles:visible.service_radius_miles,
+     service_categories:visible.service_categories,
+     languages:visible.languages,
+     opportunity_types:visible.opportunity_types,
+     bio:visible.bio,
+     status:visible.status,
+     profile_image_url:visible.profile_image_path?url+"/storage/v1/object/public/gef-portfolio/"+visible.profile_image_path:null
     }:null};
    }).filter(x=>x.profile)
   });
