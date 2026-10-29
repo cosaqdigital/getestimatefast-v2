@@ -13,14 +13,19 @@ assert.match(h,/Responses not guaranteed|Availability varies by service and loca
 assert.match(h,/rel="canonical" href="https:\/\/www\.getestimatefast\.com\/"/);
 });
 
-test("professional funnel is rollout-safe with a clear landing and sign-in path",()=>{
+test("professional funnel promotes the free profile with a clear signup and sign-in path",()=>{
 const h=read("index.html"),p=read("for-professionals.html");
 assert.match(h,/href="for-professionals.html"[^>]*>For Pros<\/a>/);
 assert.match(h,/href="contractor-portal.html"[^>]*>Professional Sign In<\/a>/);
-assert.match(p,/Grow your local service business with GetEstimateFast/);
-assert.match(p,/Professional Sign In/);
-assert.doesNotMatch(p,/Create My Free Profile|Create Free Professional Account|Development workspace|tested in Development/);
-assert.match(p,/Public registration, marketplace access, public profile publishing, wallet and payments are opening in stages/);
+assert.match(p,/Build a professional profile customers can trust/);
+assert.match(p,/href="\/contractor-portal\.html\?signup=1"[^>]*data-cta="create-free-profile"[^>]*>Create Free Profile<\/a>/);
+assert.match(p,/Already have an account\? Sign In/);
+assert.match(p,/Free to create/);
+assert.match(p,/Portfolio/);
+assert.match(p,/Customer reviews/);
+assert.match(p,/Build ranking signals/);
+assert.match(p,/Opportunities are never guaranteed|does not guarantee jobs/);
+assert.doesNotMatch(p,/Development workspace|tested in Development/);
 assert.match(p,/name="robots" content="noindex,follow"/);
 assert.match(p,/assets\/pro-landing\.css/);
 });
