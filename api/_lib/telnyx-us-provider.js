@@ -78,7 +78,7 @@ function readiness(env=process.env){
   };
 }
 
-async function sendControlledHealthTest({env=process.env,fetchImpl=global.fetch}){
+async function sendControlledHealthTest({env=process.env,fetchImpl=global.fetch}={}){
   const state=readiness(env);
   if(!state.controlled_test_enabled){const error=Error("Controlled Telnyx SMS test is not enabled");error.diagnostic_stage="readiness";throw error;}
   if(typeof fetchImpl!=="function"){const error=Error("Fetch unavailable");error.diagnostic_stage="fetch_available";throw error;}
