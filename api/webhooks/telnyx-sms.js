@@ -1,6 +1,7 @@
 "use strict";
 const {json,method,queryDb,fail}=require("../admin/_auth");
 const {normalizeUsPhone,sendControlledHelpReply}=require("../_lib/telnyx-us-provider");
+const WEBHOOK_VERSION="telnyx-help-v3";
 const {
   verifyTelnyxSignature,parseEnvelope,parseInbound,parseDelivery,
   helpResponsePreview,startResponsePreview,stopResponsePreview
@@ -57,7 +58,7 @@ module.exports=async function handler(req,res){
     if(profiles.length>1)throw Error("Ambiguous contractor phone");
     const profile=profiles[0]||null;
     const base={provider:"telnyx",provider_event_id:inbound.provider_event_id,contractor_user_id:profile?.user_id||null,
-      event_type:inbound.keyword,provider_timestamp:inbound.provider_timestamp,response_sent:false};
+      event_type:inbound.keyword,provider_timestamp:inbound.provider_timestamp,response_sent:false,webhook_version:WEBHOOK_VERSION};
 
     if(!profile){
       await consentEvent({...base,action:"UNKNOWN_CONTRACTOR"});
@@ -93,7 +94,7 @@ module.exports=async function handler(req,res){
             response_sent:true,response_error_stage:null,response_error_http_status:null,response_error_code:null
           })
         });
-        return json(res,200,{accepted:true,matched:true,help_recorded:true,response_sent:true,message_id:sent.id,messages_sent:1});
+        return json(res,200,{accepted:true,matched:true,help_recorded:true,response_sent:true,message_id:sent.id,messages_sent:1,webhook_version:WEBHOOK_VERSION});
       }catch(error){
         const stage=typeof error?.diagnostic_stage==="string"?error.diagnostic_stage.slice(0,80):"unknown";
         const httpStatus=Number.isInteger(error?.telnyx?.http_status)?error.telnyx.http_status:null;
@@ -106,7 +107,7 @@ module.exports=async function handler(req,res){
           })
         });
         console.error("Telnyx HELP reply failed",{stage,http_status:httpStatus,code});
-        return json(res,200,{accepted:true,matched:true,help_recorded:true,response_sent:false,reply_failed:true,stage,http_status:httpStatus,code,messages_sent:0});
+        return json(res,200,{accepted:true,matched:true,help_recorded:true,response_sent:false,reply_failed:true,stage,http_status:httpStatus,code,messages_sent:0,webhook_version:WEBHOOK_VERSION});
       }
     }
 

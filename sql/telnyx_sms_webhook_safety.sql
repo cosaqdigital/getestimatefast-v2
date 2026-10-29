@@ -27,3 +27,9 @@ alter table public.sms_consent_events
   add column if not exists response_error_stage text,
   add column if not exists response_error_http_status integer,
   add column if not exists response_error_code text;
+
+
+alter table public.sms_consent_events
+  add column if not exists webhook_version text;
+
+grant update on table public.sms_consent_events to service_role;
