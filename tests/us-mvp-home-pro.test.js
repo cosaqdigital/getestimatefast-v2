@@ -5,7 +5,7 @@ const root=path.resolve(__dirname,".."),read=p=>fs.readFileSync(path.join(root,p
 test("home presents free customer request and a real service picker",()=>{
 const h=read("index.html");
 assert.match(h,/Find local service professionals/);
-assert.match(h,/href="#find-your-service"[^>]*data-cta="start-my-request"[^>]*>Start a Free Request<\/a>/);
+assert.match(h,/href="#find-your-service"[^>]*data-cta="start-my-request"/);\nassert.match(h,/<span class="desktop-cta-label">Start a Free Request<\\/span>/);
 assert.match(h,/data-service-starter-input/);
 assert.match(h,/href="services.html"[^>]*>View All Services<\/a>|href="services.html"[^>]*>Browse Services<\/a>/);
 assert.match(h,/Free to submit/);
