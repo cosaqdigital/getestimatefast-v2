@@ -4,6 +4,7 @@ const portal=()=>window.GetEstimateFastPortal;
 const money=cents=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(Number(cents||0)/100);
 const typeLabel=value=>value==="helper"?"Helper":"Professional";
 const basisLabel=value=>value==="hour"?"/ hour":value==="fixed"?" fixed":"/ day";
+const languageNames={en:"English",pt:"Portuguese",es:"Spanish"};
 let loading=null,lastData=null;
 
 function eligibilityMessage(summary){
@@ -49,6 +50,66 @@ function renderCategories(categories){
  for(const name of categories||[]){const option=document.createElement("option");option.value=name;option.textContent=name;select.append(option);}
  if(categories?.includes(current))select.value=current;
 }
+function renderNotifications(data){
+ const holder=$("workNotifications");if(!holder)return;
+ holder.replaceChildren();
+ const items=data?.notifications||[];
+ if(!items.length){const empty=document.createElement("div");empty.className="work-post-empty";empty.textContent="No candidate notifications yet.";holder.append(empty);return;}
+ for(const item of items){
+  const row=document.createElement("article");row.className="work-notification";row.dataset.unread=item.read_at?"false":"true";
+  const copy=document.createElement("div");
+  const strong=document.createElement("strong");strong.textContent=item.actor_name+" is interested in your opportunity";
+  const small=document.createElement("span");small.textContent=new Date(item.created_at).toLocaleString();
+  copy.append(strong,small);
+  const button=document.createElement("button");button.type="button";button.className="secondary";button.textContent="View applicant";
+  button.addEventListener("click",async()=>{
+   try{if(!item.read_at)await portal().api("work-notifications","POST",{notification_id:item.id});}catch{}
+   const card=document.querySelector('[data-work-opportunity-id="'+CSS.escape(item.opportunity_id)+'"]');
+   const target=card?.querySelector(".work-applicants");
+   const toggle=card?.querySelector(".work-candidate-button");
+   if(target&&toggle)await loadApplicants(item.opportunity_id,target,toggle);
+   card?.scrollIntoView({behavior:"smooth",block:"center"});
+   row.dataset.unread="false";
+  });
+  row.append(copy,button);holder.append(row);
+ }
+}
+function applicantCard(item){
+ const p=item.profile;
+ const card=document.createElement("article");card.className="work-applicant-card";
+ if(p.profile_image_url){
+  const img=document.createElement("img");img.className="work-applicant-photo";img.src=p.profile_image_url;img.alt=p.display_name;img.loading="lazy";card.append(img);
+ }else{
+  const img=document.createElement("div");img.className="work-applicant-photo";card.append(img);
+ }
+ const main=document.createElement("div");
+ const name=document.createElement("div");name.className="work-applicant-name";name.textContent=p.display_name;
+ const meta=document.createElement("div");meta.className="work-applicant-meta";meta.textContent="ZIP "+p.base_zip+" · "+p.service_radius_miles+" mi radius · "+(p.languages||[]).map(v=>languageNames[v]||v).join(", ");
+ const services=document.createElement("div");services.className="work-applicant-meta";services.textContent=(p.service_categories||[]).join(" · ");
+ const bio=document.createElement("p");bio.className="work-applicant-bio";bio.textContent=p.bio;
+ main.append(name,meta,services,bio);
+ const contact=document.createElement("div");contact.className="work-applicant-contact";
+ const phone=document.createElement("a");phone.href="tel:"+String(p.contact_phone).replace(/[^0-9+]/g,"");phone.textContent=p.contact_phone;
+ const status=document.createElement("span");status.textContent="Application: "+String(item.status||"interested").replaceAll("_"," ");
+ contact.append(phone,status);
+ card.append(main,contact);return card;
+}
+async function loadApplicants(opportunityId,holder,button){
+ button.disabled=true;button.textContent="Loading candidates...";
+ try{
+  const data=await portal().api("work-applicants?opportunity_id="+encodeURIComponent(opportunityId));
+  holder.hidden=false;holder.replaceChildren();
+  const title=document.createElement("strong");title.textContent=(data.applicants?.length||0)+" "+((data.applicants?.length||0)===1?"candidate":"candidates");holder.append(title);
+  const list=document.createElement("div");list.className="work-applicant-list";
+  if(!data.applicants?.length){const empty=document.createElement("div");empty.className="work-post-empty";empty.textContent="No active candidate profiles available.";list.append(empty);}
+  else for(const item of data.applicants)list.append(applicantCard(item));
+  holder.append(list);
+  button.textContent="Hide candidates";
+  button.disabled=false;
+  button.onclick=()=>{holder.hidden=true;button.textContent="View candidates ("+(data.applicants?.length||0)+")";button.onclick=()=>loadApplicants(opportunityId,holder,button);};
+ }catch(e){button.disabled=false;button.textContent="View candidates";portal().say(e.message);}
+}
+
 function renderPosts(items){
  const holder=$("workMyPosts");holder.replaceChildren();
  if(!items?.length){const empty=document.createElement("div");empty.className="work-post-empty";empty.textContent="No work opportunities posted yet.";holder.append(empty);return;}
@@ -60,8 +121,15 @@ function renderPosts(items){
   const counts=document.createElement("p");counts.textContent=item.positions_filled+" / "+item.workers_needed+" positions filled · "+item.contacts_used+" / "+item.max_contacts+" candidates";
   const source=document.createElement("span");source.className="work-post-source";source.textContent=item.posting_source==="monthly_free"?"Monthly free post":"Extra post credit";
   main.append(h,line,counts,source);
+  const side=document.createElement("div");
   const state=document.createElement("div");state.className="work-post-status";state.textContent=String(item.status||"").replaceAll("_"," ");
-  card.append(main,state);holder.append(card);
+  side.append(state);
+  const button=document.createElement("button");button.type="button";button.className="secondary work-candidate-button";button.textContent="View candidates ("+item.contacts_used+")";
+  const applicants=document.createElement("div");applicants.className="work-applicants";applicants.hidden=true;
+  button.addEventListener("click",()=>loadApplicants(item.id,applicants,button));
+  side.append(button);
+  card.dataset.workOpportunityId=item.id;
+  card.append(main,side,applicants);holder.append(card);
  }
 }
 function defaultDate(){
@@ -76,6 +144,7 @@ async function load(force=false){
   renderQuota(data.summary||{});
   renderCategories(data.categories||[]);
   renderPosts(data.opportunities||[]);
+  try{renderNotifications(await portal().api("work-notifications"));}catch{renderNotifications({notifications:[]});}
   const zip=$("workZip");if(!zip.value)zip.value=data.defaults?.zip_code||"";
   const date=$("workDate");date.min=defaultDate();if(!date.value)date.value=defaultDate();
   return data;
@@ -125,6 +194,6 @@ $("workPostForm")?.addEventListener("submit",async event=>{
  }finally{$("workPostSubmit").disabled=lastData?.summary?.eligible!==true;}
 });
 window.addEventListener("gef-profile",()=>{load(true).catch(()=>{});});
-window.addEventListener("gef-signed-out",()=>{lastData=null;$("workMyPosts")?.replaceChildren();});
+window.addEventListener("gef-signed-out",()=>{lastData=null;$("workMyPosts")?.replaceChildren();$("workNotifications")?.replaceChildren();});
 window.GetEstimateFastWorkPoster={load};
 })();
