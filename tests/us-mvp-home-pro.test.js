@@ -26,7 +26,7 @@ assert.match(p,/Customer reviews/);
 assert.match(p,/Build ranking signals/);
 assert.match(p,/Opportunities are never guaranteed|does not guarantee jobs/);
 assert.doesNotMatch(p,/Development workspace|tested in Development/);
-assert.match(p,/name="robots" content="noindex,follow"/);
+assert.match(p,/name="robots" content="index,follow"/);
 assert.match(p,/assets\/pro-landing\.css/);
 });
 
