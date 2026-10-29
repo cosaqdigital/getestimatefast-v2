@@ -110,3 +110,22 @@ test("Find Work UI focuses the opportunity from notification links",()=>{
  assert.match(src,/new URLSearchParams\(location\.search\)\.get\("opportunity"\)/);
  assert.match(src,/scrollIntoView/);
 });
+
+
+test("retry endpoint is protected by CRON_SECRET and explicit feature flag",()=>{
+ const cron=require("../api/cron/work-notifications.js")._test;
+ assert.equal(cron.authorized({headers:{authorization:"Bearer abc"}},{CRON_SECRET:"abc"}),false);
+ const secret="12345678901234567890";
+ assert.equal(cron.authorized({headers:{authorization:"Bearer "+secret}},{CRON_SECRET:secret}),true);
+ assert.equal(cron.enabled({VERCEL_ENV:"production",GETESTIMATEFAST_WORK_NOTIFICATION_RETRY_ENABLED:"false"}),false);
+ assert.equal(cron.enabled({VERCEL_ENV:"production",GETESTIMATEFAST_WORK_NOTIFICATION_RETRY_ENABLED:"true"}),true);
+ assert.equal(cron.enabled({VERCEL_ENV:"preview",GETESTIMATEFAST_ISOLATED_BACKEND:"true",GETESTIMATEFAST_WORK_NOTIFICATION_RETRY_ENABLED:"true"}),true);
+});
+
+test("retry queue is bounded and retries failed deliveries at most five times",()=>{
+ const sql=read("supabase/prepared-migrations/20261029_work_opportunities_mvp.sql");
+ assert.match(sql,/gef_list_retryable_work_notification_jobs/);
+ assert.match(sql,/attempts<5/);
+ assert.match(sql,/limit least\(greatest\(coalesce\(p_limit,10\),1\),25\)/);
+ assert.match(sql,/status='failed' and attempts<5/);
+});
