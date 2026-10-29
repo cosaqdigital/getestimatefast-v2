@@ -1,6 +1,6 @@
 "use strict";
 const {json,method,queryDb,fail}=require("../admin/_auth");
-const {normalizeUsPhone}=require("../_lib/telnyx-us-provider");
+const {normalizeUsPhone,sendControlledHelpReply}=require("../_lib/telnyx-us-provider");
 const {
   verifyTelnyxSignature,parseEnvelope,parseInbound,parseDelivery,
   helpResponsePreview,startResponsePreview,stopResponsePreview
@@ -86,7 +86,11 @@ module.exports=async function handler(req,res){
 
     if(inbound.keyword==="HELP"){
       await consentEvent({...base,action:"HELP_RECORDED"});
-      return json(res,200,{accepted:true,matched:true,help_recorded:true,reply_prepared:true,reply_preview:helpResponsePreview(),messages_sent:0});
+      const sent=await sendControlledHelpReply({phone:inbound.from});
+      await queryDb("sms_consent_events?provider_event_id=eq."+encodeURIComponent(inbound.provider_event_id),{
+        method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({response_sent:true})
+      });
+      return json(res,200,{accepted:true,matched:true,help_recorded:true,response_sent:true,message_id:sent.id,messages_sent:1});
     }
 
     await consentEvent({...base,action:"IGNORED"});
