@@ -62,7 +62,8 @@ async function sendControlledHelpReply({phone,env=process.env,fetchImpl=global.f
     response=await fetchImpl(TELNYX_SMS_ENDPOINT,{
       method:"POST",
       headers:{Authorization:"Bearer "+env.GETESTIMATEFAST_TELNYX_API_KEY,"Content-Type":"application/json"},
-      body:JSON.stringify({from,to,text:CONTROLLED_HELP_REPLY})
+      body:JSON.stringify({from,to,text:CONTROLLED_HELP_REPLY}),
+      signal:AbortSignal.timeout(10000)
     });
   }catch(cause){
     const error=Error("Telnyx HELP reply transport failed");
