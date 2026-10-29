@@ -143,7 +143,7 @@ function renderPosts(items){
   side.append(state);
   const button=document.createElement("button");button.type="button";button.className="secondary work-candidate-button";button.textContent="View candidates ("+item.contacts_used+")";
   const applicants=document.createElement("div");applicants.className="work-applicants";applicants.hidden=true;
-  button.addEventListener("click",()=>loadApplicants(item.id,applicants,button));
+  button.onclick=()=>loadApplicants(item.id,applicants,button);
   side.append(button);
   card.dataset.workOpportunityId=item.id;
   card.append(main,side,applicants);holder.append(card);
