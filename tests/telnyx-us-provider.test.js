@@ -106,3 +106,27 @@ test("controlled health test exposes only safe Telnyx error metadata",async()=>{
     }
   );
 });
+
+test("controlled health test exposes safe transport diagnostics",async()=>{
+  const env={
+    GETESTIMATEFAST_SMS_PROVIDER:"telnyx",
+    GETESTIMATEFAST_SMS_MODE:"controlled_test",
+    GETESTIMATEFAST_TELNYX_API_KEY:"super-secret-key",
+    GETESTIMATEFAST_TELNYX_FROM_NUMBER:"+18133039893",
+    GETESTIMATEFAST_TELNYX_10DLC_BRAND_APPROVED:"true",
+    GETESTIMATEFAST_TELNYX_10DLC_CAMPAIGN_APPROVED:"true",
+    GETESTIMATEFAST_TELNYX_TEST_TO:"+18135550134"
+  };
+  const transport=new TypeError("fetch failed");
+  transport.cause={code:"ECONNRESET"};
+  const fakeFetch=async()=>{throw transport;};
+  await assert.rejects(
+    ()=>sendControlledHealthTest({env,fetchImpl:fakeFetch}),
+    error=>{
+      assert.equal(error.message,"Telnyx transport request failed");
+      assert.deepEqual(error.telnyx_transport,{type:"TypeError",code:"ECONNRESET",message:"fetch failed"});
+      assert.doesNotMatch(JSON.stringify(error.telnyx_transport),/super-secret-key/);
+      return true;
+    }
+  );
+});
