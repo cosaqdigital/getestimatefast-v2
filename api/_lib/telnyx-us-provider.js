@@ -37,7 +37,8 @@ function prepareTelnyxPayload({from,phone,city,opportunityId,origin=DEFAULT_ORIG
 
 function readiness(env=process.env){
   const configured=env.GETESTIMATEFAST_SMS_PROVIDER==="telnyx";
-  const mode=env.GETESTIMATEFAST_SMS_MODE==="dry_run"?"dry_run":"disabled";
+  const requestedMode=env.GETESTIMATEFAST_SMS_MODE;
+  const mode=requestedMode==="controlled_test"?"controlled_test":requestedMode==="dry_run"?"dry_run":"disabled";
   const api_key_configured=Boolean(env.GETESTIMATEFAST_TELNYX_API_KEY);
   const from=normalizeUsPhone(env.GETESTIMATEFAST_TELNYX_FROM_NUMBER||"");
   const brand_approved=env.GETESTIMATEFAST_TELNYX_10DLC_BRAND_APPROVED==="true";
@@ -50,7 +51,7 @@ function readiness(env=process.env){
     sender_configured:Boolean(from),
     brand_approved,
     campaign_approved,
-    live_sms_enabled:false,
+    live_sms_enabled:configured&&mode==="controlled_test"&&api_key_configured&&Boolean(from)&&brand_approved&&campaign_approved,
     sms_sent:0,
     next_steps:[
       "Approve the Telnyx 10DLC Brand",
@@ -62,4 +63,28 @@ function readiness(env=process.env){
   };
 }
 
-module.exports={TELNYX_SMS_ENDPOINT,normalizeUsPhone,validUuid,opportunityUrl,formatTelnyxOpportunityNotice,prepareTelnyxPayload,readiness};
+async function sendControlledTest({phone,city,opportunityId,origin=DEFAULT_ORIGIN,env=process.env,fetchImpl=global.fetch}){
+  const state=readiness(env);
+  if(!state.live_sms_enabled)throw Error("Controlled Telnyx SMS test is not enabled");
+  const allowed=normalizeUsPhone(env.GETESTIMATEFAST_TELNYX_TEST_TO||"");
+  const to=normalizeUsPhone(phone);
+  if(!allowed||!to||to!==allowed)throw Error("Recipient is not the configured controlled test number");
+  if(typeof fetchImpl!=="function")throw Error("Fetch unavailable");
+  const payload=prepareTelnyxPayload({
+    from:env.GETESTIMATEFAST_TELNYX_FROM_NUMBER,
+    phone:to,city,opportunityId,origin
+  });
+  const response=await fetchImpl(TELNYX_SMS_ENDPOINT,{
+    method:"POST",
+    headers:{
+      Authorization:"Bearer "+env.GETESTIMATEFAST_TELNYX_API_KEY,
+      "Content-Type":"application/json"
+    },
+    body:JSON.stringify(payload)
+  });
+  let data={};try{data=await response.json();}catch{}
+  if(!response.ok)throw Error("Telnyx send failed with HTTP "+response.status);
+  return {id:data?.data?.id||null,to:payload.to,from:payload.from,text:payload.text};
+}
+
+module.exports={TELNYX_SMS_ENDPOINT,normalizeUsPhone,validUuid,opportunityUrl,formatTelnyxOpportunityNotice,prepareTelnyxPayload,readiness,sendControlledTest};
