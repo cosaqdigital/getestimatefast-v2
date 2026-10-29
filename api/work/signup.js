@@ -14,9 +14,9 @@ module.exports=async function handler(req,res){
   const password=String(data.password||"");
   const phone=String(data.phone||"").trim();
   const smsPhone=normalizeUsPhone(phone);
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||email.length>254||password.length<12||password.length>128||
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||email.length>254||password.length<6||password.length>128||
      phone.length>35||!smsPhone||typeof data.smsOptIn!=="boolean"||data.privacyConsent!==true||data.termsConsent!==true)
-    return json(res,400,{error:"Check email, US mobile number, password (12+ characters), and required legal consent."});
+    return json(res,400,{error:"Check email, US mobile number, password (6+ characters), and required legal consent."});
   const production=process.env.VERCEL_ENV==="production";
   const privacyVersion=production?String(process.env.GETESTIMATEFAST_PRIVACY_VERSION||"").trim():"preview-v1";
   const termsVersion=production?String(process.env.GETESTIMATEFAST_TERMS_VERSION||"").trim():"preview-v1";
@@ -29,7 +29,11 @@ module.exports=async function handler(req,res){
    body:JSON.stringify({email,password}),
    signal:AbortSignal.timeout(10000)
   });
-  if(!response.ok)return json(res,429,{error:"We could not complete signup. Please wait and try again."});
+  if(!response.ok){
+   let authError={};try{authError=await response.json();}catch{}
+   if(authError?.code==="weak_password")return json(res,400,{error:"Choose a password with at least 6 characters."});
+   return json(res,429,{error:"We could not complete signup. Please wait and try again."});
+  }
   let authPayload={};try{authPayload=await response.json();}catch{}
   if(authPayload?.user?.id){
    const now=new Date().toISOString();
