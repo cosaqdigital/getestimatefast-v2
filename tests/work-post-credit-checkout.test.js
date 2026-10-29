@@ -141,15 +141,18 @@ test("webhook can recover an early unbound session and confirms once",async()=>{
  assert.equal(calls.confirm,1);
 });
 
-test("checkout API never exists in Production and UI credits only after confirmed order",()=>{
+test("checkout backend stays isolated while launch UI hides monetization",()=>{
  const api=read("api/contractor/work-post-credit-checkout.js");
  const ui=read("assets/work-posting.js");
  assert.match(api,/VERCEL_ENV==="production"/);
  assert.match(api,/gef_prepare_work_post_credit_order/);
  assert.match(api,/gef_bind_work_post_credit_session/);
- assert.match(ui,/Stripe test checkout not enabled/);
- assert.match(ui,/Payment confirmed/);
- assert.match(ui,/result\.status==="paid"/);
+ assert.doesNotMatch(ui,/Stripe test checkout not enabled/);
+ assert.doesNotMatch(ui,/Payment confirmed/);
+ assert.doesNotMatch(ui,/work-post-credit-checkout/);
+ const html=read("contractor-portal.html");
+ assert.doesNotMatch(html,/Extra post packages|Buy \+4|Buy \+15|\$7|\$15/);
+ assert.match(html,/Free during launch/);
  assert.doesNotMatch(ui,/localStorage/);
 });
 
