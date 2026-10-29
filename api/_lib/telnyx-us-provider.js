@@ -104,8 +104,8 @@ async function sendControlledHealthTest({env=process.env,fetchImpl=global.fetch}
     };
     throw error;
   }
-  let data={};try{data=await response.json();}catch{}
   if(!response||typeof response.ok!=="boolean"){const error=Error("Invalid Telnyx HTTP response");error.diagnostic_stage="response";throw error;}
+  let data={};try{data=await response.json();}catch{}
   if(!response.ok){
     const first=Array.isArray(data?.errors)?data.errors[0]:null;
     const error=Error("Telnyx send failed with HTTP "+response.status);
