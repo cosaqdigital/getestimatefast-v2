@@ -157,7 +157,20 @@ async function deliverWorkNotifications(opportunity){
 async function processWorkMatchJob(opportunityId){
  if(!UUID.test(String(opportunityId||"")))throw Error("Invalid opportunity");
  const claim=await rpc("gef_claim_work_match_job",{p_opportunity:opportunityId});
- if(claim?.claimed!==true)return {status:"skipped",code:claim?.code||"not_claimed"};
+ if(claim?.claimed!==true){
+  if(claim?.code==="processed"){
+   const rows=await queryDb(
+    "work_opportunities?id=eq."+encodeURIComponent(opportunityId)+
+    "&select=id,posted_by,opportunity_type,service_category,zip_code,description,pay_cents,pay_basis,work_date,start_time,workers_needed,max_contacts,contacts_used,positions_filled,languages,status&limit=1"
+   );
+   const opportunity=rows[0];
+   if(opportunity?.status==="open"){
+    const delivery=await deliverWorkNotifications(opportunity);
+    return {status:"delivery_retry",delivery};
+   }
+  }
+  return {status:"skipped",code:claim?.code||"not_claimed"};
+ }
  let matched=0,emailQueued=0,smsQueued=0;
  try{
   const rows=await queryDb(
