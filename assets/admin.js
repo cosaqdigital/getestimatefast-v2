@@ -7,21 +7,55 @@ const loggedIn = yes => { $("login").hidden = yes; $("dashboard").hidden = !yes;
 function clearSession() {
   sessionGeneration++; contractorLoad++; token=""; loggedIn(false);
   for(const id of ["rows","contractorRows"])$(id).replaceChildren();
-  for(const id of ["overviewAllLeads","overviewNewLeads","overviewOpportunities","overviewContractors","overviewActive","overviewPublic"])$(id).textContent="—";
+  for(const id of ["overviewRevenueToday","overviewContactsToday","overviewRequestsToday","overviewActiveOpportunities","overviewActive","overviewSmsDelivered","overviewSmsRate","overviewConversion","overviewPublic","overviewRevenue7d","overviewContractors","overviewNewLeads","overviewRefunds","funnelRequests","funnelPublished","funnelSms","funnelSold"])if($(id))$(id).textContent="—";
   $("overviewStatus").textContent="";$("smsProviderStatus").textContent="";$("smsTestStatus").textContent="";$("smsQueueStatus").textContent="";$("sendTestSms").disabled=true;$("dispatchQueuedSms").disabled=true;
   $("contractorView").setAttribute("aria-busy","false");
   contractorPage=0;contractorHasMore=false;page=0;leadCount=0;
 }
 async function refreshOverview(){
- $("overviewStatus").textContent="Loading GetEstimateFast totals...";
+ $("overviewStatus").textContent="Loading executive dashboard...";
  try{
   const overview=await api("overview");
-  const values=overview.counts||{};
-  for(const [element,key] of [["overviewAllLeads","leads"],["overviewNewLeads","new_leads"],["overviewOpportunities","opportunities"],["overviewContractors","contractors"],["overviewActive","active_contractors"],["overviewPublic","public_profiles"]]){
-   $(element).textContent=Number.isInteger(values[key])?new Intl.NumberFormat("en-US").format(values[key]):"—";
+  const v=overview.metrics||{};
+  const integer=(id,key)=>{if($(id))$(id).textContent=Number.isFinite(Number(v[key]))?new Intl.NumberFormat("en-US").format(Number(v[key])):"—";};
+  const money=(id,key)=>{if($(id))$(id).textContent=Number.isFinite(Number(v[key]))?new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(Number(v[key])/100):"—";};
+
+  money("overviewRevenueToday","revenue_today_cents");
+  money("overviewRevenue7d","revenue_7d_cents");
+  integer("overviewContactsToday","contacts_sold_today");
+  integer("overviewRequestsToday","requests_today");
+  integer("overviewActiveOpportunities","active_opportunities");
+  integer("overviewActive","active_professionals");
+  integer("overviewSmsDelivered","sms_delivered_24h");
+  integer("overviewPublic","public_profiles");
+  integer("overviewContractors","registered_professionals");
+  integer("overviewNewLeads","waiting_review");
+  integer("overviewRefunds","refunds");
+  integer("funnelRequests","requests_today");
+  integer("funnelPublished","published_today");
+  integer("funnelSms","sms_sent_24h");
+  integer("funnelSold","contacts_sold_today");
+
+  if($("overviewConversion"))$("overviewConversion").textContent=Number.isFinite(Number(v.purchase_conversion_pct))?Number(v.purchase_conversion_pct).toFixed(1)+"%":"—";
+  const sent=Number(v.sms_sent_24h)||0,delivered=Number(v.sms_delivered_24h)||0;
+  if($("overviewSmsRate"))$("overviewSmsRate").textContent=sent?((delivered/sent)*100).toFixed(1)+"% delivery rate":"No live sends in last 24h";
+
+  const attention=[
+   ["attentionReview",Number(v.waiting_review)||0],
+   ["attentionSms",Number(v.sms_failed)||0],
+   ["attentionMatching",Number(v.opportunities_without_sms)||0],
+   ["attentionPayments",Number(v.pending_payments)||0]
+  ];
+  let issues=0;
+  for(const [id,value] of attention){
+   const el=$(id);if(!el)continue;
+   const strong=el.querySelector("strong");if(strong)strong.textContent=new Intl.NumberFormat("en-US").format(value);
+   el.classList.toggle("warn",value>0);el.classList.toggle("ok",value===0);
+   if(value>0)issues+=value;
   }
-  $("overviewStatus").textContent="Updated "+new Date().toLocaleString("en-US")+" · GetEstimateFast US";
- }catch(error){$("overviewStatus").textContent="Summary unavailable: "+error.message;}
+  if($("attentionSummary"))$("attentionSummary").textContent=issues===0?"All monitored operations are clear ✓":issues+" item"+(issues===1?"":"s")+" need attention";
+  $("overviewStatus").textContent="Updated "+new Date().toLocaleString("en-US")+" · America/New_York · Live business metrics";
+ }catch(error){$("overviewStatus").textContent="Executive summary unavailable: "+error.message;}
 }
 
 async function api(path, method = "GET", body) {
@@ -276,7 +310,7 @@ async function load() {
   for (const lead of data.leads) body.appendChild(renderLead(lead));
   $("previous").disabled = page === 0;
   $("next").disabled = leadCount < 25;
-  if (!leadCount) body.append(node("p", "review-muted", "No requests in this filter."));
+  if (!leadCount) { const empty=node("div","empty-state"); empty.append(node("strong","","No requests need attention"),node("span","","This filter is clear. New requests will appear here automatically.")); body.append(empty); }
 }
 $("loginForm").addEventListener("submit",async event=>{
   event.preventDefault(); status("Signing in...");
