@@ -40,6 +40,12 @@ create index if not exists opportunity_sms_queue_dispatch_idx
   on public.opportunity_sms_queue(status,next_attempt_at,created_at)
   where status in ('QUEUED','FAILED');
 
+create index if not exists opportunity_sms_queue_opportunity_idx
+  on public.opportunity_sms_queue(opportunity_id);
+
+create index if not exists opportunity_sms_queue_contractor_idx
+  on public.opportunity_sms_queue(contractor_user_id);
+
 alter table public.opportunity_sms_queue enable row level security;
 revoke all on public.opportunity_sms_queue from public,anon,authenticated;
 grant select,insert,update on public.opportunity_sms_queue to service_role;
