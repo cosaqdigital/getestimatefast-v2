@@ -142,6 +142,25 @@ function liveFailureCode(error){
   return String(raw).slice(0,80);
 }
 
+const LIVE_SMS_TIME_ZONE="America/New_York";
+const LIVE_SMS_START_HOUR=6;
+const LIVE_SMS_END_HOUR=21;
+
+function liveSmsLocalHour(date){
+  const parts=new Intl.DateTimeFormat("en-US",{
+    timeZone:LIVE_SMS_TIME_ZONE,
+    hour:"2-digit",
+    hourCycle:"h23"
+  }).formatToParts(date);
+  const hour=Number(parts.find(part=>part.type==="hour")?.value);
+  return Number.isInteger(hour)?hour:null;
+}
+
+function isLiveSmsSendWindow(date){
+  const hour=liveSmsLocalHour(date);
+  return hour!==null&&hour>=LIVE_SMS_START_HOUR&&hour<LIVE_SMS_END_HOUR;
+}
+
 function retryDelayMinutes(attempt){
   return attempt<=1?2:attempt===2?5:attempt===3?15:60;
 }
@@ -158,6 +177,13 @@ async function dispatchLiveOpportunitySmsBatch({queryDb,env=process.env,fetchImp
     return {mode:state.mode,active:false,claimed:0,sent:0,blocked:0,failed:0,messages_sent:0};
   }
   const now=clock();
+  if(!isLiveSmsSendWindow(now)){
+    return {
+      mode:"live",active:true,quiet_hours:true,
+      time_zone:LIVE_SMS_TIME_ZONE,send_window:"06:00-21:00",
+      claimed:0,sent:0,blocked:0,failed:0,retry_scheduled:0,messages_sent:0
+    };
+  }
   const nowIso=now.toISOString();
   const claimed=await queryDb("rpc/gef_claim_opportunity_sms_batch",{
     method:"POST",
@@ -258,4 +284,4 @@ async function dispatchLiveOpportunitySmsBatch({queryDb,env=process.env,fetchImp
   return summary;
 }
 
-module.exports={safeFailureCode,liveFailureCode,retryDelayMinutes,retryAtFor,dispatchControlledOpportunitySms,dispatchControlledOpportunitySmsCanary,dispatchLiveOpportunitySmsBatch};
+module.exports={safeFailureCode,liveFailureCode,retryDelayMinutes,retryAtFor,liveSmsLocalHour,isLiveSmsSendWindow,dispatchControlledOpportunitySms,dispatchControlledOpportunitySmsCanary,dispatchLiveOpportunitySmsBatch};

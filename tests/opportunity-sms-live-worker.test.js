@@ -1,6 +1,6 @@
 "use strict";
 const test=require("node:test"),assert=require("node:assert/strict"),fs=require("node:fs"),path=require("node:path");
-const {dispatchControlledOpportunitySmsCanary,dispatchLiveOpportunitySmsBatch,retryAtFor}=require("../api/_lib/opportunity-sms-dispatch");
+const {dispatchControlledOpportunitySmsCanary,dispatchLiveOpportunitySmsBatch,retryAtFor,isLiveSmsSendWindow}=require("../api/_lib/opportunity-sms-dispatch");
 
 const queueId="11111111-1111-4111-8111-111111111111";
 const opportunityId="22222222-2222-4222-8222-222222222222";
@@ -74,7 +74,7 @@ test("controlled cron canary remains isolated to test recipient and QUEUED rows"
   const result=await dispatchControlledOpportunitySmsCanary({
     queryDb,env,
     fetchImpl:async(_url,options)=>{telnyx++;const body=JSON.parse(options.body);assert.equal(body.to,phone);return {ok:true,status:200,json:async()=>({data:{id:"msg_canary_1"}})};},
-    clock:()=>new Date("2026-10-30T03:00:00Z")
+    clock:()=>new Date("2026-10-30T14:00:00Z")
   });
   assert.equal(result.canary,true);
   assert.equal(result.active,true);
@@ -104,7 +104,7 @@ test("controlled cron canary enforces five sends per rolling 24 hours",async()=>
       queueLookups++;return [];
     },
     fetchImpl:async()=>{telnyx++;},
-    clock:()=>new Date("2026-10-30T03:00:00Z")
+    clock:()=>new Date("2026-10-30T14:00:00Z")
   });
   assert.equal(result.daily_limited,true);
   assert.equal(result.sent,0);
@@ -145,12 +145,40 @@ test("live worker stays inactive outside fully approved live mode",async()=>{
   assert.equal(fetchCalls,0);
 });
 
+
+test("live SMS window uses America/New_York and is open from 06:00 through 20:59",()=>{
+  assert.equal(isLiveSmsSendWindow(new Date("2026-10-30T09:59:59Z")),false); // 05:59 EDT
+  assert.equal(isLiveSmsSendWindow(new Date("2026-10-30T10:00:00Z")),true);  // 06:00 EDT
+  assert.equal(isLiveSmsSendWindow(new Date("2026-10-31T00:59:59Z")),true);  // 20:59 EDT
+  assert.equal(isLiveSmsSendWindow(new Date("2026-10-31T01:00:00Z")),false); // 21:00 EDT
+  assert.equal(isLiveSmsSendWindow(new Date("2026-12-15T10:59:59Z")),false); // 05:59 EST
+  assert.equal(isLiveSmsSendWindow(new Date("2026-12-15T11:00:00Z")),true);  // 06:00 EST
+});
+
+test("live worker leaves queued notifications untouched during quiet hours",async()=>{
+  let dbCalls=0,fetchCalls=0;
+  const result=await dispatchLiveOpportunitySmsBatch({
+    queryDb:async()=>{dbCalls++;return [];},
+    env:liveEnv,
+    fetchImpl:async()=>{fetchCalls++;},
+    clock:()=>new Date("2026-10-30T03:00:00Z") // 23:00 previous day in Florida
+  });
+  assert.equal(result.active,true);
+  assert.equal(result.quiet_hours,true);
+  assert.equal(result.send_window,"06:00-21:00");
+  assert.equal(result.time_zone,"America/New_York");
+  assert.equal(result.claimed,0);
+  assert.equal(result.sent,0);
+  assert.equal(dbCalls,0);
+  assert.equal(fetchCalls,0);
+});
+
 test("live worker claims one row, revalidates consent and records SENT",async()=>{
   const mock=db();let payload=null;
   const result=await dispatchLiveOpportunitySmsBatch({
     queryDb:mock.queryDb,env:liveEnv,
     fetchImpl:async(_url,options)=>{payload=JSON.parse(options.body);return {ok:true,status:200,json:async()=>({data:{id:"msg_live_worker_1"}})};},
-    clock:()=>new Date("2026-10-30T03:00:00Z")
+    clock:()=>new Date("2026-10-30T14:00:00Z")
   });
   assert.equal(result.active,true);
   assert.equal(result.claimed,1);
@@ -159,18 +187,18 @@ test("live worker claims one row, revalidates consent and records SENT",async()=
   assert.equal(payload.to,phone);
   assert.match(payload.text,/https:\/\/www\.getestimatefast\.com\/o\//);
   const claim=mock.calls.find(c=>c.route==="rpc/gef_claim_opportunity_sms_batch");
-  assert.deepEqual(JSON.parse(claim.options.body),{p_limit:1,p_daily_limit:200,p_now:"2026-10-30T03:00:00.000Z"});
+  assert.deepEqual(JSON.parse(claim.options.body),{p_limit:1,p_daily_limit:200,p_now:"2026-10-30T14:00:00.000Z"});
   const sentPatch=mock.calls.find(c=>c.options?.method==="PATCH"&&JSON.parse(c.options.body).status==="SENT");
   assert(sentPatch);
   assert.equal(JSON.parse(sentPatch.options.body).provider_message_id,"msg_live_worker_1");
 });
 
 test("live worker rechecks STOP after claim and sends nothing",async()=>{
-  const mock=db({profileRow:{...profile,sms_opt_in:false,sms_opt_in_at:null,sms_opt_out_at:"2026-10-30T02:59:00Z"}});
+  const mock=db({profileRow:{...profile,sms_opt_in:false,sms_opt_in_at:null,sms_opt_out_at:"2026-10-30T13:59:00Z"}});
   let fetchCalls=0;
   const result=await dispatchLiveOpportunitySmsBatch({
     queryDb:mock.queryDb,env:liveEnv,fetchImpl:async()=>{fetchCalls++;},
-    clock:()=>new Date("2026-10-30T03:00:00Z")
+    clock:()=>new Date("2026-10-30T14:00:00Z")
   });
   assert.equal(result.blocked,1);
   assert.equal(result.sent,0);
@@ -184,17 +212,17 @@ test("only explicit Telnyx 429 schedules automatic retry",async()=>{
   const result429=await dispatchLiveOpportunitySmsBatch({
     queryDb:mock429.queryDb,env:liveEnv,
     fetchImpl:async()=>({ok:false,status:429,json:async()=>({errors:[{code:"RATE_LIMITED"}]})}),
-    clock:()=>new Date("2026-10-30T03:00:00Z")
+    clock:()=>new Date("2026-10-30T14:00:00Z")
   });
   assert.equal(result429.retry_scheduled,1);
   const failed429=mock429.calls.find(c=>c.options?.method==="PATCH"&&JSON.parse(c.options.body).status==="FAILED");
-  assert.equal(JSON.parse(failed429.options.body).next_attempt_at,"2026-10-30T03:02:00.000Z");
+  assert.equal(JSON.parse(failed429.options.body).next_attempt_at,"2026-10-30T14:02:00.000Z");
 
   const mock500=db();
   const result500=await dispatchLiveOpportunitySmsBatch({
     queryDb:mock500.queryDb,env:liveEnv,
     fetchImpl:async()=>({ok:false,status:500,json:async()=>({errors:[{code:"SERVER_ERROR"}]})}),
-    clock:()=>new Date("2026-10-30T03:00:00Z")
+    clock:()=>new Date("2026-10-30T14:00:00Z")
   });
   assert.equal(result500.retry_scheduled,0);
   const failed500=mock500.calls.find(c=>c.options?.method==="PATCH"&&JSON.parse(c.options.body).status==="FAILED");
