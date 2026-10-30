@@ -29,7 +29,9 @@ test("prepared opportunity SMS queue is idempotent and server-only",()=>{
     "'BLOCKED_NO_CONSENT'",
     "'BLOCKED_INVALID_PHONE'",
     "'DELIVERED'",
-    "attempt_count between 0 and 5"
+    "attempt_count between 0 and 5",
+    "opportunity_sms_queue_opportunity_idx",
+    "opportunity_sms_queue_contractor_idx"
   ])assert(sql.includes(required),required);
   const phoneCheckLine=sql.split("\n").find(line=>line.includes("recipient_phone_e164 ~"));
   assert.equal(phoneCheckLine.trim(),"or recipient_phone_e164 ~ '^\\+1[2-9][0-9]{2}[2-9][0-9]{6}$'");
