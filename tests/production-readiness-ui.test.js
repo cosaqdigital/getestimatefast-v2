@@ -189,3 +189,23 @@ test('Services page uses scalable catalog positioning and preserves all launch c
   assert.match(d.body.textContent,/Other Services/);
  }finally{dom.window.close();}
 });
+
+
+test('Admin executive dashboard prioritizes live business metrics and operational attention',()=>{
+ const dom=new JSDOM(read('admin.html'));
+ try{
+  const d=dom.window.document;
+  for(const id of ['overviewRevenueToday','overviewContactsToday','overviewRequestsToday','overviewActiveOpportunities','overviewActive','overviewSmsDelivered','overviewConversion','overviewPublic','overviewRevenue7d','overviewContractors','overviewNewLeads','overviewRefunds','funnelRequests','funnelPublished','funnelSms','funnelSold','attentionSummary','attentionReview','attentionSms','attentionMatching','attentionPayments'])assert.ok(d.querySelector('#'+id),id);
+  assert.match(d.querySelector('#overview h1').textContent,/Executive Dashboard/);
+  assert.match(d.body.textContent,/Business funnel/);
+  assert.match(d.body.textContent,/Needs attention/);
+  assert.match(d.body.textContent,/Manage the business/);
+  assert.match(d.querySelector('#smsReadiness').textContent,/6:00 AM through 8:59 PM Florida time/);
+  assert.ok(d.querySelector('#leadResultsPanel'));
+  assert.match(read('assets/admin.js'),/All monitored operations are clear/);
+  assert.match(read('assets/admin.js'),/revenue_today_cents/);
+  assert.match(read('api/admin/overview.js'),/gef_admin_executive_overview/);
+  assert.match(read('sql/admin_executive_overview.sql'),/revoke all on function public\.gef_admin_executive_overview\(uuid\) from public,anon,authenticated/);
+  assert.match(read('sql/admin_executive_overview.sql'),/grant execute on function public\.gef_admin_executive_overview\(uuid\) to service_role/);
+ }finally{dom.window.close();}
+});
