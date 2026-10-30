@@ -31,5 +31,9 @@ test("prepared opportunity SMS queue is idempotent and server-only",()=>{
     "'DELIVERED'",
     "attempt_count between 0 and 5"
   ])assert(sql.includes(required),required);
+  assert(sql.includes("recipient_phone_e164 ~ '^\\+1[2-9][0-9]{2}[2-9][0-9]{6}});
+"));
+  assert(!sql.includes("recipient_phone_e164 ~ '^\\\\+1[2-9][0-9]{2}[2-9][0-9]{6}});
+"));
   assert.doesNotMatch(sql,/grant\s+.*\b(delete|truncate)\b.*service_role/i);
 });
