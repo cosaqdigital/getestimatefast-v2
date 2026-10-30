@@ -83,25 +83,13 @@ begin
  )
  select r.id,r.opportunity_id,r.contractor_user_id,
    case
-     when p.sms_phone_e164 ~ '^\\+1[2-9][0-9]{2}[2-9][0-9]{6}
-end;
-$fn$;
-
-revoke all on function public.admin_record_matching_round(uuid,uuid[],numeric[],uuid) from public,anon,authenticated;
-grant execute on function public.admin_record_matching_round(uuid,uuid[],numeric[],uuid) to service_role;
- then p.sms_phone_e164
+     when p.sms_phone_e164 ~ '^\+1[2-9][0-9]{2}[2-9][0-9]{6}$' then p.sms_phone_e164
      else null
    end,
    case
      when p.account_status<>'active' or p.email_verified_at is null then 'BLOCKED_INACTIVE'
      when p.sms_opt_in is distinct from true or p.sms_opt_in_at is null or p.sms_opt_out_at is not null then 'BLOCKED_NO_CONSENT'
-     when p.sms_phone_e164 is null or p.sms_phone_e164 !~ '^\\+1[2-9][0-9]{2}[2-9][0-9]{6}
-end;
-$fn$;
-
-revoke all on function public.admin_record_matching_round(uuid,uuid[],numeric[],uuid) from public,anon,authenticated;
-grant execute on function public.admin_record_matching_round(uuid,uuid[],numeric[],uuid) to service_role;
- then 'BLOCKED_INVALID_PHONE'
+     when p.sms_phone_e164 is null or p.sms_phone_e164 !~ '^\+1[2-9][0-9]{2}[2-9][0-9]{6}$' then 'BLOCKED_INVALID_PHONE'
      else 'QUEUED'
    end
  from public.opportunity_matching_recipients r
