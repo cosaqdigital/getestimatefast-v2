@@ -435,3 +435,58 @@ body.pro-simple .pro-opportunity-view{font-weight:850}
  body.pro-simple #opportunityPanel>.columns{grid-template-columns:1fr}
  body.pro-simple #opportunityPanel #loadOpportunities{width:100%}
 }
+
+
+/* Focused opportunity view for SMS/deep links */
+body.pro-simple.pro-opportunity-direct{background:#f3f7fb}
+body.pro-simple.pro-opportunity-direct main{max-width:920px;padding-bottom:34px}
+body.pro-simple.pro-opportunity-direct .portal-header{max-width:920px;padding-bottom:12px}
+body.pro-simple.pro-opportunity-direct .portal-name-divider,
+body.pro-simple.pro-opportunity-direct .portal-name-sub,
+body.pro-simple.pro-opportunity-direct .portal-home{display:none!important}
+body.pro-simple.pro-opportunity-direct #workspace{background:transparent;border:0;padding:0;margin:0}
+body.pro-simple.pro-opportunity-direct #launchFlag,
+body.pro-simple.pro-opportunity-direct #logout,
+body.pro-simple.pro-opportunity-direct .pro-account-overview,
+body.pro-simple.pro-opportunity-direct .pro-navigation{display:none!important}
+body.pro-simple.pro-opportunity-direct #opportunityPanel{margin:0!important;padding:0!important;border:0;background:transparent}
+body.pro-simple.pro-opportunity-direct #opportunityPanel>h2,
+body.pro-simple.pro-opportunity-direct #opportunityIntro,
+body.pro-simple.pro-opportunity-direct #opportunityPanel>.columns,
+body.pro-simple.pro-opportunity-direct #opportunityPanel>.form-grid{display:none!important}
+body.pro-simple.pro-opportunity-direct .pro-opportunity-list{margin:0!important;border:0;border-radius:0;overflow:visible;background:transparent}
+body.pro-simple .pro-opportunity-direct-head{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:0 0 14px;padding:10px 0 14px;border-bottom:1px solid #d8e4ee}
+body.pro-simple .pro-opportunity-direct-head>div{display:grid;gap:3px;text-align:right}
+body.pro-simple .pro-opportunity-direct-head span{font-size:10px;letter-spacing:.08em;color:#6a8093;font-weight:900}
+body.pro-simple .pro-opportunity-direct-head strong{font-size:19px;color:#123554}
+body.pro-simple .pro-opportunity-direct-back{background:transparent!important;color:#155f9d!important;border:0!important;padding:8px 0!important;min-height:0;font-size:14px;box-shadow:none!important}
+body.pro-simple .pro-opportunity-direct-card{grid-template-columns:96px minmax(0,1fr);align-items:start;padding:20px;border:1px solid #d6e3ed!important;border-radius:18px;background:#fff!important;box-shadow:0 12px 34px rgba(18,61,96,.08)}
+body.pro-simple .pro-opportunity-direct-card .pro-opportunity-thumb{width:96px;height:78px}
+body.pro-simple .pro-opportunity-direct-card .pro-opportunity-title-line h3{font-size:26px;line-height:1.1}
+body.pro-simple .pro-opportunity-direct-card .pro-opportunity-meta{font-size:14px}
+body.pro-simple .pro-opportunity-direct-card .pro-opportunity-view{display:none!important}
+body.pro-simple .pro-opportunity-direct-card .pro-opportunity-expanded{grid-column:1/-1;margin:4px 0 0;padding:22px 0 0;border-top:1px solid #e2e9ef;background:#fff}
+body.pro-simple .pro-opportunity-direct-card .pro-opportunity-summary{font-size:17px;line-height:1.6;color:#29475f}
+body.pro-simple .pro-opportunity-direct-card .pro-opportunity-access{margin-top:18px;padding:17px 18px}
+body.pro-simple .pro-opportunity-direct-card .pro-opportunity-access strong{font-size:25px}
+body.pro-simple .pro-contact-actions .pro-contact-unavailable:disabled{opacity:1;background:#eef2f6!important;color:#687d8f!important;border:1px solid #d8e1e8!important;box-shadow:none!important}
+@media(max-width:700px){
+ body.pro-simple.pro-opportunity-direct main{padding:0 12px 24px}
+ body.pro-simple.pro-opportunity-direct .portal-header{padding:12px 14px 10px}
+ body.pro-simple.pro-opportunity-direct .portal-brand{gap:8px}
+ body.pro-simple.pro-opportunity-direct .portal-mark{width:34px;transform:scale(.78);transform-origin:left center}
+ body.pro-simple.pro-opportunity-direct .portal-wordmark{font-size:24px;letter-spacing:-1px}
+ body.pro-simple .pro-opportunity-direct-head{align-items:flex-start;margin-bottom:10px;padding:4px 2px 12px}
+ body.pro-simple .pro-opportunity-direct-head>div{display:none}
+ body.pro-simple .pro-opportunity-direct-back{font-size:14px}
+ body.pro-simple .pro-opportunity-direct-card{grid-template-columns:70px minmax(0,1fr);gap:12px;padding:14px;border-radius:15px}
+ body.pro-simple .pro-opportunity-direct-card .pro-opportunity-thumb{width:70px;height:60px}
+ body.pro-simple .pro-opportunity-direct-card .pro-opportunity-title-line{gap:7px}
+ body.pro-simple .pro-opportunity-direct-card .pro-opportunity-title-line h3{font-size:21px}
+ body.pro-simple .pro-opportunity-direct-card .pro-opportunity-meta{gap:7px 12px;font-size:12px}
+ body.pro-simple .pro-opportunity-direct-card .pro-opportunity-expanded{margin:4px -2px 0;padding:18px 0 0}
+ body.pro-simple .pro-opportunity-direct-card .pro-opportunity-summary{font-size:16px;margin-bottom:16px}
+ body.pro-simple .pro-opportunity-direct-card .pro-opportunity-access{padding:14px;gap:8px}
+ body.pro-simple .pro-opportunity-direct-card .pro-contact-actions{display:grid;grid-template-columns:1fr}
+ body.pro-simple .pro-opportunity-direct-card .pro-contact-actions button{width:100%}
+}
