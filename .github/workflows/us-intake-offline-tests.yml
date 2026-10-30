@@ -47,6 +47,7 @@ on:
       - tests/us-profile-origin-referrals.test.js
       - tests/us-referral-auto-pricing.test.js
       - api/admin/publish-opportunity.js
+      - api/admin/record-matching-round.js
       - sql/controlled_matching_rounds.sql
       - supabase/prepared-migrations/us-profile-origin-auto-pricing.sql
       - api/profile-request.js
@@ -56,6 +57,7 @@ on:
       - api/contractor/origin-leads.js
       - api/contractor/opportunities.js
       - api/_lib/telnyx-us-provider.js
+      - api/_lib/opportunity-sms-policy.js
       - api/_lib/opportunity-sms-dispatch.js
       - api/_lib/telnyx-us-webhook.js
       - api/webhooks/telnyx-sms.js
