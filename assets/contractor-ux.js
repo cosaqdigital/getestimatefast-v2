@@ -91,7 +91,7 @@ for(const [id,label] of [["contractorDashboard","Home"],["opportunityPanel","Opp
  const link=make("a",label);link.href="#"+id;link.dataset.screen=id;nav.append(link);
 }
 nav.classList.add("pro-navigation");
-const commercialScreens=new Set(["opportunityPanel","myReferralsPanel","publicProfilePanel","profilePreviewPanel","walletPanel","purchasePanel"]);
+const commercialScreens=new Set(["myReferralsPanel","publicProfilePanel","profilePreviewPanel","walletPanel","purchasePanel"]);
 function syncNavigationAvailability(){
  const closed=capabilities?.marketplace_enabled===false;
  for(const link of nav.querySelectorAll("a[data-screen]")){
