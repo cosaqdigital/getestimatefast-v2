@@ -1,4 +1,4 @@
-(()=>{"use strict";const el=id=>document.getElementById(id);let token="",sessionGeneration=0,capabilities={payments_enabled:false};const say=s=>el("message").textContent=s;
+(()=>{"use strict";const el=id=>document.getElementById(id);let token="",sessionGeneration=0,capabilities={payments_enabled:false};const say=s=>el("message").textContent=s;const directOpportunityId=()=>new URLSearchParams(window.location.search).get("opportunity")||"";
 async function api(path,method="GET",body){const generation=sessionGeneration;let r=await fetch("/api/contractor/"+path,{method,cache:"no-store",credentials:"same-origin",headers:{...(token?{Authorization:"Bearer "+token}:{}),...(body?{"Content-Type":"application/json"}:{})},body:body?JSON.stringify(body):undefined});let d=await r.json();if(generation!==sessionGeneration)throw Error("Session changed. Please sign in again.");if(!r.ok){if(r.status===401&&token){sessionGeneration++;token="";el("profile").reset();el("opportunityCards").replaceChildren();loggedIn(false);}throw Error(d.error||"Request failed");}return d;}
 const loggedIn=b=>{el("auth").hidden=b;el("register").hidden=b||new URLSearchParams(window.location.search).get("signup")!=="1";el("workspace").hidden=!b;window.dispatchEvent(new CustomEvent(b?"gef-signed-in":"gef-signed-out"));};
 el("login").addEventListener("submit",async e=>{e.preventDefault();say("Signing in...");try{const f=new FormData(e.currentTarget);const d=await api("login","POST",{email:f.get("email"),password:f.get("password")});token=d.access_token;el("login").elements.password.value="";loggedIn(true);const profileState=await refresh();const p=profileState?.profile;const ready=Boolean(p?.account_status==="active"&&p?.base_zip&&p?.contact_phone&&p?.service_categories?.length);if(ready){try{await loadOpportunities();if(!new URLSearchParams(window.location.search).get("opportunity")){say("Signed in.");setTimeout(()=>{if(el("message").textContent==="Signed in.")say("");},3500);}}catch(error){say(error.message);}}else{say("Signed in. Complete your business profile to continue.");}}catch(ex){say(ex.message)}});
@@ -33,19 +33,32 @@ async function loadOpportunities(append=false,requestedPage=null){
  const page=Number.isInteger(requestedPage)?requestedPage:(append?opportunityPage+1:0);
  const city=el("opportunityCity").value.trim();
  const params=new URLSearchParams({page:String(page),city});
- const directOpportunity=new URLSearchParams(window.location.search).get("opportunity")||"";
+ const directOpportunity=directOpportunityId();
+ document.body.classList.toggle("pro-opportunity-direct",Boolean(directOpportunity));
  if(directOpportunity)params.set("opportunity_id",directOpportunity);
  for(const [id,key] of [["opportunityCategory","category"],["opportunityZip","zip"],["opportunityRadius","radius"],["opportunityAvailability","availability"]])if(el(id)?.value)params.set(key,el(id).value);
  const d=await api("opportunities?"+params);
  window.dispatchEvent(new CustomEvent("gef-opportunities",{detail:d}));
- const holder=el("opportunityCards");holder.replaceChildren();holder.classList.add("pro-opportunity-list");
- const meta=document.createElement("div");meta.className="pro-opportunity-list-meta";
+ const holder=el("opportunityCards");holder.replaceChildren();holder.classList.add("pro-opportunity-list");holder.classList.toggle("pro-opportunity-direct-list",Boolean(directOpportunity));
  const startIndex=d.matching_total?d.page*OPPORTUNITY_PAGE_SIZE+1:0;
  const endIndex=Math.min(d.matching_total,(d.page+1)*OPPORTUNITY_PAGE_SIZE);
- meta.textContent=d.matching_total?"Showing "+startIndex+"–"+endIndex+" of "+d.matching_total+" opportunities":"No matching opportunities";
- holder.append(meta);
+ if(directOpportunity){
+  const head=document.createElement("div");head.className="pro-opportunity-direct-head";
+  const back=document.createElement("button");back.type="button";back.className="pro-opportunity-direct-back";back.textContent="← Back to Opportunities";
+  const copy=document.createElement("div");const eyebrow=document.createElement("span");eyebrow.textContent="GETESTIMATEFAST ALERT";const heading=document.createElement("strong");heading.textContent="Opportunity details";copy.append(eyebrow,heading);head.append(back,copy);holder.append(head);
+  back.addEventListener("click",async()=>{
+   const url=new URL(window.location.href);url.searchParams.delete("opportunity");url.hash="opportunityPanel";history.replaceState(null,"",url.pathname+url.search+url.hash);
+   document.body.classList.remove("pro-opportunity-direct");
+   window.dispatchEvent(new CustomEvent("gef-opportunity-direct-exit"));
+   await loadOpportunities(false,0);
+  });
+ }else{
+  const meta=document.createElement("div");meta.className="pro-opportunity-list-meta";
+  meta.textContent=d.matching_total?(d.matching_total===1?"1 opportunity found":"Showing "+startIndex+"–"+endIndex+" of "+d.matching_total+" opportunities"):"No matching opportunities";
+  holder.append(meta);
+ }
  for(const item of d.opportunities){
-  const card=document.createElement("article");card.className="pro-opportunity-row";card.dataset.opportunityId=item.opportunity_id;
+  const card=document.createElement("article");card.className="pro-opportunity-row"+(directOpportunity?" pro-opportunity-direct-card":"");card.dataset.opportunityId=item.opportunity_id;
   const photos=Array.isArray(item.photos)?item.photos.filter(photo=>photo&&photo.url):[];
   const thumb=document.createElement("div");thumb.className="pro-opportunity-thumb";
   if(photos[0]?.url){const img=document.createElement("img");img.src=photos[0].url;img.alt="Project preview";img.loading="lazy";thumb.append(img);}
@@ -62,7 +75,7 @@ async function loadOpportunities(append=false,requestedPage=null){
   const photoInfo=document.createElement("span");photoInfo.textContent="▧ "+(photos.length?photos.length+(photos.length===1?" photo":" photos"):"No photos");
   metaRow.append(location,published,photoInfo);main.append(titleLine,metaRow);
   const view=document.createElement("button");view.type="button";view.className="secondary pro-opportunity-view";view.textContent="View Details →";
-  const details=document.createElement("div");details.hidden=true;details.className="pro-opportunity-details pro-opportunity-expanded";
+  const details=document.createElement("div");details.hidden=Boolean(!directOpportunity);details.className="pro-opportunity-details pro-opportunity-expanded";
   const summary=document.createElement("p");summary.className="pro-opportunity-summary";summary.textContent=item.public_summary;
   details.append(summary);
   const detailEntries=Object.entries(item.project_details||{}).filter(([,value])=>value!==null&&value!==undefined&&String(value).trim()!=="");
@@ -98,10 +111,11 @@ async function loadOpportunities(append=false,requestedPage=null){
     cardPurchase.addEventListener("click",async()=>{walletPurchase.disabled=true;cardPurchase.disabled=true;try{say("Preparing secure Stripe checkout...");const quote=await api("live-checkout","POST",{action:"quote",opportunity_id:item.opportunity_id});const checkout=await api("live-checkout","POST",{action:"checkout",opportunity_id:item.opportunity_id,quote_id:quote.quote_id,operation_key:"buy_"+crypto.randomUUID()});sessionStorage.setItem("gef_pending_order_id",checkout.order_id);window.location.assign(checkout.checkout_url);}catch(ex){walletPurchase.disabled=false;cardPurchase.disabled=false;say(ex.message);}});
     purchaseActions.append(walletPurchase,cardPurchase);
   }else{
-    const unavailable=document.createElement("button");unavailable.type="button";unavailable.disabled=true;unavailable.textContent="Contact purchase unavailable";purchaseActions.append(unavailable);
+    const unavailable=document.createElement("button");unavailable.type="button";unavailable.disabled=true;unavailable.className="pro-contact-unavailable";unavailable.textContent="Contact purchase unavailable";purchaseActions.append(unavailable);
   }
   renderProjectPhotos(details,item);details.append(access,privacy,purchaseActions);
   view.addEventListener("click",()=>{details.hidden=!details.hidden;view.textContent=details.hidden?"View Details →":"Hide Details ↑";});
+  if(directOpportunity)view.hidden=true;
   card.append(thumb,main,view,details);holder.append(card);
  }
  opportunityPage=page;
@@ -112,15 +126,13 @@ async function loadOpportunities(append=false,requestedPage=null){
  const next=document.createElement("button");next.type="button";next.className="secondary";next.textContent="Next →";next.disabled=endIndex>=d.matching_total;
  prev.addEventListener("click",()=>loadOpportunities(false,Math.max(0,page-1)).catch(e=>say(e.message)));
  next.addEventListener("click",()=>loadOpportunities(false,page+1).catch(e=>say(e.message)));
- pager.append(prev,pageLabel,next);if(pageCount>1)holder.append(pager);
+ pager.append(prev,pageLabel,next);if(!directOpportunity&&pageCount>1)holder.append(pager);
  el("moreOpportunities").hidden=true;
  if(!d.opportunities.length)holder.append(document.createTextNode(directOpportunity?"This opportunity is unavailable or does not match your professional profile.":"No matching opportunities have been published yet."));
  if(directOpportunity&&d.opportunities.some(item=>item.opportunity_id===directOpportunity)){
   const target=holder.querySelector('[data-opportunity-id="'+CSS.escape(directOpportunity)+'"]');
-  target?.scrollIntoView({block:"center",behavior:"smooth"});
-  const viewButton=target?.querySelector(".pro-opportunity-view");
-  if(viewButton&&viewButton.textContent.startsWith("View Details"))viewButton.click();
-  say("Opportunity opened from your GetEstimateFast alert.");
+  target?.scrollIntoView({block:"start",behavior:"smooth"});
+  say("");
  }
 }
 el("loadOpportunities").addEventListener("click",()=>loadOpportunities().catch(e=>say(e.message)));

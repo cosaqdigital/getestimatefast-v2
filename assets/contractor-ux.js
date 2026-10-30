@@ -223,6 +223,7 @@ function updateLaunchDashboard(p,publicProfilePublished){
 // re-arranging legacy public contact fields or wrapping the new editor sections.
 const pub=views.publicProfilePanel;
 let signedIn=false,hasProfile=null,current="",capabilities=null;
+const isDirectOpportunity=()=>Boolean(new URLSearchParams(window.location.search).get("opportunity"));
 function go(id){
  if(!signedIn)return;
  if(capabilities?.marketplace_enabled===false&&commercialScreens.has(id)){
@@ -231,7 +232,9 @@ function go(id){
  }
  const dest=hasProfile===false?"accountSettingsPanel":views[id]?id:"contractorDashboard";
  for(const [key,section] of Object.entries(views))section.hidden=key!==dest;
- nav.hidden=hasProfile!==true;
+ const direct=isDirectOpportunity();
+ nav.hidden=hasProfile!==true||direct;
+ welcome.hidden=direct;
  for(const link of nav.querySelectorAll("a"))link.dataset.active=link.dataset.screen===dest?"true":"false";
  if(dest==="accountSettingsPanel"){drawServices();if(current!==dest)selectStep(1);}
  if(dest==="publicProfilePanel")drawPublic();
@@ -261,8 +264,9 @@ window.addEventListener("gef-profile",e=>{
  hasProfile=Boolean(p?.account_status==="active"&&p.base_zip&&p.contact_phone&&p.service_categories?.length);
  queueMicrotask(drawServices);
  if(hasProfile){
-  const justCompleted=!wasReady;
-  const destination=justCompleted?"opportunityPanel":(views[location.hash.slice(1)]?location.hash.slice(1):(current||"contractorDashboard"));
+  const direct=isDirectOpportunity();
+  const justCompleted=!wasReady&&!direct;
+  const destination=direct?"opportunityPanel":justCompleted?"opportunityPanel":(views[location.hash.slice(1)]?location.hash.slice(1):(current||"contractorDashboard"));
   go(destination);
   if(justCompleted){
    try{history.replaceState(null,"","#opportunityPanel");}catch{}
@@ -276,6 +280,7 @@ window.addEventListener("gef-profile",e=>{
   }
  }else go("accountSettingsPanel");
 });
+window.addEventListener("gef-opportunity-direct-exit",()=>{if(signedIn&&hasProfile===true)go("opportunityPanel");});
 window.addEventListener("gef-public-profile",e=>{const p=e.detail?.profile;if($("proPublicValue"))$("proPublicValue").textContent=p?.published===true?"Published":"Not published";});
 window.addEventListener("gef-opportunities",e=>{const total=String(e.detail?.matching_total??0);if($("proOpportunityValue"))$("proOpportunityValue").textContent=total;if($("proQuickOpportunities"))$("proQuickOpportunities").textContent=total;});
 const walletSource=$("walletBalance");
@@ -283,5 +288,5 @@ if(walletSource){
  const syncQuickWallet=()=>{if($("proQuickWallet"))$("proQuickWallet").textContent=walletSource.textContent||"$0.00";};
  new MutationObserver(syncQuickWallet).observe(walletSource,{childList:true,characterData:true,subtree:true});syncQuickWallet();
 }
-window.addEventListener("gef-signed-out",()=>{signedIn=false;hasProfile=null;capabilities=null;referralList.replaceChildren();nav.hidden=true;for(const x of Object.values(views))x.hidden=true;selectStep(1);if($("proOpportunityValue"))$("proOpportunityValue").textContent="0";if($("proQuickOpportunities"))$("proQuickOpportunities").textContent="0";if($("proQuickDirect"))$("proQuickDirect").textContent="0";});
+window.addEventListener("gef-signed-out",()=>{signedIn=false;hasProfile=null;capabilities=null;document.body.classList.remove("pro-opportunity-direct");referralList.replaceChildren();nav.hidden=true;welcome.hidden=false;for(const x of Object.values(views))x.hidden=true;selectStep(1);if($("proOpportunityValue"))$("proOpportunityValue").textContent="0";if($("proQuickOpportunities"))$("proQuickOpportunities").textContent="0";if($("proQuickDirect"))$("proQuickDirect").textContent="0";});
 })();
