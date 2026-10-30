@@ -32,7 +32,7 @@ create table if not exists public.opportunity_sms_queue (
   updated_at timestamptz not null default now(),
   constraint opportunity_sms_queue_phone_check check (
     recipient_phone_e164 is null
-    or recipient_phone_e164 ~ '^\\+1[2-9][0-9]{2}[2-9][0-9]{6}$'
+    or recipient_phone_e164 ~ '^\+1[2-9][0-9]{2}[2-9][0-9]{6}$'
   )
 );
 
