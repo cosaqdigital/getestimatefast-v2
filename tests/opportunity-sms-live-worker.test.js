@@ -1,6 +1,6 @@
 "use strict";
 const test=require("node:test"),assert=require("node:assert/strict"),fs=require("node:fs"),path=require("node:path");
-const {dispatchLiveOpportunitySmsBatch,retryAtFor}=require("../api/_lib/opportunity-sms-dispatch");
+const {dispatchControlledOpportunitySmsCanary,dispatchLiveOpportunitySmsBatch,retryAtFor}=require("../api/_lib/opportunity-sms-dispatch");
 
 const queueId="11111111-1111-4111-8111-111111111111";
 const opportunityId="22222222-2222-4222-8222-222222222222";
@@ -46,6 +46,91 @@ function db({profileRow=profile,claimedRows=[claimed],leadStatus="published"}={}
   }
   return {queryDb,calls};
 }
+
+
+test("controlled cron canary remains isolated to test recipient and QUEUED rows",async()=>{
+  const env={
+    GETESTIMATEFAST_SMS_PROVIDER:"telnyx",
+    GETESTIMATEFAST_SMS_MODE:"controlled_test",
+    GETESTIMATEFAST_SMS_CANARY_AUTOMATION_APPROVED:"true",
+    GETESTIMATEFAST_TELNYX_API_KEY:"fake",
+    GETESTIMATEFAST_TELNYX_FROM_NUMBER:"+18133039893",
+    GETESTIMATEFAST_TELNYX_10DLC_BRAND_APPROVED:"true",
+    GETESTIMATEFAST_TELNYX_10DLC_CAMPAIGN_APPROVED:"true",
+    GETESTIMATEFAST_TELNYX_TEST_TO:phone,
+    CRON_SECRET:"0123456789abcdef0123456789abcdef"
+  };
+  const calls=[];let telnyx=0;
+  const queryDb=async(route,options={})=>{
+    calls.push({route,options});
+    if(route.startsWith("opportunity_sms_queue?recipient_phone_e164=eq.")&&route.includes("&sent_at=gte."))return [];
+    if(route.startsWith("opportunity_sms_queue?status=eq.QUEUED"))return [{...claimed,status:"QUEUED",attempt_count:0}];
+    if(route.startsWith("contractor_profiles?"))return [profile];
+    if(route.startsWith("opportunity_previews?"))return [{id:opportunityId,city:"Riverview"}];
+    if(route.startsWith("opportunity_sms_queue?id=eq.")&&route.includes("&status=eq.QUEUED&attempt_count=eq.0"))return [{...claimed,status:"SENDING",attempt_count:1}];
+    if(route.startsWith("opportunity_sms_queue?id=eq."))return [{id:queueId}];
+    throw Error("Unexpected canary route: "+route);
+  };
+  const result=await dispatchControlledOpportunitySmsCanary({
+    queryDb,env,
+    fetchImpl:async(_url,options)=>{telnyx++;const body=JSON.parse(options.body);assert.equal(body.to,phone);return {ok:true,status:200,json:async()=>({data:{id:"msg_canary_1"}})};},
+    clock:()=>new Date("2026-10-30T03:00:00Z")
+  });
+  assert.equal(result.canary,true);
+  assert.equal(result.active,true);
+  assert.equal(result.sent,1);
+  assert.equal(telnyx,1);
+  assert(calls.some(x=>x.route.startsWith("opportunity_sms_queue?status=eq.QUEUED")));
+  assert(!calls.some(x=>x.route.includes("status=in.(QUEUED,FAILED)")));
+});
+
+test("controlled cron canary enforces five sends per rolling 24 hours",async()=>{
+  const env={
+    GETESTIMATEFAST_SMS_PROVIDER:"telnyx",
+    GETESTIMATEFAST_SMS_MODE:"controlled_test",
+    GETESTIMATEFAST_SMS_CANARY_AUTOMATION_APPROVED:"true",
+    GETESTIMATEFAST_TELNYX_API_KEY:"fake",
+    GETESTIMATEFAST_TELNYX_FROM_NUMBER:"+18133039893",
+    GETESTIMATEFAST_TELNYX_10DLC_BRAND_APPROVED:"true",
+    GETESTIMATEFAST_TELNYX_10DLC_CAMPAIGN_APPROVED:"true",
+    GETESTIMATEFAST_TELNYX_TEST_TO:phone,
+    CRON_SECRET:"0123456789abcdef0123456789abcdef"
+  };
+  let telnyx=0,queueLookups=0;
+  const result=await dispatchControlledOpportunitySmsCanary({
+    env,
+    queryDb:async route=>{
+      if(route.includes("&sent_at=gte."))return Array.from({length:5},(_,i)=>({id:String(i)}));
+      queueLookups++;return [];
+    },
+    fetchImpl:async()=>{telnyx++;},
+    clock:()=>new Date("2026-10-30T03:00:00Z")
+  });
+  assert.equal(result.daily_limited,true);
+  assert.equal(result.sent,0);
+  assert.equal(telnyx,0);
+  assert.equal(queueLookups,0);
+});
+
+test("controlled cron canary needs its independent approval gate",async()=>{
+  let dbCalls=0;
+  const result=await dispatchControlledOpportunitySmsCanary({
+    queryDb:async()=>{dbCalls++;return [];},
+    env:{
+      GETESTIMATEFAST_SMS_PROVIDER:"telnyx",
+      GETESTIMATEFAST_SMS_MODE:"controlled_test",
+      GETESTIMATEFAST_TELNYX_API_KEY:"fake",
+      GETESTIMATEFAST_TELNYX_FROM_NUMBER:"+18133039893",
+      GETESTIMATEFAST_TELNYX_10DLC_BRAND_APPROVED:"true",
+      GETESTIMATEFAST_TELNYX_10DLC_CAMPAIGN_APPROVED:"true",
+      GETESTIMATEFAST_TELNYX_TEST_TO:phone,
+      CRON_SECRET:"0123456789abcdef0123456789abcdef"
+    }
+  });
+  assert.equal(result.active,false);
+  assert.equal(result.messages_sent,0);
+  assert.equal(dbCalls,0);
+});
 
 test("live worker stays inactive outside fully approved live mode",async()=>{
   let dbCalls=0,fetchCalls=0;
@@ -146,6 +231,8 @@ test("Vercel cron is authenticated and scheduled once per minute",()=>{
   const vercel=JSON.parse(fs.readFileSync(path.join(__dirname,"../vercel.json"),"utf8"));
   assert(route.includes('authorization!=="Bearer "+secret'));
   assert(route.includes("secret.length<16"));
+  assert(route.includes("dispatchControlledOpportunitySmsCanary"));
+  assert(route.includes("state.canary_worker_enabled"));
   assert(route.includes("dispatchLiveOpportunitySmsBatch"));
   assert.deepEqual(vercel.crons,[{path:"/api/cron/opportunity-sms",schedule:"* * * * *"}]);
 });
