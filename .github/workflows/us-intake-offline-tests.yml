@@ -47,6 +47,8 @@ on:
       - tests/us-profile-origin-referrals.test.js
       - tests/us-referral-auto-pricing.test.js
       - api/admin/publish-opportunity.js
+      - api/admin/record-matching-round.js
+      - sql/controlled_matching_rounds.sql
       - supabase/prepared-migrations/us-profile-origin-auto-pricing.sql
       - api/profile-request.js
       - api/_lib/profile-origin.js
@@ -55,6 +57,8 @@ on:
       - api/contractor/origin-leads.js
       - api/contractor/opportunities.js
       - api/_lib/telnyx-us-provider.js
+      - api/_lib/opportunity-sms-policy.js
+      - api/_lib/opportunity-sms-dispatch.js
       - api/_lib/telnyx-us-webhook.js
       - api/webhooks/telnyx-sms.js
       - sql/telnyx_sms_webhook_safety.sql
@@ -62,9 +66,11 @@ on:
       - api/_lib/notification-preview.js
       - api/_lib/opportunity-filters.js
       - api/admin/simulate-sms.js
+      - api/admin/dispatch-queued-sms.js
       - api/admin/sms-provider-status.js
       - tests/telnyx-us-provider.test.js
       - tests/opportunity-sms-live-safety.test.js
+      - tests/opportunity-sms-dispatch.test.js
       - tests/ten-dlc-compliance.test.js
       - tests/opportunity-filters.test.js
       - api/reviews/session.js
@@ -100,4 +106,4 @@ jobs:
       - name: Install locked dependencies
         run: npm ci --ignore-scripts
       - name: Synthetic API and routing tests
-        run: node --test tests/us-durable-lead-intake.test.js tests/us-legacy-intake-routing.test.js tests/us-mvp-home-pro.test.js tests/us-admin-overview.test.js tests/us-professional-ux.test.js tests/us-profile-origin-referrals.test.js tests/us-referral-auto-pricing.test.js tests/us-admin-password-recovery.test.js tests/us-admin-recovery-ui.test.js tests/production-migration.test.js tests/stripe-live.test.js tests/review-email-flow.test.js tests/review-google-auth.test.js tests/production-release-safety.test.js tests/telnyx-us-provider.test.js tests/opportunity-sms-live-safety.test.js tests/telnyx-us-webhook.test.js tests/opportunity-filters.test.js tests/ten-dlc-compliance.test.js
+        run: node --test tests/us-durable-lead-intake.test.js tests/us-legacy-intake-routing.test.js tests/us-mvp-home-pro.test.js tests/us-admin-overview.test.js tests/us-professional-ux.test.js tests/us-profile-origin-referrals.test.js tests/us-referral-auto-pricing.test.js tests/us-admin-password-recovery.test.js tests/us-admin-recovery-ui.test.js tests/production-migration.test.js tests/stripe-live.test.js tests/review-email-flow.test.js tests/review-google-auth.test.js tests/production-release-safety.test.js tests/telnyx-us-provider.test.js tests/opportunity-sms-live-safety.test.js tests/opportunity-sms-dispatch.test.js tests/telnyx-us-webhook.test.js tests/opportunity-filters.test.js tests/ten-dlc-compliance.test.js

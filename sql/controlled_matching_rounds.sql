@@ -38,6 +38,8 @@ declare
  v_round integer;
  v_round_id uuid;
  v_i integer;
+ v_sms_queued integer:=0;
+ v_sms_blocked integer:=0;
  v_profile public.contractor_profiles%rowtype;
 begin
  if not exists(select 1 from public.admin_users where user_id=p_actor) then
@@ -74,7 +76,44 @@ begin
  select v_round_id,v_opportunity,p_contractor_ids[i],v_category,round(p_distances[i],1),p.service_radius_miles
  from generate_series(1,v_count) as g(i)
  join public.contractor_profiles p on p.user_id=p_contractor_ids[i];
- return jsonb_build_object('round_id',v_round_id,'round_number',v_round,'selected_count',v_count,'notifications_sent',0,'contact_shared',false);
+
+ -- Queue creation is atomic with the matching round. Nothing in this function sends SMS.
+ insert into public.opportunity_sms_queue(
+   matching_recipient_id,opportunity_id,contractor_user_id,recipient_phone_e164,status
+ )
+ select r.id,r.opportunity_id,r.contractor_user_id,
+   case
+     when p.sms_phone_e164 ~ '^\+1[2-9][0-9]{2}[2-9][0-9]{6}$' then p.sms_phone_e164
+     else null
+   end,
+   case
+     when p.account_status<>'active' or p.email_verified_at is null then 'BLOCKED_INACTIVE'
+     when p.sms_opt_in is distinct from true or p.sms_opt_in_at is null or p.sms_opt_out_at is not null then 'BLOCKED_NO_CONSENT'
+     when p.sms_phone_e164 is null or p.sms_phone_e164 !~ '^\+1[2-9][0-9]{2}[2-9][0-9]{6}$' then 'BLOCKED_INVALID_PHONE'
+     else 'QUEUED'
+   end
+ from public.opportunity_matching_recipients r
+ join public.contractor_profiles p on p.user_id=r.contractor_user_id
+ where r.round_id=v_round_id
+ on conflict (matching_recipient_id) do nothing;
+
+ select
+   count(*) filter(where q.status='QUEUED'),
+   count(*) filter(where q.status like 'BLOCKED_%')
+ into v_sms_queued,v_sms_blocked
+ from public.opportunity_sms_queue q
+ join public.opportunity_matching_recipients r on r.id=q.matching_recipient_id
+ where r.round_id=v_round_id;
+
+ return jsonb_build_object(
+   'round_id',v_round_id,
+   'round_number',v_round,
+   'selected_count',v_count,
+   'sms_queued',v_sms_queued,
+   'sms_blocked',v_sms_blocked,
+   'notifications_sent',0,
+   'contact_shared',false
+ );
 end;
 $fn$;
 

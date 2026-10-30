@@ -24,6 +24,6 @@ module.exports=async function handler(req,res){
   const result=await queryDb("rpc/admin_record_matching_round",{method:"POST",body:JSON.stringify({
     p_lead_id:lead.id,p_contractor_ids:body.contractorIds,p_distances:results.map(r=>r.distance_miles),p_actor:admin.id
   })});
-  return json(res,200,{recorded:true,result,note:"No SMS, payments or customer contact releases performed."});
+  return json(res,200,{recorded:true,result,note:"Matching selection recorded and SMS queue prepared. No SMS, payments or customer contacts were sent or released."});
  }catch(e){fail(res,e);}
 };

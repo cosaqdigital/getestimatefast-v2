@@ -8,7 +8,7 @@ function clearSession() {
   sessionGeneration++; contractorLoad++; token=""; loggedIn(false);
   for(const id of ["rows","contractorRows"])$(id).replaceChildren();
   for(const id of ["overviewAllLeads","overviewNewLeads","overviewOpportunities","overviewContractors","overviewActive","overviewPublic"])$(id).textContent="—";
-  $("overviewStatus").textContent="";$("smsProviderStatus").textContent="";$("smsTestStatus").textContent="";$("sendTestSms").disabled=true;
+  $("overviewStatus").textContent="";$("smsProviderStatus").textContent="";$("smsTestStatus").textContent="";$("smsQueueStatus").textContent="";$("sendTestSms").disabled=true;$("dispatchQueuedSms").disabled=true;
   $("contractorView").setAttribute("aria-busy","false");
   contractorPage=0;contractorHasMore=false;page=0;leadCount=0;
 }
@@ -144,11 +144,11 @@ function renderLead(lead) {
               save.disabled=true;
               try{
                 const recorded=await api("record-matching-round","POST",{leadId:lead.id,contractorIds:selected});
-                status("Round "+recorded.result.round_number+" saved ("+recorded.result.selected_count+" professionals). No notifications sent.");
+                status("Round "+recorded.result.round_number+" saved · "+recorded.result.sms_queued+" SMS queued · "+recorded.result.sms_blocked+" blocked by SMS eligibility · 0 messages sent.");
                 show.click();
               }catch(err){status(err.message);update();}
             });
-            output.append(save,node("p","review-muted","This only records a selection. It does not send SMS, email or customer contacts."));
+            output.append(save,node("p","review-muted","This records the selection and prepares the SMS queue. It does not send SMS, email or customer contacts."));
           }
           if(d.unresolved_zip)output.append(node("p","review-muted","ZIP not recognized: review location manually."));
         }catch(error){output.textContent=error.message;}finally{show.disabled=false;}
@@ -286,8 +286,9 @@ $("loginForm").addEventListener("submit",async event=>{
   }catch(e){status(e.message);}
 });
 $("logout").addEventListener("click",()=>{clearSession();status("Signed out. Existing tokens expire automatically.");});
-$("checkSmsProvider").addEventListener("click",async()=>{const out=$("smsProviderStatus"),send=$("sendTestSms");out.textContent="Checking...";send.disabled=true;try{const d=await api("sms-provider-status");out.textContent="Provider: "+d.provider+" | Mode: "+d.mode+" | API key: "+(d.api_key_configured?"configured":"missing")+" | Sender: "+(d.sender_configured?"configured":"missing")+" | 10DLC Brand: "+(d.brand_approved?"approved":"not approved")+" | 10DLC Campaign: "+(d.campaign_approved?"approved":"not approved")+" | Test recipient: "+(d.test_recipient_configured?"configured":"missing")+" | Controlled test: "+(d.controlled_test_enabled?"ENABLED":"DISABLED");send.disabled=!d.controlled_test_enabled;}catch(e){out.textContent=e.message;}});
+$("checkSmsProvider").addEventListener("click",async()=>{const out=$("smsProviderStatus"),send=$("sendTestSms"),dispatch=$("dispatchQueuedSms");out.textContent="Checking...";send.disabled=true;dispatch.disabled=true;try{const d=await api("sms-provider-status");out.textContent="Provider: "+d.provider+" | Mode: "+d.mode+" | API key: "+(d.api_key_configured?"configured":"missing")+" | Sender: "+(d.sender_configured?"configured":"missing")+" | 10DLC Brand: "+(d.brand_approved?"approved":"not approved")+" | 10DLC Campaign: "+(d.campaign_approved?"approved":"not approved")+" | Test recipient: "+(d.test_recipient_configured?"configured":"missing")+" | Controlled test: "+(d.controlled_test_enabled?"ENABLED":"DISABLED");send.disabled=!d.controlled_test_enabled;dispatch.disabled=!d.controlled_test_enabled;}catch(e){out.textContent=e.message;}});
 $("sendTestSms").addEventListener("click",async()=>{const button=$("sendTestSms"),out=$("smsTestStatus");if(!window.confirm("Send one controlled Telnyx SMS to the configured test number?"))return;button.disabled=true;out.textContent="Sending controlled test...";try{const d=await api("send-test-sms","POST");out.textContent="Accepted by Telnyx · Message ID: "+(d.message_id||"not returned")+" · From: "+d.from+" · To: "+d.to;}catch(e){out.textContent=e.message+(e.data?.telnyx?" | HTTP: "+e.data.telnyx.http_status+" | Code: "+(e.data.telnyx.code||"n/a")+" | "+(e.data.telnyx.title||"")+(e.data.telnyx.detail?" | "+e.data.telnyx.detail:""):e.data?.transport?" | Stage: fetch | Type: "+(e.data.transport.type||"Error")+" | Code: "+(e.data.transport.code||"n/a")+" | "+(e.data.transport.message||""):e.data?.diagnostic?" | Stage: "+e.data.diagnostic.stage+" | Type: "+e.data.diagnostic.type:"");}finally{button.disabled=false;}});
+$("dispatchQueuedSms").addEventListener("click",async()=>{const button=$("dispatchQueuedSms"),out=$("smsQueueStatus");if(!window.confirm("Dispatch one QUEUED opportunity SMS only to the configured controlled test number?"))return;button.disabled=true;out.textContent="Checking controlled queue...";try{const d=await api("dispatch-queued-sms","POST");out.textContent=d.sent?"Controlled queued notification sent · Message ID: "+(d.message_id||"not returned"):d.blocked?"Queued row blocked by current SMS consent: "+d.blocked_status:d.duplicate_prevented?"Another dispatch already claimed this row.":"No eligible queued notification exists for the configured test number.";}catch(e){out.textContent=e.message;}finally{button.disabled=false;}});
 $("refresh").addEventListener("click",()=>load().catch(e=>status(e.message)));
 $("filter").addEventListener("change",()=>{page=0;load().catch(e=>status(e.message));});
 $("previous").addEventListener("click",()=>{if(page){page--;load().catch(e=>status(e.message));}});

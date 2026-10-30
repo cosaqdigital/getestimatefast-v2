@@ -28,6 +28,24 @@ async function deliveryEvent(event){
     })
   });
 }
+async function reconcileOpportunityQueueDelivery(delivery){
+  if(delivery.event_type!=="message.finalized")return false;
+  const queued=await queryDb(
+    "opportunity_sms_queue?provider_message_id=eq."+encodeURIComponent(delivery.message_id)+
+    "&select=id,status&limit=2"
+  );
+  if(queued.length>1)throw Error("Ambiguous opportunity SMS provider message");
+  if(!queued.length)return false;
+  const delivered=delivery.delivery_status==="delivered";
+  const now=delivery.provider_timestamp||new Date().toISOString();
+  const body=delivered
+    ?{status:"DELIVERED",delivered_at:now,last_error_code:null,next_attempt_at:null,updated_at:now}
+    :{status:"FAILED",last_error_code:String(delivery.error_codes?.[0]||delivery.delivery_status||"TELNYX_FINALIZED_NOT_DELIVERED").slice(0,80),next_attempt_at:null,updated_at:now};
+  await queryDb("opportunity_sms_queue?id=eq."+encodeURIComponent(queued[0].id),{
+    method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify(body)
+  });
+  return true;
+}
 module.exports=async function handler(req,res){
   if(!method(req,res,["POST"]))return;
   try{
@@ -42,9 +60,15 @@ module.exports=async function handler(req,res){
     if(["message.sent","message.finalized"].includes(envelope.event_type)){
       const delivery=parseDelivery(body);
       const duplicate=await queryDb("sms_delivery_events?provider_event_id=eq."+encodeURIComponent(delivery.provider_event_id)+"&select=id&limit=1");
-      if(duplicate.length)return json(res,200,{accepted:true,duplicate:true,messages_sent:0});
-      await deliveryEvent(delivery);
-      return json(res,200,{accepted:true,delivery_recorded:true,messages_sent:0});
+      if(!duplicate.length)await deliveryEvent(delivery);
+      const queueUpdated=await reconcileOpportunityQueueDelivery(delivery);
+      return json(res,200,{
+        accepted:true,
+        duplicate:Boolean(duplicate.length),
+        delivery_recorded:!duplicate.length,
+        queue_updated:queueUpdated,
+        messages_sent:0
+      });
     }
     if(envelope.event_type!=="message.received"){
       return json(res,200,{accepted:true,ignored:true,messages_sent:0});
