@@ -14,7 +14,7 @@ async function patchQueue(queryDb,id,body,extraFilter=""){
   );
 }
 
-async function dispatchControlledOpportunitySms({queryDb,env=process.env,fetchImpl=global.fetch,clock=()=>new Date()}={}){
+async function dispatchControlledOpportunitySms({queryDb,env=process.env,fetchImpl=global.fetch,clock=()=>new Date(),onlyQueued=false}={}){
   if(typeof queryDb!=="function")throw Error("Database adapter required");
   const state=readiness(env);
   if(!state.controlled_test_enabled){
@@ -25,8 +25,9 @@ async function dispatchControlledOpportunitySms({queryDb,env=process.env,fetchIm
   const allowed=normalizeUsPhone(env.GETESTIMATEFAST_TELNYX_TEST_TO||"");
   if(!allowed)throw Error("Controlled test recipient is not configured");
 
+  const statusFilter=onlyQueued?"status=eq.QUEUED":"status=in.(QUEUED,FAILED)";
   const rows=await queryDb(
-    "opportunity_sms_queue?status=in.(QUEUED,FAILED)&attempt_count=lt.5"+
+    "opportunity_sms_queue?"+statusFilter+"&attempt_count=lt.5"+
     "&recipient_phone_e164=eq."+encodeURIComponent(allowed)+
     "&select=id,opportunity_id,contractor_user_id,recipient_phone_e164,attempt_count,status"+
     "&order=created_at.asc&limit=1"
@@ -73,7 +74,7 @@ async function dispatchControlledOpportunitySms({queryDb,env=process.env,fetchIm
     next_attempt_at:null,
     last_error_code:null,
     updated_at:now
-  },"&status=in.(QUEUED,FAILED)&attempt_count=eq."+attempt);
+  },"&"+statusFilter+"&attempt_count=eq."+attempt);
 
   if(!Array.isArray(claimed)||claimed.length!==1){
     return {mode:"controlled_test",candidates:1,claimed:0,sent:0,duplicate_prevented:true,messages_sent:0};
@@ -116,6 +117,25 @@ async function dispatchControlledOpportunitySms({queryDb,env=process.env,fetchIm
 }
 
 
+
+async function dispatchControlledOpportunitySmsCanary({queryDb,env=process.env,fetchImpl=global.fetch,clock=()=>new Date()}={}){
+  if(typeof queryDb!=="function")throw Error("Database adapter required");
+  const state=readiness(env);
+  if(!state.canary_worker_enabled){
+    return {mode:state.mode,canary:true,active:false,sent:0,messages_sent:0};
+  }
+  const allowed=normalizeUsPhone(env.GETESTIMATEFAST_TELNYX_TEST_TO||"");
+  const since=new Date(clock().getTime()-24*60*60*1000).toISOString();
+  const recent=await queryDb(
+    "opportunity_sms_queue?recipient_phone_e164=eq."+encodeURIComponent(allowed)+
+    "&sent_at=gte."+encodeURIComponent(since)+"&select=id&limit=5"
+  );
+  if(Array.isArray(recent)&&recent.length>=5){
+    return {mode:"controlled_test",canary:true,active:true,daily_limited:true,sent:0,messages_sent:0};
+  }
+  const result=await dispatchControlledOpportunitySms({queryDb,env,fetchImpl,clock,onlyQueued:true});
+  return {...result,canary:true,active:true};
+}
 
 function liveFailureCode(error){
   const raw=error?.telnyx?.code??error?.telnyx_transport?.code??error?.diagnostic_stage??"LIVE_SEND_FAILED";
@@ -238,4 +258,4 @@ async function dispatchLiveOpportunitySmsBatch({queryDb,env=process.env,fetchImp
   return summary;
 }
 
-module.exports={safeFailureCode,liveFailureCode,retryDelayMinutes,retryAtFor,dispatchControlledOpportunitySms,dispatchLiveOpportunitySmsBatch};
+module.exports={safeFailureCode,liveFailureCode,retryDelayMinutes,retryAtFor,dispatchControlledOpportunitySms,dispatchControlledOpportunitySmsCanary,dispatchLiveOpportunitySmsBatch};

@@ -98,6 +98,7 @@ function readiness(env=process.env){
   const test_recipient_configured=Boolean(normalizeUsPhone(env.GETESTIMATEFAST_TELNYX_TEST_TO||""));
   const live_approval_configured=env.GETESTIMATEFAST_SMS_LIVE_APPROVED==="true";
   const automation_approval_configured=env.GETESTIMATEFAST_SMS_AUTOMATION_APPROVED==="true";
+  const canary_automation_approved=env.GETESTIMATEFAST_SMS_CANARY_AUTOMATION_APPROVED==="true";
   const live_batch_limit=Number(env.GETESTIMATEFAST_SMS_LIVE_BATCH_LIMIT);
   const live_daily_limit=Number(env.GETESTIMATEFAST_SMS_LIVE_DAILY_LIMIT);
   const live_batch_limit_configured=Number.isInteger(live_batch_limit)&&live_batch_limit>=1&&live_batch_limit<=5;
@@ -107,6 +108,7 @@ function readiness(env=process.env){
   const controlled_test_enabled=provider_ready&&mode==="controlled_test"&&test_recipient_configured;
   const live_sms_enabled=provider_ready&&mode==="live"&&live_approval_configured;
   const live_worker_enabled=live_sms_enabled&&automation_approval_configured&&live_batch_limit_configured&&live_daily_limit_configured&&cron_secret_configured;
+  const canary_worker_enabled=controlled_test_enabled&&canary_automation_approved&&cron_secret_configured;
   return {
     provider:configured?"telnyx":"unconfigured",
     mode,
@@ -118,12 +120,14 @@ function readiness(env=process.env){
     test_recipient_configured,
     live_approval_configured,
     automation_approval_configured,
+    canary_automation_approved,
     live_batch_limit:live_batch_limit_configured?live_batch_limit:null,
     live_daily_limit:live_daily_limit_configured?live_daily_limit:null,
     cron_secret_configured,
     controlled_test_enabled,
     live_sms_enabled,
     live_worker_enabled,
+    canary_worker_enabled,
     compliance_reply_enabled:controlled_test_enabled||live_sms_enabled,
     sms_sent:0,
     next_steps:[
