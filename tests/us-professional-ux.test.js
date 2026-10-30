@@ -34,6 +34,35 @@ test("Opportunity browsing remains available when commercial actions are closed"
  for(const locked of ["walletPanel","purchasePanel"])assert(set.includes(locked));
  const portal=read("assets/contractor-portal.js");
  assert(portal.includes('get("opportunity")'));
- assert(portal.includes('viewButton.click()'));
+ assert(portal.includes('details.hidden=Boolean(!directOpportunity)'));
  assert(portal.includes("This opportunity is unavailable or does not match your professional profile."));
+});
+
+
+test("SMS deep links use a focused mobile opportunity detail view",()=>{
+ const portal=read("assets/contractor-portal.js");
+ const ux=read("assets/contractor-ux.js");
+ const css=read("assets/contractor-ux.css");
+ const html=read("contractor-portal.html");
+ for(const required of [
+  "pro-opportunity-direct",
+  "pro-opportunity-direct-card",
+  "pro-opportunity-direct-head",
+  "← Back to Opportunities",
+  'url.searchParams.delete("opportunity")',
+  "gef-opportunity-direct-exit",
+  'details.hidden=Boolean(!directOpportunity)'
+ ])assert(portal.includes(required),required);
+ assert(ux.includes("const isDirectOpportunity="));
+ assert(ux.includes('const destination=direct?"opportunityPanel"'));
+ assert(ux.includes('nav.hidden=hasProfile!==true||direct'));
+ for(const required of [
+  "#opportunityPanel>.columns",
+  "#opportunityPanel>.form-grid",
+  ".pro-opportunity-direct-card",
+  ".pro-contact-unavailable:disabled"
+ ])assert(css.includes(required),required);
+ assert(html.includes("/assets/contractor-portal.js?v=20261030-011"));
+ assert(html.includes("/assets/contractor-ux.js?v=20261030-011"));
+ assert(html.includes("/assets/contractor-ux.css?v=20261030-011"));
 });
