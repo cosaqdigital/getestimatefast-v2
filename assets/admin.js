@@ -8,7 +8,7 @@ function clearSession() {
   sessionGeneration++; contractorLoad++; token=""; loggedIn(false);
   for(const id of ["rows","contractorRows"])$(id).replaceChildren();
   for(const id of ["overviewAllLeads","overviewNewLeads","overviewOpportunities","overviewContractors","overviewActive","overviewPublic"])$(id).textContent="—";
-  $("overviewStatus").textContent="";$("smsProviderStatus").textContent="";$("smsTestStatus").textContent="";$("sendTestSms").disabled=true;
+  $("overviewStatus").textContent="";$("smsProviderStatus").textContent="";$("smsTestStatus").textContent="";$("smsQueueStatus").textContent="";$("sendTestSms").disabled=true;$("dispatchQueuedSms").disabled=true;
   $("contractorView").setAttribute("aria-busy","false");
   contractorPage=0;contractorHasMore=false;page=0;leadCount=0;
 }
@@ -144,11 +144,11 @@ function renderLead(lead) {
               save.disabled=true;
               try{
                 const recorded=await api("record-matching-round","POST",{leadId:lead.id,contractorIds:selected});
-                status("Round "+recorded.result.round_number+" saved ("+recorded.result.selected_count+" professionals). No notifications sent.");
+                status("Round "+recorded.result.round_number+" saved · "+recorded.result.sms_queued+" SMS queued · "+recorded.result.sms_blocked+" blocked by SMS eligibility · 0 messages sent.");
                 show.click();
               }catch(err){status(err.message);update();}
             });
-            output.append(save,node("p","review-muted","This only records a selection. It does not send SMS, email or customer contacts."));
+            output.append(save,node("p","review-muted","This records the selection and prepares the SMS queue. It does not send SMS, email or customer contacts."));
           }
           if(d.unresolved_zip)output.append(node("p","review-muted","ZIP not recognized: review location manually."));
         }catch(error){output.textContent=error.message;}finally{show.disabled=false;}
