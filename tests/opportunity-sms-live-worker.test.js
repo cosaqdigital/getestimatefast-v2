@@ -161,7 +161,7 @@ test("live worker leaves queued notifications untouched during quiet hours",asyn
     queryDb:async()=>{dbCalls++;return [];},
     env:liveEnv,
     fetchImpl:async()=>{fetchCalls++;},
-    clock:()=>new Date("2026-10-30T14:00:00Z") // 23:00 previous day in Florida
+    clock:()=>new Date("2026-10-30T03:00:00Z") // 23:00 previous day in Florida
   });
   assert.equal(result.active,true);
   assert.equal(result.quiet_hours,true);
@@ -232,10 +232,10 @@ test("only explicit Telnyx 429 schedules automatic retry",async()=>{
 test("retry helper stops at five attempts",()=>{
   const error={telnyx:{http_status:429}};
   const now=new Date("2026-10-30T03:00:00Z");
-  assert.equal(retryAtFor(error,1,now),"2026-10-30T14:02:00.000Z");
-  assert.equal(retryAtFor(error,2,now),"2026-10-30T14:05:00.000Z");
-  assert.equal(retryAtFor(error,3,now),"2026-10-30T14:15:00.000Z");
-  assert.equal(retryAtFor(error,4,now),"2026-10-30T15:00:00.000Z");
+  assert.equal(retryAtFor(error,1,now),"2026-10-30T03:02:00.000Z");
+  assert.equal(retryAtFor(error,2,now),"2026-10-30T03:05:00.000Z");
+  assert.equal(retryAtFor(error,3,now),"2026-10-30T03:15:00.000Z");
+  assert.equal(retryAtFor(error,4,now),"2026-10-30T04:00:00.000Z");
   assert.equal(retryAtFor(error,5,now),null);
 });
 
