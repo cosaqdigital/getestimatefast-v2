@@ -25,3 +25,15 @@ test("Preview blocks public signup and financial transactions",()=>{
  assert.match(read("api/_lib/marketplace-access.js"),/blockPayments/);
  assert.equal(JSON.parse(read("vercel.json")).git.deploymentEnabled["feat/us-admin-overview-20261015"],false);
 });
+
+
+test("Opportunity browsing remains available when commercial actions are closed",()=>{
+ const src=read("assets/contractor-ux.js");
+ const set=src.match(/const commercialScreens=new Set\(\[(.*?)\]\);/)?.[1]||"";
+ assert(!set.includes("opportunityPanel"));
+ for(const locked of ["walletPanel","purchasePanel"])assert(set.includes(locked));
+ const portal=read("assets/contractor-portal.js");
+ assert(portal.includes('get("opportunity")'));
+ assert(portal.includes('viewButton.click()'));
+ assert(portal.includes("This opportunity is unavailable or does not match your professional profile."));
+});
