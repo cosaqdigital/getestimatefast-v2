@@ -1,0 +1,51 @@
+.work-post-shell{display:grid;gap:20px}
+.work-post-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start}
+.work-post-head h2{margin:0 0 6px}.work-post-head p{margin:0;color:#61728a}
+.work-post-quota{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.work-post-quota article{border:1px solid #dce5ef;border-radius:13px;padding:15px;background:#fbfdff}
+.work-post-quota span{display:block;color:#61728a;font-size:13px;font-weight:700}
+.work-post-quota strong{display:block;margin-top:5px;color:#0b2d6b;font-size:25px}
+.work-post-eligibility{border:1px solid #cfe0f1;background:#f1f7fd;border-radius:12px;padding:14px 16px}
+.work-post-eligibility[data-ok="true"]{background:#eff9ed;border-color:#d3ebcc;color:#245f17}
+.work-post-eligibility[data-ok="false"]{background:#fff7e8;border-color:#f1ddb0;color:#7a5310}
+.work-post-form{border:1px solid #dce5ef;border-radius:16px;padding:22px;background:#fff}
+.work-post-form h3{margin:0 0 4px}.work-post-form .work-help{margin:0 0 18px;color:#61728a}
+.work-post-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.work-post-grid .wide{grid-column:1/-1}
+.work-post-form label{font-weight:750;color:#193452}
+.work-post-form small{display:block;color:#61728a;font-weight:500;margin-top:5px;line-height:1.35}
+.work-post-form fieldset{border:0;padding:0;margin:0}
+.work-post-language-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+.work-post-language-row label{display:flex;align-items:center;gap:7px;border:1px solid #ccd9e7;border-radius:999px;padding:9px 12px;background:#fbfdff;font-weight:700;margin:0}
+.work-post-language-row input{width:auto}
+.work-post-actions{display:flex;align-items:center;gap:12px;margin-top:20px;flex-wrap:wrap}
+.work-post-actions button{min-width:190px}
+.work-post-packages{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.work-post-package{border:1px solid #dbe5ef;border-radius:13px;padding:16px;background:#fff}
+.work-post-package strong{display:block;font-size:20px;color:#0b2d6b}
+.work-post-package span{display:block;margin:5px 0 12px;color:#61728a}
+.work-post-package button{width:100%}
+.work-post-list{display:grid;gap:10px}
+.work-post-card{border:1px solid #dce5ef;border-radius:13px;padding:15px;background:#fff;display:grid;grid-template-columns:1fr auto;gap:12px}
+.work-post-card h4{margin:0 0 5px;color:#0b2d6b}.work-post-card p{margin:4px 0;color:#53677f}
+.work-post-card .work-post-status{font-weight:800;text-transform:capitalize}
+.work-post-card .work-post-source{font-size:12px;color:#6e8094}
+.work-post-empty{padding:25px;border:1px dashed #b8c8d8;border-radius:13px;text-align:center;color:#60718a}
+@media(max-width:760px){.work-post-head{display:block}.work-post-quota,.work-post-grid,.work-post-packages{grid-template-columns:1fr}.work-post-grid .wide{grid-column:auto}.work-post-card{grid-template-columns:1fr}}
+.work-notifications{display:grid;gap:10px}
+.work-notification{border:1px solid #d8e3ef;border-radius:12px;padding:13px 14px;background:#fff;display:flex;justify-content:space-between;gap:12px;align-items:center}
+.work-notification[data-unread="true"]{background:#eef7ff;border-color:#bddcf5}
+.work-notification strong{display:block;color:#0b2d6b}.work-notification span{display:block;color:#61728a;font-size:13px;margin-top:3px}
+.work-notification button{white-space:nowrap}
+.work-applicants{grid-column:1/-1;border-top:1px solid #edf1f5;padding-top:14px;margin-top:4px}
+.work-applicant-list{display:grid;gap:10px;margin-top:10px}
+.work-applicant-card{border:1px solid #d9e3ed;border-radius:12px;padding:14px;background:#fbfdff;display:grid;grid-template-columns:64px 1fr auto;gap:13px;align-items:start}
+.work-applicant-photo{width:64px;height:64px;border-radius:12px;object-fit:cover;background:#eaf1f8}
+.work-applicant-name{font-weight:900;color:#0b2d6b;font-size:17px}.work-applicant-meta{font-size:13px;color:#61728a;margin-top:4px}
+.work-applicant-bio{margin:8px 0 0;line-height:1.4;color:#31475f}.work-applicant-contact{display:grid;gap:7px;min-width:150px}
+.work-applicant-contact a{font-weight:850;text-decoration:none}.work-applicant-contact span{font-size:12px;color:#61728a}
+.work-candidate-button{margin-top:10px}
+@media(max-width:760px){.work-notification,.work-applicant-card{display:block}.work-notification button,.work-applicant-contact{margin-top:10px}.work-applicant-photo{margin-bottom:8px}}
+
+.work-selected-badge{color:#23750b;background:#edf9e8;border:1px solid #cfe9c5;border-radius:999px;padding:7px 10px;text-align:center}
+.work-closed-badge{color:#7a5310;background:#fff7e8;border:1px solid #f0ddb0;border-radius:999px;padding:7px 10px;text-align:center}
