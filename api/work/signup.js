@@ -6,8 +6,8 @@ module.exports=async function handler(req,res){
  if(!method(req,res,["POST"]))return;
  if(protectedPreview()||process.env.GETESTIMATEFAST_ISOLATED_BACKEND==="true")
   return json(res,503,{error:"Registration and confirmation email delivery are disabled in this test environment."});
- if(process.env.WORK_SIGNUP_ENABLED!=="true")
-  return json(res,503,{error:"Find Work registration is not open yet."});
+ if(process.env.WORK_SIGNUP_ENABLED==="false")
+  return json(res,503,{error:"Find Work registration is temporarily closed."});
  try{
   const data=await readJson(req,4000);
   const email=String(data.email||"").trim().toLowerCase();
