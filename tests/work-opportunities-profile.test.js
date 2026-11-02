@@ -60,3 +60,12 @@ test("Find Work is exposed from professional registration",()=>{
  assert.match(html,/work-portal\.html\?signup=1/);
  assert.match(html,/Create a free Find Work profile/);
 });
+
+
+test("Find Work profile explains the minimum experience description before submit",()=>{
+ const html=read("work-portal.html");
+ const src=read("assets/work-portal.js");
+ assert.match(html,/name="bio"[^>]*minlength="10"/);
+ assert.match(html,/at least 10 characters about your experience/);
+ assert.match(src,/Tell contractors about your experience using at least 10 characters/);
+});
