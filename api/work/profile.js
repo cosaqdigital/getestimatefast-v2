@@ -26,7 +26,7 @@ module.exports=async function handler(req,res){
  if(!method(req,res,["GET","POST"]))return;
  try{
   const user=await userFor(req,res);if(!user)return;
-  const editable=process.env.VERCEL_ENV!=="production"||process.env.WORK_PROFILE_EDITING_ENABLED==="true";
+  const editable=process.env.WORK_PROFILE_EDITING_ENABLED!=="false";
   const path="work_profiles?user_id=eq."+encodeURIComponent(user.id);
   if(req.method==="GET"){
    const rows=await queryDb(path+"&select=user_id,slug,display_name,contact_phone,base_zip,state_code,service_radius_miles,service_categories,languages,opportunity_types,bio,profile_image_path,sms_opt_in,email_notifications,status,created_at,updated_at&limit=1");
