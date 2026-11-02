@@ -86,6 +86,8 @@ create table public.work_opportunities(
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   closed_at timestamptz,
+  operation_key text unique
+    check (operation_key is not null and length(operation_key) between 12 and 160),
   check (max_contacts >= workers_needed),
   check (contacts_used <= max_contacts),
   check (positions_filled <= workers_needed),
