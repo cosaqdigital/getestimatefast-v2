@@ -18,6 +18,7 @@ test("professional funnel promotes the free profile with a clear signup and sign
 const h=read("index.html"),p=read("for-professionals.html");
 assert.match(h,/href="for-professionals.html"[^>]*>For Pros<\/a>/);
 assert.match(h,/href="contractor-portal.html"[^>]*>Professional Sign In<\/a>/);
+assert.match(h,/href="\/work-portal\.html\?signup=1"[^>]*>Find Paid Work<\/a>/);
 assert.match(p,/Build a professional profile customers can trust/);
 assert.match(p,/href="\/contractor-portal\.html\?signup=1"[^>]*data-cta="create-free-profile"[^>]*>Create Free Profile<\/a>/);
 assert.match(p,/Already have an account\? Sign In/);
