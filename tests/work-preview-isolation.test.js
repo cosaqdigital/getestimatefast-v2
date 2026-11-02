@@ -5,7 +5,7 @@ const {protectedPreview,DEVELOPMENT_REF}=require("../api/_lib/preview-target");
 const {config}=require("../api/admin/_auth");
 
 test("Work Opportunities feature Preview is protected as a Development-only backend",()=>{
- const env={VERCEL_ENV:"preview",VERCEL_GIT_COMMIT_REF:"feature/work-opportunities-mvp"};
+ const env={VERCEL_ENV:"preview",VERCEL_GIT_COMMIT_REF:"feat/launch-work-signup-20261102"};
  assert.equal(protectedPreview(env),true);
  assert.throws(
   ()=>config({...env,GETESTIMATEFAST_ISOLATED_BACKEND:"false"}),
@@ -16,7 +16,7 @@ test("Work Opportunities feature Preview is protected as a Development-only back
 test("Work Opportunities feature Preview accepts only the approved Development project",()=>{
  const base={
   VERCEL_ENV:"preview",
-  VERCEL_GIT_COMMIT_REF:"feature/work-opportunities-mvp",
+  VERCEL_GIT_COMMIT_REF:"feat/launch-work-signup-20261102",
   GETESTIMATEFAST_ISOLATED_BACKEND:"true",
   GETESTIMATEFAST_SUPABASE_URL:"https://wrongprojectrefxxxxx.supabase.co",
   GETESTIMATEFAST_SUPABASE_SECRET_KEY:"sb_secret_synthetic",
