@@ -5,7 +5,7 @@ module.exports=async function handler(req,res){
  if(!method(req,res,["POST"]))return;
  try{
   const user=await userFor(req,res);if(!user)return;
-  if(process.env.VERCEL_ENV==="production"&&process.env.WORK_PROFILE_EDITING_ENABLED!=="true")
+  if(process.env.WORK_PROFILE_EDITING_ENABLED==="false")
     return json(res,503,{error:"Work profile editing is not open yet."});
   const body=await readJson(req,4200000);
   if(body.rightsConsent!==true||typeof body.data!=="string"||body.data.length>4000000)
