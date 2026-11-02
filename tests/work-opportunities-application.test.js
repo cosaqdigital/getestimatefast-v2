@@ -24,7 +24,9 @@ test("worker application API rechecks matching before atomic database applicatio
  assert.match(src,/overlap\(profile\.languages,opportunity\.languages\)/);
  assert.match(src,/haversineMiles/);
  assert.match(src,/gef_apply_work_opportunity/);
- assert.match(src,/work-apply-/);
+ assert.match(src,/p_operation_key:operationKey/);
+ const sql=read("supabase/prepared-migrations/20261029_work_opportunities_mvp.sql");
+ assert.match(sql,/gef-work-apply:/);
 });
 
 test("application RPC serializes candidate slots and closes at max contacts",()=>{
@@ -34,14 +36,15 @@ test("application RPC serializes candidate slots and closes at max contacts",()=
  assert.match(sql,/contacts_used=v_contacts,status=v_status/);
  assert.match(sql,/v_status := case when v_contacts>=v_op\.max_contacts then 'applications_closed'/);
  assert.match(sql,/unique\(opportunity_id,applicant_id\)/);
- assert.match(sql,/operation_key text not null unique/);
+ assert.match(sql,/operation_key text unique/);
+ assert.match(sql,/operation_key is not null/);
 });
 
 test("application creates an in-platform notification for the opportunity owner",()=>{
  const sql=read("supabase/prepared-migrations/20261029_work_opportunities_mvp.sql");
  const api=read("api/contractor/work-notifications.js");
  assert.match(sql,/create table public\.work_notifications/);
- assert.match(sql,/notification_type,'application_received'/);
+ assert.match(sql,/'application_received','work-application:'/);
  assert.match(sql,/recipient_id,actor_id,opportunity_id,application_id/);
  assert.match(api,/recipient_id=eq\./);
  assert.match(api,/actor_name/);
