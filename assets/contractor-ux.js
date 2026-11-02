@@ -85,13 +85,13 @@ async function showReferrals(){
 referralReload.addEventListener("click",()=>showReferrals());
 
 // Reuse every existing module, showing one section at a time.
-const views={contractorDashboard:$("contractorDashboard"),opportunityPanel:$("opportunityPanel"),myReferralsPanel:referrals,publicProfilePanel:$("publicProfilePanel"),profilePreviewPanel:$("profilePreviewPanel"),accountSettingsPanel:settings,walletPanel:$("walletPanel"),purchasePanel:$("purchasePanel")};
+const views={contractorDashboard:$("contractorDashboard"),workPostingPanel:$("workPostingPanel"),opportunityPanel:$("opportunityPanel"),myReferralsPanel:referrals,publicProfilePanel:$("publicProfilePanel"),profilePreviewPanel:$("profilePreviewPanel"),accountSettingsPanel:settings,walletPanel:$("walletPanel"),purchasePanel:$("purchasePanel")};
 nav.replaceChildren();
-for(const [id,label] of [["contractorDashboard","Home"],["opportunityPanel","Opportunities"],["myReferralsPanel","Direct Leads"],["publicProfilePanel","Public profile"],["profilePreviewPanel","Profile preview"],["accountSettingsPanel","My details"],["walletPanel","Wallet"],["purchasePanel","Purchase history"]]){
+for(const [id,label] of [["contractorDashboard","Home"],["workPostingPanel","Hire Help"],["opportunityPanel","Opportunities"],["myReferralsPanel","Direct Leads"],["publicProfilePanel","Public profile"],["profilePreviewPanel","Profile preview"],["accountSettingsPanel","My details"],["walletPanel","Wallet"],["purchasePanel","Purchase history"]]){
  const link=make("a",label);link.href="#"+id;link.dataset.screen=id;nav.append(link);
 }
 nav.classList.add("pro-navigation");
-const commercialScreens=new Set(["myReferralsPanel","publicProfilePanel","profilePreviewPanel","walletPanel","purchasePanel"]);
+const commercialScreens=new Set(["opportunityPanel","myReferralsPanel","publicProfilePanel","profilePreviewPanel","walletPanel","purchasePanel"]);
 function syncNavigationAvailability(){
  const closed=capabilities?.marketplace_enabled===false;
  for(const link of nav.querySelectorAll("a[data-screen]")){
@@ -223,7 +223,6 @@ function updateLaunchDashboard(p,publicProfilePublished){
 // re-arranging legacy public contact fields or wrapping the new editor sections.
 const pub=views.publicProfilePanel;
 let signedIn=false,hasProfile=null,current="",capabilities=null;
-const isDirectOpportunity=()=>Boolean(new URLSearchParams(window.location.search).get("opportunity"));
 function go(id){
  if(!signedIn)return;
  if(capabilities?.marketplace_enabled===false&&commercialScreens.has(id)){
@@ -232,14 +231,13 @@ function go(id){
  }
  const dest=hasProfile===false?"accountSettingsPanel":views[id]?id:"contractorDashboard";
  for(const [key,section] of Object.entries(views))section.hidden=key!==dest;
- const direct=isDirectOpportunity();
- nav.hidden=hasProfile!==true||direct;
- welcome.hidden=direct;
+ nav.hidden=hasProfile!==true;
  for(const link of nav.querySelectorAll("a"))link.dataset.active=link.dataset.screen===dest?"true":"false";
  if(dest==="accountSettingsPanel"){drawServices();if(current!==dest)selectStep(1);}
  if(dest==="publicProfilePanel")drawPublic();
  if(dest==="profilePreviewPanel")window.dispatchEvent(new CustomEvent("gef-profile-preview-request"));
  if(dest==="myReferralsPanel")showReferrals();
+ if(dest==="workPostingPanel")window.GetEstimateFastWorkPoster?.load?.().catch?.(e=>window.GetEstimateFastPortal?.say?.(e?.message||"Could not load work posting tools."));
  current=dest;
 }
 document.addEventListener("click",e=>{
@@ -264,9 +262,8 @@ window.addEventListener("gef-profile",e=>{
  hasProfile=Boolean(p?.account_status==="active"&&p.base_zip&&p.contact_phone&&p.service_categories?.length);
  queueMicrotask(drawServices);
  if(hasProfile){
-  const direct=isDirectOpportunity();
-  const justCompleted=!wasReady&&!direct;
-  const destination=direct?"opportunityPanel":justCompleted?"opportunityPanel":(views[location.hash.slice(1)]?location.hash.slice(1):(current||"contractorDashboard"));
+  const justCompleted=!wasReady;
+  const destination=justCompleted?"opportunityPanel":(views[location.hash.slice(1)]?location.hash.slice(1):(current||"contractorDashboard"));
   go(destination);
   if(justCompleted){
    try{history.replaceState(null,"","#opportunityPanel");}catch{}
@@ -280,7 +277,6 @@ window.addEventListener("gef-profile",e=>{
   }
  }else go("accountSettingsPanel");
 });
-window.addEventListener("gef-opportunity-direct-exit",()=>{if(signedIn&&hasProfile===true)go("opportunityPanel");});
 window.addEventListener("gef-public-profile",e=>{const p=e.detail?.profile;if($("proPublicValue"))$("proPublicValue").textContent=p?.published===true?"Published":"Not published";});
 window.addEventListener("gef-opportunities",e=>{const total=String(e.detail?.matching_total??0);if($("proOpportunityValue"))$("proOpportunityValue").textContent=total;if($("proQuickOpportunities"))$("proQuickOpportunities").textContent=total;});
 const walletSource=$("walletBalance");
@@ -288,5 +284,5 @@ if(walletSource){
  const syncQuickWallet=()=>{if($("proQuickWallet"))$("proQuickWallet").textContent=walletSource.textContent||"$0.00";};
  new MutationObserver(syncQuickWallet).observe(walletSource,{childList:true,characterData:true,subtree:true});syncQuickWallet();
 }
-window.addEventListener("gef-signed-out",()=>{signedIn=false;hasProfile=null;capabilities=null;document.body.classList.remove("pro-opportunity-direct");referralList.replaceChildren();nav.hidden=true;welcome.hidden=false;for(const x of Object.values(views))x.hidden=true;selectStep(1);if($("proOpportunityValue"))$("proOpportunityValue").textContent="0";if($("proQuickOpportunities"))$("proQuickOpportunities").textContent="0";if($("proQuickDirect"))$("proQuickDirect").textContent="0";});
+window.addEventListener("gef-signed-out",()=>{signedIn=false;hasProfile=null;capabilities=null;referralList.replaceChildren();nav.hidden=true;for(const x of Object.values(views))x.hidden=true;selectStep(1);if($("proOpportunityValue"))$("proOpportunityValue").textContent="0";if($("proQuickOpportunities"))$("proQuickOpportunities").textContent="0";if($("proQuickDirect"))$("proQuickDirect").textContent="0";});
 })();
