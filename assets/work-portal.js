@@ -255,7 +255,14 @@ el("uploadPhoto").addEventListener("click",async()=>{
 });
 el("profile").addEventListener("submit",async event=>{
  event.preventDefault();
- const form=event.currentTarget,f=new FormData(form);
+ const form=event.currentTarget;
+ const bioField=form.elements.namedItem("bio");
+ if(String(bioField?.value||"").trim().length<10){
+  say("Tell contractors about your experience using at least 10 characters.");
+  bioField?.focus();
+  return;
+ }
+ const f=new FormData(form);
  const payload={
   display_name:f.get("display_name"),
   contact_phone:f.get("contact_phone"),
