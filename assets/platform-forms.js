@@ -225,6 +225,7 @@
     Array.from(form.querySelectorAll("[data-next]")).forEach((button) => {
       button.addEventListener("click", () => {
         if (!validateStep(state.currentStep)) return;
+        emitFunnelEvent("quote_step_complete", state.currentStep);
         const next = findNextVisibleStep(state.currentStep);
         if (next !== null) showStep(next);
       });
@@ -241,6 +242,7 @@
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
       if (photoSubmitInFlight || !validateStep(state.currentStep)) return;
+      emitFunnelEvent("quote_submit_attempt", state.currentStep);
       const submitButton = form.querySelector(".submit-btn");
       const originalLabel = submitButton ? submitButton.textContent : "";
       try {
@@ -290,6 +292,15 @@
       if (!city || city.length < 2 || !zip) return showError(error, "Please enter your city and a valid ZIP Code so we can route this request locally.");
       if (!/^\d{5}$/.test(zip)) return showError(error, "Please enter a valid 5-digit ZIP Code.");
     }
+    if (config.type === "size-location") {
+      const size = getValue("jobSize");
+      const city = getValue("city");
+      const zip = getValue("zip");
+      if (!size) return showError(error, "Please choose the approximate home size.");
+      if (!city || city.length < 2 || !zip) return showError(error, "Please enter your city and a valid ZIP Code so we can route this request locally.");
+      if (!/^\d{5}$/.test(zip)) return showError(error, "Please enter a valid 5-digit ZIP Code.");
+    }
+    if (config.type === "contact-lite") return validateContactLiteStep(error);
     if (config.type === "contact") return validateContactStep(error);
     if (config.type === "contact-location") {
       const city = getValue("city");
@@ -298,6 +309,16 @@
       if (!/^\d{5}$/.test(zip)) return showError(error, "Please enter a valid 5-digit ZIP Code.");
       return validateContactStep(error);
     }
+    return true;
+  }
+
+  function validateContactLiteStep(error) {
+    const name = getValue("fullName");
+    const phone = getValue("phone");
+    const email = getValue("email");
+    if (!name || !phone || !email) return showError(error, "Please complete your name, phone number, and email address.");
+    if (phone.replace(/\D/g, "").length < 10) return showError(error, "Please enter a valid phone number.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showError(error, "Please enter a valid email address.");
     return true;
   }
 
@@ -332,7 +353,21 @@
     if (stepLabel) stepLabel.textContent = `Step ${activePosition + 1} of ${visible.length}`;
     if (stepMiniTitle) stepMiniTitle.textContent = flow.steps[normalized].title;
     if (progressFill) progressFill.style.width = `${((activePosition + 1) / visible.length) * 100}%`;
+    emitFunnelEvent("quote_step_view", normalized);
     requestAnimationFrame(() => { scrollToFlowTop(); focusStep(steps[normalized]); });
+  }
+
+  function emitFunnelEvent(eventName, stepIndex) {
+    const visible = getVisibleStepIndices();
+    const position = visible.indexOf(stepIndex);
+    const payload = {
+      service: slugify(flow.serviceLabel),
+      step_number: position >= 0 ? position + 1 : stepIndex + 1,
+      step_name: flow.steps[stepIndex]?.title || "unknown",
+      flow_type: flow.type || "unknown"
+    };
+    if (typeof window.gtag === "function") window.gtag("event", eventName, payload);
+    if (typeof window.fbq === "function") window.fbq("trackCustom", eventName, payload);
   }
 
   function scrollToFlowTop() { const target = document.querySelector(".quote-shell") || document.querySelector(".quote-layout") || form; if (!target) return; const header = document.querySelector(".site-header"); const headerHeight = header ? header.offsetHeight : 0; const top = target.getBoundingClientRect().top + window.scrollY - headerHeight - 18; window.scrollTo({ top: Math.max(top, 0), behavior: "smooth" }); }
