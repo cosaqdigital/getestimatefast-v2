@@ -9,7 +9,7 @@ const { DEVELOPMENT_REF, PREVIEW_BRANCHES } = require("../api/_lib/preview-targe
 const TOKEN = "31e7431c-518b-4c92-84ad-64f088f23233";
 const LEAD_ID = "a543017a-f35d-409a-90e1-2a0557c10be5";
 const DEV_URL = "https://" + DEVELOPMENT_REF + ".supabase.co";
-const KEYS = ["GETESTIMATEFAST_ISOLATED_BACKEND","VERCEL_ENV","VERCEL_GIT_COMMIT_REF","GETESTIMATEFAST_SUPABASE_URL","GETESTIMATEFAST_SUPABASE_SECRET_KEY","LEAD_PERSISTENCE_ENABLED","RESEND_API_KEY","LEAD_TO_EMAIL","LEAD_FROM_EMAIL"];
+const KEYS = ["GETESTIMATEFAST_ISOLATED_BACKEND","VERCEL_ENV","VERCEL_GIT_COMMIT_REF","GETESTIMATEFAST_SUPABASE_URL","GETESTIMATEFAST_SUPABASE_SECRET_KEY","LEAD_PERSISTENCE_ENABLED","RESEND_API_KEY","LEAD_TO_EMAIL","LEAD_FROM_EMAIL","META_DATASET_ID","META_CAPI_ACCESS_TOKEN"];
 const dbReply=(data,status=201)=>new Response(JSON.stringify(data),{status,headers:{"content-type":"application/json"}});
 async function invoke(fieldOverrides={},opts={}) {
   const form=new FormData();
@@ -24,7 +24,7 @@ async function invoke(fieldOverrides={},opts={}) {
   const request=new Request("https://www.getestimatefast.com/api/lead",{method:"POST",body:form});
   const req=Readable.from([Buffer.from(await request.arrayBuffer())]);
   req.method="POST";
-  req.headers={"content-type":request.headers.get("content-type")};
+  req.headers={"content-type":request.headers.get("content-type"),...opts.headers};
   const headers={};
   let body="";
   const res={statusCode:200,setHeader(k,v){headers[k.toLowerCase()]=String(v);},end(v=""){body+=String(v);}};
@@ -40,6 +40,7 @@ async function harness(overrides={},mockFetch=()=>{throw Error("Unexpected exter
     GETESTIMATEFAST_SUPABASE_URL:DEV_URL,
     GETESTIMATEFAST_SUPABASE_SECRET_KEY:"SYNTHETIC_KEY_ONLY",
     LEAD_PERSISTENCE_ENABLED:"true",
+    META_DATASET_ID:"",META_CAPI_ACCESS_TOKEN:"",
     RESEND_API_KEY:"SYNTHETIC_RESEND_KEY",
     LEAD_TO_EMAIL:"admin@example.invalid"
   });
@@ -136,4 +137,44 @@ test("all native form scripts generate UUIDs and deployment is blocked",()=>{
   const config=JSON.parse(fs.readFileSync(path.join(__dirname,"../vercel.json"),"utf8"));
   assert.equal(config.git.deploymentEnabled["feat/us-persisted-leads-20261014"],false);
   assert.ok(PREVIEW_BRANCHES.includes("feat/us-persisted-leads-20261014"));
+});
+
+test("CAPI acceptance, cookie attribution and thank-you eventID share the persisted receipt",async()=>{
+ const originalInfo=console.info;const logs=[];console.info=(...args)=>logs.push(args);
+ try {
+ await harness({META_DATASET_ID:"1444720010946620",META_CAPI_ACCESS_TOKEN:"SYNTHETIC_META_TOKEN"},call=>call.url.includes('graph.facebook.com')?dbReply({events_received:1,messages:['PRIVATE_PROVIDER_MESSAGE']},200):okDb(call),async({invoke,calls})=>{
+   const r=await invoke({}, {headers:{cookie:'_fbp=fb.1.123.browser; _fbc=fb.1.123.original-click',referer:'https://www.getestimatefast.com/quote-flow-standard.html?service=painting'}});
+   assert.equal(r.status,303);
+   const capi=calls.find(c=>c.url.includes('graph.facebook.com'));
+   const event=JSON.parse(capi.options.body).data[0];
+   assert.equal(event.event_name,'Lead');
+   assert.equal(new URL(r.headers.location).searchParams.get('gef_event_id'),event.event_id);
+   assert.equal(event.user_data.fbc,'fb.1.123.original-click');
+   assert.equal(event.user_data.fbp,'fb.1.123.browser');
+   assert.equal(event.event_source_url,'https://www.getestimatefast.com/quote-flow-standard.html?service=painting');
+   assert.ok(logs.some(l=>l[1]?.accepted===true && l[1]?.eventsReceived===1));
+   assert.doesNotMatch(JSON.stringify(logs),/SYNTHETIC_META_TOKEN|PRIVATE_PROVIDER_MESSAGE|customer@example.invalid|original-click/);
+ });
+ } finally {console.info=originalInfo;}
+});
+
+for(const [name,status,body] of [['provider rejection',400,{error:{message:'PRIVATE_PROVIDER_MESSAGE'}}],['zero received',200,{events_received:0}],['missing receipt',200,{}],['malformed receipt',200,'not-json']]){
+ test(`CAPI ${name}: safe diagnostics and stored lead still succeeds`,async()=>{
+ await harness({META_DATASET_ID:"1444720010946620",META_CAPI_ACCESS_TOKEN:"SYNTHETIC_META_TOKEN"},call=>call.url.includes('graph.facebook.com')?new Response(typeof body==='string'?body:JSON.stringify(body),{status}):okDb(call),async({invoke,errors})=>{
+   assert.equal((await invoke()).status,303);
+   assert.ok(errors.some(l=>l[1]?.httpStatus===status && l[1]?.accepted===false));
+   assert.doesNotMatch(JSON.stringify(errors),/PRIVATE_PROVIDER_MESSAGE|SYNTHETIC_META_TOKEN|customer@example.invalid/);
+ });
+ });
+}
+
+test('CAPI transport failure cannot fail or disclose a persisted lead',async()=>{
+ await harness({META_DATASET_ID:'1444720010946620',META_CAPI_ACCESS_TOKEN:'SYNTHETIC_META_TOKEN'},call=>{
+   if(call.url.includes('graph.facebook.com'))throw Error('PRIVATE_NETWORK_MESSAGE');
+   return okDb(call);
+ },async({invoke,errors})=>{
+   assert.equal((await invoke()).status,303);
+   assert.ok(errors.some(l=>String(l[0]).includes('Meta CAPI lead event failed')));
+   assert.doesNotMatch(JSON.stringify(errors),/PRIVATE_NETWORK_MESSAGE|SYNTHETIC_META_TOKEN/);
+ });
 });

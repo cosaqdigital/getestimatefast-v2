@@ -403,7 +403,9 @@ async function sendMetaLeadEvent(req, fields, eventId) {
   const datasetId = process.env.META_DATASET_ID;
   const accessToken = process.env.META_CAPI_ACCESS_TOKEN;
   if (!datasetId || !accessToken) {
-    console.warn("Meta CAPI is not configured; skipping Lead event.");
+    console.warn("Meta CAPI is not configured; skipping Lead event.", {
+      datasetPresent: Boolean(datasetId), tokenPresent: Boolean(accessToken)
+    });
     return;
   }
 
@@ -457,7 +459,23 @@ async function sendMetaLeadEvent(req, fields, eventId) {
       signal: AbortSignal.timeout(10000)
     }
   );
-  if (!response.ok) throw new Error("Meta CAPI returned " + response.status);
+  // Provider bodies/messages may contain customer data. Log only bounded,
+  // allowlisted operational fields; HTTP 200 alone does not prove acceptance.
+  const receipt = await response.json().catch(() => null);
+  const eventsReceived = Number.isSafeInteger(receipt?.events_received) && receipt.events_received >= 0
+    ? receipt.events_received : null;
+  const accepted = response.ok && eventsReceived === 1;
+  const diagnostics = {
+    httpStatus: response.status,
+    eventsReceived,
+    accepted,
+    datasetMatchesBrowserPixel: datasetId === "1444720010946620"
+  };
+  if (!accepted) {
+    console.error("Meta CAPI Lead receipt rejected.", diagnostics);
+    throw new Error("Meta CAPI Lead was not acknowledged");
+  }
+  console.info("Meta CAPI Lead accepted.", diagnostics);
 }
 
 function parseCookies(header) {
