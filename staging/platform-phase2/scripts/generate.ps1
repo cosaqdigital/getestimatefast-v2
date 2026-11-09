@@ -334,6 +334,7 @@ function Render-Footer {
         <a href="service-kitchen-remodeling.html">Kitchen Remodeling</a>
         <a href="areas-we-serve.html">Areas We Serve</a>
         <a href="how-it-works.html">How It Works</a>
+        <a href="about.html">About</a>
       </div>
       <div class="footer-note">$($site.name) helps homeowners and businesses connect with local professionals across $($site.region). We do not perform the services directly. Availability, pricing, and response times may vary by provider, project type, and service area.</div>
     </div>
