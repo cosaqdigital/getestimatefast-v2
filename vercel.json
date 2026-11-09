@@ -20,6 +20,11 @@
   ],
   "redirects": [
     {
+      "source": "/index.html",
+      "destination": "https://www.getestimatefast.com/",
+      "permanent": true
+    },
+    {
       "source": "/bathroom-remodeling-riverview-fl.html",
       "destination": "https://www.getestimatefast.com/bathroom-remodeling-riverview.html",
       "permanent": true
