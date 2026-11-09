@@ -102,6 +102,17 @@ function Html-Escape {
   return [System.Net.WebUtility]::HtmlEncode($Value)
 }
 
+function Normalize-ProductionSeoLinks {
+  param([string]$Html)
+  if ($null -eq $Html) { return "" }
+  $Html = $Html.Replace("bathroom-remodeling-riverview-fl.html", "bathroom-remodeling-riverview.html")
+  $Html = $Html.Replace("flooring-installation-riverview-fl.html", "flooring-installation-riverview.html")
+  $Html = $Html.Replace("painting-services-riverview-fl.html", "painting-riverview.html")
+  $Html = $Html.Replace("location-kitchen-remodeling-riverview-fl.html", "kitchen-remodeling-riverview.html")
+  $Html = $Html.Replace("service-kitchen-remodeling.html", "kitchen-remodeling.html")
+  return $Html
+}
+
 function New-JsonLdScript {
   param($Object)
   return "<script type=""application/ld+json"">" + ([Environment]::NewLine) + (($Object | ConvertTo-Json -Depth 40 -Compress) -replace "><", "><") + ([Environment]::NewLine) + "</script>"
@@ -223,7 +234,7 @@ function Render-BasePage {
   $template = $template.Replace("{{ROBOTS}}", $Robots)
   $template = $template.Replace("{{SCHEMA}}", $Schema)
   $template = $template.Replace("{{BODY}}", $Body)
-  return $template
+  return (Normalize-ProductionSeoLinks $template)
 }
 
 function Render-FlowPage {
@@ -245,7 +256,7 @@ function Render-FlowPage {
   $template = $template.Replace("{{SCHEMA}}", $Schema)
   $template = $template.Replace("{{BODY}}", $Body)
   $template = $template.Replace("{{FLOW_CONFIG}}", $FlowConfigJson)
-  return $template
+  return (Normalize-ProductionSeoLinks $template)
 }
 
 function Render-Header {

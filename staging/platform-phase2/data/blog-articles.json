@@ -606,7 +606,7 @@
     "ctaLabel": "Start My Bathroom Request",
     "ctaHref": "quote-flow-standard.html?service=bathroom-remodeling",
     "links": [
-      { "label": "Bathroom Remodeling in Riverview, FL", "href": "bathroom-remodeling-riverview-fl.html" },
+      { "label": "Bathroom Remodeling in Riverview, FL", "href": "bathroom-remodeling-riverview.html" },
       { "label": "Areas We Serve", "href": "areas-we-serve.html" },
       { "label": "How It Works", "href": "how-it-works.html" },
       { "label": "All Services", "href": "services.html" }
@@ -697,7 +697,7 @@
     "ctaLabel": "Start My Flooring Request",
     "ctaHref": "quote-flow-standard.html?service=flooring",
     "links": [
-      { "label": "Flooring Installation in Riverview, FL", "href": "flooring-installation-riverview-fl.html" },
+      { "label": "Flooring Installation in Riverview, FL", "href": "flooring-installation-riverview.html" },
       { "label": "Flooring Installation in Brandon, FL", "href": "flooring-installation-brandon-fl.html" },
       { "label": "Areas We Serve", "href": "areas-we-serve.html" },
       { "label": "All Services", "href": "services.html" }
@@ -1077,7 +1077,7 @@
     "ctaLabel": "Start My Painting Request",
     "ctaHref": "quote-flow-standard.html?service=painting",
     "links": [
-      { "label": "Painting Services in Riverview, FL", "href": "painting-services-riverview-fl.html" },
+      { "label": "Painting Services in Riverview, FL", "href": "painting-riverview.html" },
       { "label": "Painting Services in Brandon, FL", "href": "painting-services-brandon-fl.html" },
       { "label": "Areas We Serve", "href": "areas-we-serve.html" },
       { "label": "All Services", "href": "services.html" }
@@ -1174,7 +1174,7 @@
     "ctaLabel": "Start My Flooring Request",
     "ctaHref": "quote-flow-standard.html?service=flooring",
     "links": [
-      { "label": "Flooring Installation in Riverview, FL", "href": "flooring-installation-riverview-fl.html" },
+      { "label": "Flooring Installation in Riverview, FL", "href": "flooring-installation-riverview.html" },
       { "label": "Flooring Installation in Brandon, FL", "href": "flooring-installation-brandon-fl.html" },
       { "label": "Areas We Serve", "href": "areas-we-serve.html" },
       { "label": "All Services", "href": "services.html" }
