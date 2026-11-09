@@ -2154,6 +2154,7 @@ $blogIndexSchemas = @(
 Write-GeneratedFile -FileName "blog.html" -Content (Render-BasePage -Title "Home Improvement Tips & Cost Guides | GetEstimateFast" -MetaDescription "Read home improvement tips, cost guides, and planning resources for remodeling, flooring, painting, drywall, and local contractor estimates." -Canonical "$($site.baseUrl)/blog.html" -Robots $robots -Schema $blogIndexSchemas -Body $blogIndexBody)
 
 foreach ($blogArticle in $blogArticles) {
+  $articleMetaTitle = if ($null -ne $blogArticle.PSObject.Properties["metaTitle"] -and $blogArticle.metaTitle) { $blogArticle.metaTitle } else { $blogArticle.title }
   $articleLinksMarkup = (($blogArticle.links | ForEach-Object { "<a class=""service-link is-active"" href=""$($_.href)"">$(Html-Escape $_.label)</a>" }) -join "")
   $articleBody = @"
 $(Render-Header "services.html")
@@ -2230,7 +2231,7 @@ $(Render-Footer)
     (New-FaqSchema $blogArticle.faqs)
   ) -join "`n"
 
-  Write-GeneratedFile -FileName $blogArticle.fileName -Content (Render-BasePage -Title $blogArticle.title -MetaDescription $blogArticle.metaDescription -Canonical "$($site.baseUrl)/$($blogArticle.fileName)" -Robots $robots -Schema $articleSchemas -Body $articleBody)
+  Write-GeneratedFile -FileName $blogArticle.fileName -Content (Render-BasePage -Title $articleMetaTitle -MetaDescription $blogArticle.metaDescription -Canonical "$($site.baseUrl)/$($blogArticle.fileName)" -Robots $robots -Schema $articleSchemas -Body $articleBody)
 }
 
 $thankYouBody = @"
