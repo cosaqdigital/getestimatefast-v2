@@ -20,6 +20,31 @@
   ],
   "redirects": [
     {
+      "source": "/bathroom-remodeling-riverview-fl.html",
+      "destination": "https://www.getestimatefast.com/bathroom-remodeling-riverview.html",
+      "permanent": true
+    },
+    {
+      "source": "/flooring-installation-riverview-fl.html",
+      "destination": "https://www.getestimatefast.com/flooring-installation-riverview.html",
+      "permanent": true
+    },
+    {
+      "source": "/painting-services-riverview-fl.html",
+      "destination": "https://www.getestimatefast.com/painting-riverview.html",
+      "permanent": true
+    },
+    {
+      "source": "/location-kitchen-remodeling-riverview-fl.html",
+      "destination": "https://www.getestimatefast.com/kitchen-remodeling-riverview.html",
+      "permanent": true
+    },
+    {
+      "source": "/service-kitchen-remodeling.html",
+      "destination": "https://www.getestimatefast.com/kitchen-remodeling.html",
+      "permanent": true
+    },
+    {
       "source": "/(.*)",
       "has": [
         {
