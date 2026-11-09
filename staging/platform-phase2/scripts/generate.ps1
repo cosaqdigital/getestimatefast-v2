@@ -110,6 +110,7 @@ function Normalize-ProductionSeoLinks {
   $Html = $Html.Replace("painting-services-riverview-fl.html", "painting-riverview.html")
   $Html = $Html.Replace("location-kitchen-remodeling-riverview-fl.html", "kitchen-remodeling-riverview.html")
   $Html = $Html.Replace("service-kitchen-remodeling.html", "kitchen-remodeling.html")
+  $Html = $Html.Replace('href="index.html"', 'href="/"')
   return $Html
 }
 
