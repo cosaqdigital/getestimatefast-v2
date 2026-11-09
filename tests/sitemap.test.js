@@ -11,7 +11,7 @@ test("sitemap.xml keeps one valid canonical URL block per entry", () => {
   assert.doesNotMatch(xml, /<\/url>\s*<\/url>/, "duplicated closing </url> tags are invalid");
 
   const urls = [...xml.matchAll(/<url>\s*<loc>([^<]+)<\/loc>\s*<lastmod>([^<]+)<\/lastmod>\s*<\/url>/g)];
-  assert.equal(urls.length, 56, "sitemap should contain the 56 canonical URLs");
+  assert.equal(urls.length, 66, "sitemap should contain the 66 canonical URLs");
 
   const locs = urls.map(([, loc]) => loc);
   assert.equal(new Set(locs).size, locs.length, "sitemap URLs must be unique");
@@ -24,4 +24,5 @@ test("sitemap.xml keeps one valid canonical URL block per entry", () => {
   assert.ok(locs.includes("https://www.getestimatefast.com/roofing-contractor-riverview-fl.html"));
   assert.ok(locs.includes("https://www.getestimatefast.com/foundation-repair-riverview-fl.html"));
   assert.ok(locs.includes("https://www.getestimatefast.com/about.html"));
+  assert.ok(locs.includes("https://www.getestimatefast.com/blog-roof-repair-cost-florida.html"));
 });
