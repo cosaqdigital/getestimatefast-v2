@@ -193,10 +193,12 @@ function New-ArticleSchema {
     [string]$Headline,
     [string]$Description,
     [string]$Canonical,
-    [string]$Category
+    [string]$Category,
+    [string]$DatePublished,
+    [string]$DateModified
   )
 
-  return New-JsonLdScript ([pscustomobject]@{
+  $articleSchema = [ordered]@{
       "@context"         = "https://schema.org"
       "@type"            = "Article"
       headline           = $Headline
@@ -209,16 +211,19 @@ function New-ArticleSchema {
       author             = [pscustomobject]@{
         "@type" = "Organization"
         name    = $site.name
-      logo = $site.logoUrl
+        logo    = $site.logoUrl
       }
       publisher          = [pscustomobject]@{
         "@type" = "Organization"
         name    = $site.name
-      logo = $site.logoUrl
+        logo    = $site.logoUrl
         url     = "$($site.baseUrl)/"
       }
       url                = $Canonical
-    })
+    }
+  if ($DatePublished) { $articleSchema.datePublished = $DatePublished }
+  if ($DateModified) { $articleSchema.dateModified = $DateModified }
+  return New-JsonLdScript ([pscustomobject]$articleSchema)
 }
 
 function Render-BasePage {
@@ -2160,6 +2165,7 @@ $blogIndexSchemas = @(
 Write-GeneratedFile -FileName "blog.html" -Content (Render-BasePage -Title "Home Improvement Tips & Cost Guides | GetEstimateFast" -MetaDescription "Read home improvement tips, cost guides, and planning resources for remodeling, flooring, painting, drywall, and local contractor estimates." -Canonical "$($site.baseUrl)/blog.html" -Robots $robots -Schema $blogIndexSchemas -Body $blogIndexBody)
 
 foreach ($blogArticle in $blogArticles) {
+  $articleDateLabel = if ($blogArticle.datePublished) { "Published $($blogArticle.datePublished)" } else { "2026 planning guide" }
   $articleMetaTitle = if ($null -ne $blogArticle.PSObject.Properties["metaTitle"] -and $blogArticle.metaTitle) { $blogArticle.metaTitle } else { $blogArticle.title }
   $articleLinksMarkup = (($blogArticle.links | ForEach-Object { "<a class=""service-link is-active"" href=""$($_.href)"">$(Html-Escape $_.label)</a>" }) -join "")
   $articleBody = @"
@@ -2178,7 +2184,7 @@ $(Render-Header "services.html")
         <p class="lead">$(Html-Escape $blogArticle.lead)</p>
         <div class="article-meta">
           <span>By $(Html-Escape $site.name)</span>
-          <span>2026 planning guide</span>
+          <span>$articleDateLabel</span>
           <span>No obligation to request estimates</span>
         </div>
       </div>
@@ -2228,7 +2234,7 @@ $(Render-Footer)
 
   $articleSchemas = @(
     $organizationSchema
-    (New-ArticleSchema -Headline $blogArticle.h1 -Description $blogArticle.metaDescription -Canonical "$($site.baseUrl)/$($blogArticle.fileName)" -Category $blogArticle.category)
+    (New-ArticleSchema -Headline $blogArticle.h1 -Description $blogArticle.metaDescription -Canonical "$($site.baseUrl)/$($blogArticle.fileName)" -Category $blogArticle.category -DatePublished $blogArticle.datePublished -DateModified $blogArticle.dateModified)
     (New-BreadcrumbSchema @(
       @{ name = "Home"; url = "$($site.baseUrl)/" },
       @{ name = "Blog"; url = "$($site.baseUrl)/blog.html" },
