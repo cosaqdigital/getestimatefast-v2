@@ -1053,7 +1053,27 @@ $(Render-HomeHeader)
           <h2>High-demand services for Riverview and Hillsborough County</h2>
           <p>Explore local landing pages built for homeowners comparing service options in Riverview, Brandon, Valrico, Gibsonton, Apollo Beach, and nearby Tampa Bay areas.</p>
         </div>
-        <div class="cards home-cards"><a class="card" href="hvac-contractor-riverview-fl.html" data-track="home-link" data-cta="riverview-local-service-card">
+        <div class="cards home-cards"><a class="card" href="roofing-contractor-riverview-fl.html" data-track="home-link" data-cta="riverview-local-service-card">
+  <img src="assets/images/standard-service.svg" alt="Roofing Contractor in Riverview service image">
+  <h3>Roofing Contractor in Riverview, FL</h3>
+  <p>Roof repair, replacement, inspections, storm damage, leaks, and shingle-related roofing needs.</p>
+  <span class="btn btn-primary">View local page</span>
+</a><a class="card" href="ac-repair-riverview-fl.html" data-track="home-link" data-cta="riverview-local-service-card">
+  <img src="assets/images/standard-service.svg" alt="AC Repair in Riverview service image">
+  <h3>AC Repair in Riverview, FL</h3>
+  <p>Cooling failures, urgent AC issues, diagnostics, maintenance, and replacement-related needs.</p>
+  <span class="btn btn-primary">View local page</span>
+</a><a class="card" href="plumber-riverview-fl.html" data-track="home-link" data-cta="riverview-local-service-card">
+  <img src="assets/images/standard-service.svg" alt="Plumber in Riverview service image">
+  <h3>Plumber in Riverview, FL</h3>
+  <p>Leaks, drains, water heaters, overflows, fixtures, and general plumbing repair requests.</p>
+  <span class="btn btn-primary">View local page</span>
+</a><a class="card" href="electrician-riverview-fl.html" data-track="home-link" data-cta="riverview-local-service-card">
+  <img src="assets/images/standard-service.svg" alt="Electrician in Riverview service image">
+  <h3>Electrician in Riverview, FL</h3>
+  <p>Electrical repairs, panel upgrades, outlets, lighting, EV chargers, and troubleshooting.</p>
+  <span class="btn btn-primary">View local page</span>
+</a><a class="card" href="hvac-contractor-riverview-fl.html" data-track="home-link" data-cta="riverview-local-service-card">
   <img src="assets/images/standard-service.svg" alt="HVAC Contractor in Riverview service image">
   <h3>HVAC Contractor in Riverview, FL</h3>
   <p>Cooling, replacement, maintenance, ductwork, and indoor comfort help for Riverview-area properties.</p>
@@ -1844,6 +1864,10 @@ $(Render-Header "services.html")
         <p>These local pages highlight common project types Riverview homeowners often research before requesting estimates.</p>
       </div>
       <div class="service-links">
+        <a class="service-link is-active" href="roofing-contractor-riverview-fl.html">Roofing Contractor in Riverview, FL</a>
+        <a class="service-link is-active" href="ac-repair-riverview-fl.html">AC Repair in Riverview, FL</a>
+        <a class="service-link is-active" href="plumber-riverview-fl.html">Plumber in Riverview, FL</a>
+        <a class="service-link is-active" href="electrician-riverview-fl.html">Electrician in Riverview, FL</a>
         <a class="service-link is-active" href="hvac-contractor-riverview-fl.html">HVAC Contractor in Riverview, FL</a>
         <a class="service-link is-active" href="general-contractor-riverview-fl.html">General Contractor in Riverview, FL</a>
         <a class="service-link is-active" href="foundation-repair-riverview-fl.html">Foundation Repair in Riverview, FL</a>
