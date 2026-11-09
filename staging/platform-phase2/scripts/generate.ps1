@@ -182,6 +182,7 @@ function New-WebPageSchema {
       publisher     = [pscustomobject]@{
         "@type" = "Organization"
         name    = $site.name
+      logo = $site.logoUrl
         url     = "$($site.baseUrl)/"
       }
     })
@@ -208,10 +209,12 @@ function New-ArticleSchema {
       author             = [pscustomobject]@{
         "@type" = "Organization"
         name    = $site.name
+      logo = $site.logoUrl
       }
       publisher          = [pscustomobject]@{
         "@type" = "Organization"
         name    = $site.name
+      logo = $site.logoUrl
         url     = "$($site.baseUrl)/"
       }
       url                = $Canonical
@@ -506,6 +509,7 @@ function New-OrganizationSchema {
       "@context" = "https://schema.org"
       "@type" = "Organization"
       name = $site.name
+      logo = $site.logoUrl
       url = "$($site.baseUrl)/"
       description = $site.websiteDescription
       areaServed = $site.region
@@ -556,6 +560,7 @@ function New-ServiceSchema {
     provider = [pscustomobject]@{
       "@type" = "Organization"
       name = $site.name
+      logo = $site.logoUrl
       url = "$($site.baseUrl)/"
     }
     url = $Canonical

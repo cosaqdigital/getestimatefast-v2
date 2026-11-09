@@ -1,6 +1,7 @@
 {
   "name": "GetEstimateFast",
   "baseUrl": "https://www.getestimatefast.com",
+  "logoUrl": "https://www.getestimatefast.com/assets/brand/getestimatefast-icon-128.png",
   "email": "getestimatefast@gmail.com",
   "phoneDisplay": "(813) 591-7560",
   "phoneHref": "+18135917560",
