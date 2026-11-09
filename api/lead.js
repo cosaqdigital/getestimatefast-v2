@@ -1,3 +1,5 @@
+const crypto = require("node:crypto");
+const { isIP } = require("node:net");
 const LAUNCH_CATALOG = require("../assets/launch-categories");
 const { DEVELOPMENT_REF, protectedPreview } = require("./_lib/preview-target");
 const { MAX_PHOTO_COUNT, parsePhotoPaths } = require("./_lib/lead-photo-storage");
@@ -59,12 +61,16 @@ module.exports = async function handler(req, res) {
     // An existing token must be verified in the database before this succeeds.
     if (record.duplicate) return redirectToThankYou(res);
     const savedLeadId = record.id;
+    // Only a newly persisted lead represents a conversion. Share this ID with
+    // the browser; retries verified as duplicates never create another event.
+    const metaEventId = crypto.randomUUID();
+    await sendMetaLeadEvent(req, fields, metaEventId);
 
     // Email is a secondary notification. A lead that is safely stored must never
     // become an apparent failed request if Resend is unavailable.
     if (!process.env.RESEND_API_KEY || !process.env.LEAD_TO_EMAIL) {
       console.error("GetEstimateFast lead notification not configured after persistence.");
-      return redirectToThankYou(res);
+      return redirectToThankYou(res, metaEventId);
     }
 
     const subject = buildSubject(fields);
@@ -100,7 +106,7 @@ module.exports = async function handler(req, res) {
     } catch {
       console.error("GetEstimateFast notification transport failed after lead storage.");
     }
-    return redirectToThankYou(res);
+    return redirectToThankYou(res, metaEventId);
   } catch (error) {
     // Keep personal details, customer files and provider credentials out of server logs.
     console.error("GetEstimateFast request processing failed:", error?.name || "unknown");
@@ -377,10 +383,80 @@ function renderLeadText(subject, fields, attachments) {
   return lines.join("\n");
 }
 
-function redirectToThankYou(res) {
+async function sendMetaLeadEvent(req, fields, eventId) {
+  // Keep credentials server-only and never send them to an arbitrary dataset.
+  const datasetId = process.env.META_DATASET_ID;
+  const accessToken = process.env.META_CAPI_ACCESS_TOKEN;
+  if (!datasetId || !accessToken) return;
+  if (datasetId !== "1444720010946620") {
+    console.error("GetEstimateFast Meta CAPI skipped: unexpected dataset.");
+    return;
+  }
+  try {
+    const hash = (value) => crypto.createHash("sha256").update(value).digest("hex");
+    const text = (value) => String(value || "").toLowerCase().normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "");
+    const userData = { country: [hash("us")] };
+    const addHash = (key, value) => { if (value) userData[key] = [hash(value)]; };
+    addHash("em", firstValue(fields["Email Address"]).toLowerCase());
+    let phone = firstValue(fields["Phone Number"]).replace(/\D/g, "");
+    if (phone.length === 10) phone = "1" + phone;
+    if (/^1\d{10}$/.test(phone)) addHash("ph", phone);
+    const names = firstValue(fields["Full Name"]).split(/\s+/);
+    addHash("fn", text(names[0]));
+    addHash("ln", text(names.slice(1).join(" ")));
+    addHash("ct", text(firstValue(fields["City"])));
+    addHash("zp", firstValue(fields["ZIP Code"]).replace(/\D/g, ""));
+
+    const headers = req.headers || {};
+    const ip = String(headers["x-vercel-forwarded-for"] || headers["x-forwarded-for"] || req.socket?.remoteAddress || "")
+      .split(",")[0].trim();
+    if (isIP(ip)) userData.client_ip_address = ip;
+    const agent = String(headers["user-agent"] || "");
+    if (agent && agent.length <= 512 && !/[\r\n]/.test(agent)) userData.client_user_agent = agent;
+    // Accept only the two attribution cookies, in Meta's documented formats.
+    for (const part of String(headers.cookie || "").split(";")) {
+      const match = part.trim().match(/^_(fbp|fbc)=(.+)$/);
+      if (!match || match[2].length > 512) continue;
+      const pattern = match[1] === "fbp" ? /^fb\.[0-2]\.\d{13}\.\d+$/ : /^fb\.[0-2]\.\d{13}\.[A-Za-z0-9_-]+$/;
+      if (pattern.test(match[2])) userData[match[1]] = match[2];
+    }
+
+    // Do not forward query strings, fragments, credentials or external referrers.
+    let sourceUrl = "https://www.getestimatefast.com/";
+    try {
+      const referrer = new URL(String(headers.referer || ""));
+      if (["https://www.getestimatefast.com", "https://getestimatefast.com"].includes(referrer.origin)
+          && !referrer.username && !referrer.password
+          && /^\/(?:[a-z0-9-]+\.html)?$/.test(referrer.pathname)) {
+        sourceUrl = referrer.origin + referrer.pathname;
+      }
+    } catch { /* Use the canonical source without user-supplied parameters. */ }
+    const payload = { data: [{
+      event_name: "Lead", event_time: Math.floor(Date.now() / 1000), event_id: eventId,
+      action_source: "website", event_source_url: sourceUrl, user_data: userData
+    }] };
+    const testCode = process.env.META_TEST_EVENT_CODE?.trim();
+    if (testCode) payload.test_event_code = testCode;
+    const response = await fetch(`https://graph.facebook.com/v24.0/${datasetId}/events`, {
+      method: "POST", redirect: "error", signal: AbortSignal.timeout(2000),
+      headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    // Response bodies and exception messages may include secrets or personal data.
+    if (!response.ok) console.error("GetEstimateFast Meta CAPI failed after lead storage:", { httpStatus: response.status });
+    response.body?.cancel().catch(() => {});
+  } catch {
+    console.error("GetEstimateFast Meta CAPI transport failed after lead storage.");
+  }
+}
+
+function redirectToThankYou(res, eventId = "") {
   res.statusCode = 303;
+  res.setHeader("Cache-Control", "no-store");
   // Keep Preview on the same deployment for a verifiable test.
-  res.setHeader("Location", process.env.VERCEL_ENV === "preview" ? "/thank-you.html" : THANK_YOU_URL);
+  const destination = process.env.VERCEL_ENV === "preview" ? "/thank-you.html" : THANK_YOU_URL;
+  res.setHeader("Location", destination + (eventId ? "?gef_event_id=" + encodeURIComponent(eventId) : ""));
   res.end();
 }
 
