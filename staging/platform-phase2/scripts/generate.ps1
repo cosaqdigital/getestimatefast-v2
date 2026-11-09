@@ -1409,6 +1409,18 @@ $(Render-Header "services.html")
       $(if ($categoryPlannedLabels.Count -gt 0) { "<p class=""group-note"" style=""margin-top:16px;"">Also commonly requested: " + (($categoryPlannedLabels | ForEach-Object { Html-Escape $_ }) -join ", ") + ".</p>" } else { "" })
     </div>
 
+    <div class="panel" style="margin-top:18px;" data-seo-cluster="riverview-remodeling">
+      <div class="section-head">
+        <h2>Popular remodeling pages in Riverview, FL</h2>
+        <p>Explore local pages for larger contractor-led projects and common kitchen or bathroom renovations.</p>
+      </div>
+      <div class="service-links">
+        <a class="service-link is-active" href="general-contractor-riverview-fl.html">General Contractor in Riverview, FL</a>
+        <a class="service-link is-active" href="kitchen-remodeling-riverview.html">Kitchen Remodeling in Riverview, FL</a>
+        <a class="service-link is-active" href="bathroom-remodeling-riverview.html">Bathroom Remodeling in Riverview, FL</a>
+      </div>
+    </div>
+
     <div class="panel" style="margin-top:18px;">
       <div class="section-head">
         <h2>How to choose the best starting point</h2>
