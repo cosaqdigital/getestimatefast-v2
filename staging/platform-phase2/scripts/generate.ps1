@@ -221,8 +221,8 @@ function New-ArticleSchema {
       }
       url                = $Canonical
     }
-  if ($DatePublished) { $articleSchema.datePublished = $DatePublished }
-  if ($DateModified) { $articleSchema.dateModified = $DateModified }
+  if ($DatePublished) { $articleSchema["datePublished"] = $DatePublished }
+  if ($DateModified) { $articleSchema["dateModified"] = $DateModified }
   return New-JsonLdScript ([pscustomobject]$articleSchema)
 }
 
